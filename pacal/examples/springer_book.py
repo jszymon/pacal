@@ -445,30 +445,49 @@ from pacal.distr import demo_distr
 #       d = (ExponentialDistr(l) + ExponentialDistr(l)) / (ExponentialDistr(l) + ExponentialDistr(l))
 #       figure()
 #       demo_distr(d, xmax = 10)
-   
-#!
-#! Ex. 4.18
-#!
-def theor_beta_prod(alpha, n, x):
-    norm = float((alpha + 1) ** n)
-    for i in xrange(1, n):
-        norm /= i
-    return norm * x ** alpha * log(1.0 / x) ** (n - 1)
-for alpha in [0.2, 1, 2, 4]:
-    for n in [2, 3, 5]:
-        d = BetaDistr(alpha + 1, 1)
-        for i in xrange(n - 1):
-            d *= BetaDistr(alpha + 1, 1)
-        figure()
-        demo_distr(d, theoretical = partial(theor_beta_prod, alpha, n))
+#      
+#   #!
+#   #! Ex. 4.18
+#   #!
+#   def theor_beta_prod(alpha, n, x):
+#       norm = float((alpha + 1) ** n)
+#       for i in xrange(1, n):
+#           norm /= i
+#       return norm * x ** alpha * log(1.0 / x) ** (n - 1)
+#   for alpha in [0.2, 1, 2, 4]:
+#       for n in [2, 3, 5]:
+#           d = BetaDistr(alpha + 1, 1)
+#           for i in xrange(n - 1):
+#               d *= BetaDistr(alpha + 1, 1)
+#           figure()
+#           demo_distr(d, theoretical = partial(theor_beta_prod, alpha, n))
+#   
+#   #!
+#   #! Ex. 4.19
+#   #!
+#   def theor_quot_power(alpha, x):
+#       return (x > 0) * (x <= 1) * (alpha + 1.0) / 2 * x**alpha + (x > 1) * (alpha + 1.0) / 2 * x**(-alpha-2)
+#   for alpha in [0.1, 1, 10]:
+#       figure()
+#       demo_distr(BetaDistr(alpha + 1, 1) / BetaDistr(alpha + 1, 1), theoretical = partial(theor_quot_power, alpha))
 
 #!
-#! Ex. 4.19
+#! Ex. 4.20
 #!
-def theor_quot_power(alpha, x):
-    return (x > 0) * (x <= 1) * (alpha + 1.0) / 2 * x**alpha + (x > 1) * (alpha + 1.0) / 2 * x**(-alpha-2)
-for alpha in [0.1, 1, 10]:
+def theor_quot_power2(a, b, m_plus_1, x):
+    m = m_plus_1 - 1
+    Ay = m_plus_1**2*x**m / ((b1*b2)**m_plus_1)
+for a1, b1, a2, b2, m in [(1.1, 4, 1, 3, 1)]:
+    assert a1 >= 0 and a2 >= 0
+    assert b1 > b2 > a1 > a2
+    assert b1*b2 > b1*a2 > b2*a1 > a1*a2
+    m += 1
+    d1 =  FunDistr(lambda x: (m+1)*x / (b1**m_plus_1 - a1**m_plus_1), breakPoints=[a1, b1])
     figure()
-    demo_distr(BetaDistr(alpha + 1, 1) / BetaDistr(alpha + 1, 1), theoretical = partial(theor_quot_power, alpha))
+    print d1.summary()
+    d1.plot()
+    #demo_distr(BetaDistr(alpha + 1, 1) / BetaDistr(alpha + 1, 1), theoretical = partial(theor_quot_power, alpha))
+
+
 
 show()
