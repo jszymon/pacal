@@ -876,6 +876,8 @@ class PiecewiseFunction(object):
                     self.addSegment(SegmentWithPole(self.breaks[0], self.breaks[1], fun, left_pole = False));
                 else:
                     assert(False) #  no segment of such type 
+            if len(breakPoints)==2:
+                return
             for i in range(1, len(breakPoints)-2):
                 #self.addSegment(Segment(self.breaks[i],self.breaks[i+1], fun));
                 if self.lpoles[i] == False and self.rpoles[i+1] == False:
