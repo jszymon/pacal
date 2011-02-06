@@ -1062,8 +1062,8 @@ class PiecewiseFunction(object):
         return cpf.inverse(1-level)-cpf.inverse(level) 
     
     def summary(self):
-        r = {};
-        if params.segments.summary.identify == True:
+        r = {}
+        if params.segments.summary.identify is True:
             from mpmath import identify
             r['mean'] = identify(self.mean())
             r['std'] = identify(self.std())

@@ -478,22 +478,17 @@ def theor_quot_power2(a1, b1, a2, b2, m_plus_1, x):
     m = m_plus_1 - 1
     Ax = m_plus_1**2*x**m / ((b1*b2)**m_plus_1 - (b1*a2)**m_plus_1 - (b2*a1)**m_plus_1 + (a1*a2)**m_plus_1)
     y = ((b1*a2 <= x) * (x <= b1*b2) * (-Ax) * log(x/b1/b2) +
-         (a1*b2 <= x) * (x <= b1*a2) * Ax * (-log(x/b1/b2)+log(x/b1/a2)) +
-         (a1*a2 <= x) * (x <= a1*b2) * Ax * (-log(x/b1/b2)+log(x/b1/a2) + log(x/a1/b2))
+         (a1*b2 <= x) * (x < b1*a2) * Ax * (-log(x/b1/b2)+log(x/b1/a2)) +
+         (a1*a2 <= x) * (x < a1*b2) * Ax * (-log(x/b1/b2)+log(x/b1/a2) + log(x/a1/b2))
          )
     return y
-for a1, b1, a2, b2, m in [(1.1, 4, 1, 3, 1)]:
+for a1, b1, a2, b2, m in [(1.1, 4, 1, 3, 1),
+                          (1.1, 45, 0.9, 5, 1)]:
     assert a1 >= 0 and a2 >= 0
     assert b1 > b2 > a1 > a2
     assert b1*b2 > b1*a2 > b2*a1 > a1*a2
-    m += 1
     d1 =  FunDistr(lambda x: (m+1)*x / (b1**(m+1) - a1**(m+1)), breakPoints=[a1, b1])
     d2 =  FunDistr(lambda x: (m+1)*x / (b2**(m+1) - a2**(m+1)), breakPoints=[a2, b2])
-    figure()
-    print d1.summary()
-    d1.plot()
-    print d2.summary()
-    d2.plot()
     figure()
     demo_distr(d1 * d2, theoretical = partial(theor_quot_power2, a1, b1, a2, b2, m+1))
 
