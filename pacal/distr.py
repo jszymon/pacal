@@ -773,4 +773,4 @@ def demo_distr(d,
         if theoretical:
             print "max. abs. error", maxabserr
             print "max. rel. error", maxrelerr
-    show()
+    #show()

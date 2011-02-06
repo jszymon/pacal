@@ -470,28 +470,45 @@ from pacal.distr import demo_distr
 #   for alpha in [0.1, 1, 10]:
 #       figure()
 #       demo_distr(BetaDistr(alpha + 1, 1) / BetaDistr(alpha + 1, 1), theoretical = partial(theor_quot_power, alpha))
-
+#   
+#   #!
+#   #! Ex. 4.20
+#   #!
+#   def theor_quot_power2(a1, b1, a2, b2, m_plus_1, x):
+#       m = m_plus_1 - 1
+#       Ax = m_plus_1**2*x**m / ((b1*b2)**m_plus_1 - (b1*a2)**m_plus_1 - (b2*a1)**m_plus_1 + (a1*a2)**m_plus_1)
+#       y = ((b1*a2 <= x) * (x <= b1*b2) * (-Ax) * log(x/b1/b2) +
+#            (a1*b2 <= x) * (x < b1*a2) * Ax * (-log(x/b1/b2)+log(x/b1/a2)) +
+#            (a1*a2 <= x) * (x < a1*b2) * Ax * (-log(x/b1/b2)+log(x/b1/a2) + log(x/a1/b2))
+#            )
+#       return y
+#   for a1, b1, a2, b2, m in [(1.1, 4, 1, 3, 1),
+#                             (1.1, 45, 0.9, 5, 1)]:
+#       assert a1 >= 0 and a2 >= 0
+#       assert b1 > b2 > a1 > a2
+#       assert b1*b2 > b1*a2 > b2*a1 > a1*a2
+#       d1 =  FunDistr(lambda x: (m+1)*x / (b1**(m+1) - a1**(m+1)), breakPoints=[a1, b1])
+#       d2 =  FunDistr(lambda x: (m+1)*x / (b2**(m+1) - a2**(m+1)), breakPoints=[a2, b2])
+#       figure()
+#       demo_distr(d1 * d2, theoretical = partial(theor_quot_power2, a1, b1, a2, b2, m+1))
+   
 #!
-#! Ex. 4.20
+#! Ex. 4.24
 #!
-def theor_quot_power2(a1, b1, a2, b2, m_plus_1, x):
-    m = m_plus_1 - 1
-    Ax = m_plus_1**2*x**m / ((b1*b2)**m_plus_1 - (b1*a2)**m_plus_1 - (b2*a1)**m_plus_1 + (a1*a2)**m_plus_1)
-    y = ((b1*a2 <= x) * (x <= b1*b2) * (-Ax) * log(x/b1/b2) +
-         (a1*b2 <= x) * (x < b1*a2) * Ax * (-log(x/b1/b2)+log(x/b1/a2)) +
-         (a1*a2 <= x) * (x < a1*b2) * Ax * (-log(x/b1/b2)+log(x/b1/a2) + log(x/a1/b2))
-         )
-    return y
-for a1, b1, a2, b2, m in [(1.1, 4, 1, 3, 1),
-                          (1.1, 45, 0.9, 5, 1)]:
-    assert a1 >= 0 and a2 >= 0
-    assert b1 > b2 > a1 > a2
-    assert b1*b2 > b1*a2 > b2*a1 > a1*a2
-    d1 =  FunDistr(lambda x: (m+1)*x / (b1**(m+1) - a1**(m+1)), breakPoints=[a1, b1])
-    d2 =  FunDistr(lambda x: (m+1)*x / (b2**(m+1) - a2**(m+1)), breakPoints=[a2, b2])
+try:
+    from scipy.special import exp1
+    have_exp1 = True
+    def theor_prod_uni_norm(a, sigma, x):
+        return 0.5/sqrt(2*numpy.pi) * exp1(0.5 * (x/(a*sigma))**2)
+except ImportError:
+    have_exp1 = False
+    
+for a, sigma in [(1,1), (10,0.1), (0.1,10)]:
+    d = UniformDistr(-a, a) * NormalDistr(0, sigma)
     figure()
-    demo_distr(d1 * d2, theoretical = partial(theor_quot_power2, a1, b1, a2, b2, m+1))
-
-
+    if have_exp1:
+        demo_distr(d, theoretical = partial(theor_prod_uni_norm, a, sigma))
+    else:
+        demo_distr(d)
 
 show()
