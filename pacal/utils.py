@@ -285,6 +285,16 @@ try:
 except:
     from gamma import lgamma
 
+def binomial_coeff(n, k):
+    if k > n - k: # take advantage of symmetry
+        k = n - k
+    c = 1
+    for i in xrange(k):
+        c = c * (n - i)
+        c = c / (i + 1)
+    return c
+
+
 
 if __name__ == "__main__":
     

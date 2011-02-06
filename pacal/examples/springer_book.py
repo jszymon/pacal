@@ -491,24 +491,130 @@ from pacal.distr import demo_distr
 #       d2 =  FunDistr(lambda x: (m+1)*x / (b2**(m+1) - a2**(m+1)), breakPoints=[a2, b2])
 #       figure()
 #       demo_distr(d1 * d2, theoretical = partial(theor_quot_power2, a1, b1, a2, b2, m+1))
-   
+#   
+#   #!
+#   #! Ex. 4.24
+#   #!
+#   try:
+#       from scipy.special import exp1
+#       have_exp1 = True
+#       def theor_prod_uni_norm(a, sigma, x):
+#           return 0.5/sqrt(2*numpy.pi) * exp1(0.5 * (x/(a*sigma))**2)
+#   except ImportError:
+#       have_exp1 = False
+#       
+#   for a, sigma in [(1,1), (10,0.1), (0.1,10)]:
+#       d = UniformDistr(-a, a) * NormalDistr(0, sigma)
+#       figure()
+#       if have_exp1:
+#           demo_distr(d, theoretical = partial(theor_prod_uni_norm, a, sigma))
+#       else:
+#           demo_distr(d)
+#   
+#   #!
+#   #! Ex. 4.25
+#   #!
+#   from pacal.utils import lgamma
+#   def theor_quot_gamma(b1, b2, x):
+#       lnorm = lgamma(b1 + b2) - lgamma(b1) - lgamma(b2)
+#       return x**(b1-1)*(1+x)**(-b1-b2)*exp(lnorm)
+#   for b1, b2 in [(1,1), (2, 7), (3, 3)]:
+#       d = GammaDistr(b1, 1) / GammaDistr(b2, 1)
+#       figure()
+#       demo_distr(d, xmin = 0, xmax = 10, theoretical = partial(theor_quot_gamma, b1, b2))
+#   
+#   #!
+#   #! Ex. 4.26
+#   #!
+#   def theor_quot_triang(x):
+#       y = ((x <= 0.5) * x * 7.0/6
+#            + (x > 0.5)*(x<=1)*(8.0/3 -1.5*x -2.0/(3*x**2) +1.0/(6*x**3))
+#            + (x > 1)*(x<=2)  *(-2.0/3 +x/6.0 +8.0/(3*x**2) -3.0/(2*x**3))
+#            + (x > 2) * 7.0/(6*x**3))
+#       return y
+#   T = UniformDistr(0,1) + UniformDistr(0,1)
+#   V = T / T
+#   demo_distr(V, theoretical = theor_quot_triang)
+#   
+#   #!
+#   #! Ex. 4.27
+#   #!
+#   # implemented elsewhere
+
 #!
-#! Ex. 4.24
+#! Ex. 4.28
 #!
-try:
-    from scipy.special import exp1
-    have_exp1 = True
-    def theor_prod_uni_norm(a, sigma, x):
-        return 0.5/sqrt(2*numpy.pi) * exp1(0.5 * (x/(a*sigma))**2)
-except ImportError:
-    have_exp1 = False
-    
-for a, sigma in [(1,1), (10,0.1), (0.1,10)]:
-    d = UniformDistr(-a, a) * NormalDistr(0, sigma)
+
+
+#!
+#! Ex. 4.29
+#!
+for A, B, q, p in [#(1, 1, 3, 7),
+                   (1, 1, 0.5, 5),
+                   ]:
+    assert A > 0
+    assert B > 0
+    assert q < p
+    u = GammaDistr(p, 1)
+    v = BetaDistr(q, p-q)
+    # part a)
     figure()
-    if have_exp1:
-        demo_distr(d, theoretical = partial(theor_prod_uni_norm, a, sigma))
-    else:
-        demo_distr(d)
+    d = u*v
+    demo_distr(d, theoretical = GammaDistr(q, 1))
+    # part b)
+    if q == 0.5:
+        figure()
+        demo_distr(sqrt(2*d))
+        figure()
+        demo_distr(sqrt(2*d), theoretical = abs(NormalDistr(0, 1)))
+    print NormalDistr()(0)
+# part c)
+figure()
+d = GammaDistr(2, 1) * UniformDistr(0, 1)
+demo_distr(d, theoretical = ExponentialDistr(1))
+
+#!
+#! Ex. 4.30
+#!
+
+
+
+#   #!
+#   #! Ex. 4.31
+#   #!
+#   from pacal.utils import binomial_coeff
+#   for n, m in [(2,2), (5,7)]:
+#       N = UniformDistr(0,1)
+#       for i in xrange(n-1):
+#           N += UniformDistr(0,1)
+#       D = UniformDistr(0,1)
+#       for i in xrange(m-1):
+#           D += UniformDistr(0,1)
+#       d = N/D
+#       figure()
+#       demo_distr(d, xmax = 10)
+#   
+#       a = 0.9
+#       nmfact = 1
+#       for i in xrange(2, n+m+1):
+#           nmfact *= i
+#       nrm = a**m * nmfact
+#       s = 0
+#       for i in xrange(int(numpy.floor(m*a)+1)):
+#           for j in xrange(int(numpy.floor((m*a-i)/a)+1)):
+#               s += (-1)**(i+j) * binomial_coeff(n, i) * binomial_coeff(m, j) * ((m-j)*a-i)**(n+m)
+#       cdf_formula = s / nrm
+#       cdf_pacal = d.cdf(a)[0]
+#       print "n={0},m={1}  cdf({2})={3}, err = {4}".format(n, m, a, cdf_pacal, abs(cdf_pacal - cdf_formula))
+#   
+#   #!
+#   #! Ex. 4.32
+#   #!
+#   for l1, l2 in [(1,1), (10,1), (1,10)]:
+#       d = ExponentialDistr(l1) / ExponentialDistr(l2)
+#       figure()
+#       alpha = float(l2) / l1
+#       demo_distr(d, xmax = 10, theoretical = lambda x: alpha / (x+alpha)**2)
+
 
 show()
