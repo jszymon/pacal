@@ -544,34 +544,57 @@ from pacal.distr import demo_distr
 #!
 #! Ex. 4.28
 #!
-
-
-#!
-#! Ex. 4.29
-#!
-for A, B, q, p in [#(1, 1, 3, 7),
-                   (1, 1, 0.5, 5),
-                   ]:
-    assert A > 0
-    assert B > 0
-    assert q < p
-    u = GammaDistr(p, 1)
-    v = BetaDistr(q, p-q)
-    # part a)
+def norm_ratio_pdf(mu1, sigma1, mu2, sigma2, rho, x):
+    a = sqrt((x/sigma1)**2 - 2*rho*x/(sigma1*sigma2) + 1.0/sigma2**2)
+    b = mu1*x/sigma1**2 - rho*(mu1 + mu2*x)/(sigma1*sigma2) + mu2/sigma2**2
+    c = mu1**2/sigma1**2 - 2*rho*mu1*mu2/(sigma1*sigma2) + mu2**2/sigma2**2
+    d = exp((b**2 - c*a**2) / (2*(1-rho**2)*a**2))
+    try:
+        from scipy.stats.distributions import norm
+        def norm_cdf(z):
+            return norm.cdf(z)
+    except:
+        N = NormalDistr()
+        def norm_cdf(z):
+            return N.cdf(z)
+    # WARNING: bug in Springer's book in the next line
+    y =  b*d/(sqrt(2*numpy.pi)*sigma1*sigma2*a**3) * (norm_cdf(b/(sqrt(1-rho**2)*a)) - norm_cdf(-b/(sqrt(1-rho**2)*a)))
+    y += sqrt(1-rho**2)/(numpy.pi*sigma1*sigma2*a**2) * exp(-c/(2*(1-rho**2)))
+    return y
+for mu1, sigma1, mu2, sigma2, rho in [(0.0,1.0,0.0,1.0,0.0),
+                                      (0.1,1.0,0.1,1.0,0.0),
+                                      (1.0,1.0,1.0,1.0,0),
+                                      (5.0,1.0,5.0,1.0,0.0),
+                                      (50.0,1.0,50.0,1.0,0.0),
+                                      (2.0,1.0,-50.0,2.0,0.0),
+                                      ]:
+    d = NormalDistr(mu1, sigma1) / NormalDistr(mu2, sigma2)
     figure()
-    d = u*v
-    demo_distr(d, theoretical = GammaDistr(q, 1))
-    # part b)
-    if q == 0.5:
-        figure()
-        demo_distr(sqrt(2*d))
-        figure()
-        demo_distr(sqrt(2*d), theoretical = abs(NormalDistr(0, 1)))
-    print NormalDistr()(0)
-# part c)
-figure()
-d = GammaDistr(2, 1) * UniformDistr(0, 1)
-demo_distr(d, theoretical = ExponentialDistr(1))
+    demo_distr(d, theoretical = partial(norm_ratio_pdf, mu1, sigma1, mu2, sigma2, rho))
+
+#   #!
+#   #! Ex. 4.29
+#   #!
+#   for A, B, q, p in [(1, 1, 3, 7),
+#                      (1, 1, 0.5, 5),
+#                      ]:
+#       assert A > 0
+#       assert B > 0
+#       assert q < p
+#       u = GammaDistr(p, 1)
+#       v = BetaDistr(q, p-q)
+#       # part a)
+#       figure()
+#       d = u*v
+#       demo_distr(d, theoretical = GammaDistr(q, 1))
+#       # part b)
+#       if q == 0.5:
+#           figure()
+#           demo_distr(sqrt(2*d), theoretical = abs(NormalDistr(0, 1)))
+#   # part c)
+#   figure()
+#   d = GammaDistr(2, 1) * UniformDistr(0, 1)
+#   demo_distr(d, theoretical = ExponentialDistr(1))
 
 #!
 #! Ex. 4.30
