@@ -1063,7 +1063,7 @@ class PiecewiseFunction(object):
     
     def summary(self):
         r = {}
-        if params.segments.summary.identify is True:
+        if params.segments.summary.identify == True:
             from mpmath import identify
             r['mean'] = identify(self.mean())
             r['std'] = identify(self.std())

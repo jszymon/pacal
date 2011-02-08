@@ -82,50 +82,48 @@ from pacal.distr import demo_distr
 #   for i in xrange(9):
 #       c += CauchyDistr()
 #   demo_distr(c, theoretical = CauchyDistr(gamma = 10, center = 1))
-#   
-#   #! Ex. 3.12
-#   #! Exact formula for sum of 'N' uniform random variables
-#   #!
-#   #! 'warning': this formula is very inaccurate!
-#   #! much worse than our results!
-#   from numpy import ceil, isscalar, zeros_like, asfarray
-#   def uniform_sum_pdf(n, xx):
-#       if isscalar(xx):
-#           xx = asfarray(xx)
-#       y = zeros_like(asfarray(xx))
-#       for j, x in enumerate(xx):
-#           r = int(ceil(x))
-#           if r <= 0 or r > n:
-#               y[j] = 0
-#           else:
-#               nck = 1
-#               pdf = 0.0
-#               for k in xrange(r):
-#                   pdf += (-1)**k * nck * (x-k)**(n-1)
-#                   nck *= n - k
-#                   nck /= k + 1
-#               for i in xrange(2, n):
-#                   pdf /= i
-#               y[j] = pdf
-#       return y
-#   #!
-#   #!
-#   u = UniformDistr(0,1) + UniformDistr(0,1)
-#   figure()
-#   demo_distr(u, theoretical = partial(uniform_sum_pdf, 2))
-#   for i in xrange(2):
-#       u += UniformDistr(0,1)
-#   figure()
-#   demo_distr(u, theoretical = partial(uniform_sum_pdf, 3+i))
-#   
-#   u = UniformDistr(0,1)
-#   for i in xrange(10):
-#       u += UniformDistr(0,1)
-#   figure()
-#   demo_distr(u, theoretical = partial(uniform_sum_pdf, 1+i))
-#   #demo_distr(u, err_plot = False)
-#   #figure()
-#   #demo_distr(u)
+   
+#! Ex. 3.12
+#! Exact formula for sum of 'N' uniform random variables
+#!
+#! 'warning': this formula is very inaccurate for large n!
+#! much worse than our results!
+from numpy import ceil, isscalar, zeros_like, asfarray
+def uniform_sum_pdf(n, xx):
+    if isscalar(xx):
+        xx = asfarray(xx)
+    y = zeros_like(asfarray(xx))
+    for j, x in enumerate(xx):
+        r = int(ceil(x))
+        if r <= 0 or r > n:
+            y[j] = 0
+        else:
+            nck = 1
+            pdf = 0.0
+            for k in xrange(r):
+                pdf += (-1)**k * nck * (x-k)**(n-1)
+                nck *= n - k
+                nck /= k + 1
+            for i in xrange(2, n):
+                pdf /= i
+            y[j] = pdf
+    return y
+#!
+#!
+u = UniformDistr(0,1) + UniformDistr(0,1)
+figure()
+demo_distr(u, theoretical = partial(uniform_sum_pdf, 2))
+for i in xrange(2):
+    u += UniformDistr(0,1)
+figure()
+demo_distr(u, theoretical = partial(uniform_sum_pdf, 3+i))
+
+u = UniformDistr(0,1)
+for i in xrange(49):
+    u += UniformDistr(0,1)
+figure()
+demo_distr(u, theoretical = partial(uniform_sum_pdf, i+2))
+
 #   
 #   #! Ex. 3.15
 #   figure()
@@ -540,38 +538,38 @@ from pacal.distr import demo_distr
 #   #! Ex. 4.27
 #   #!
 #   # implemented elsewhere
-
-#!
-#! Ex. 4.28
-#!
-def norm_ratio_pdf(mu1, sigma1, mu2, sigma2, rho, x):
-    a = sqrt((x/sigma1)**2 - 2*rho*x/(sigma1*sigma2) + 1.0/sigma2**2)
-    b = mu1*x/sigma1**2 - rho*(mu1 + mu2*x)/(sigma1*sigma2) + mu2/sigma2**2
-    c = mu1**2/sigma1**2 - 2*rho*mu1*mu2/(sigma1*sigma2) + mu2**2/sigma2**2
-    d = exp((b**2 - c*a**2) / (2*(1-rho**2)*a**2))
-    try:
-        from scipy.stats.distributions import norm
-        def norm_cdf(z):
-            return norm.cdf(z)
-    except:
-        N = NormalDistr()
-        def norm_cdf(z):
-            return N.cdf(z)
-    # WARNING: bug in Springer's book in the next line
-    y =  b*d/(sqrt(2*numpy.pi)*sigma1*sigma2*a**3) * (norm_cdf(b/(sqrt(1-rho**2)*a)) - norm_cdf(-b/(sqrt(1-rho**2)*a)))
-    y += sqrt(1-rho**2)/(numpy.pi*sigma1*sigma2*a**2) * exp(-c/(2*(1-rho**2)))
-    return y
-for mu1, sigma1, mu2, sigma2, rho in [(0.0,1.0,0.0,1.0,0.0),
-                                      (0.1,1.0,0.1,1.0,0.0),
-                                      (1.0,1.0,1.0,1.0,0),
-                                      (5.0,1.0,5.0,1.0,0.0),
-                                      (50.0,1.0,50.0,1.0,0.0),
-                                      (2.0,1.0,-50.0,2.0,0.0),
-                                      ]:
-    d = NormalDistr(mu1, sigma1) / NormalDistr(mu2, sigma2)
-    figure()
-    demo_distr(d, theoretical = partial(norm_ratio_pdf, mu1, sigma1, mu2, sigma2, rho))
-
+#   
+#   #!
+#   #! Ex. 4.28
+#   #!
+#   def norm_ratio_pdf(mu1, sigma1, mu2, sigma2, rho, x):
+#       a = sqrt((x/sigma1)**2 - 2*rho*x/(sigma1*sigma2) + 1.0/sigma2**2)
+#       b = mu1*x/sigma1**2 - rho*(mu1 + mu2*x)/(sigma1*sigma2) + mu2/sigma2**2
+#       c = mu1**2/sigma1**2 - 2*rho*mu1*mu2/(sigma1*sigma2) + mu2**2/sigma2**2
+#       d = exp((b**2 - c*a**2) / (2*(1-rho**2)*a**2))
+#       try:
+#           from scipy.stats.distributions import norm
+#           def norm_cdf(z):
+#               return norm.cdf(z)
+#       except:
+#           N = NormalDistr()
+#           def norm_cdf(z):
+#               return N.cdf(z)
+#       # WARNING: bug in Springer's book in the next line
+#       y =  b*d/(sqrt(2*numpy.pi)*sigma1*sigma2*a**3) * (norm_cdf(b/(sqrt(1-rho**2)*a)) - norm_cdf(-b/(sqrt(1-rho**2)*a)))
+#       y += sqrt(1-rho**2)/(numpy.pi*sigma1*sigma2*a**2) * exp(-c/(2*(1-rho**2)))
+#       return y
+#   for mu1, sigma1, mu2, sigma2, rho in [(0.0,1.0,0.0,1.0,0.0),
+#                                         (0.1,1.0,0.1,1.0,0.0),
+#                                         (1.0,1.0,1.0,1.0,0),
+#                                         (5.0,1.0,5.0,1.0,0.0),
+#                                         (50.0,1.0,50.0,1.0,0.0),
+#                                         (2.0,1.0,-50.0,2.0,0.0),
+#                                         ]:
+#       d = NormalDistr(mu1, sigma1) / NormalDistr(mu2, sigma2)
+#       figure()
+#       demo_distr(d, theoretical = partial(norm_ratio_pdf, mu1, sigma1, mu2, sigma2, rho))
+#   
 #   #!
 #   #! Ex. 4.29
 #   #!
