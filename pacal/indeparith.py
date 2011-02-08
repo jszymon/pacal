@@ -41,6 +41,8 @@ def _unique_breakpoints(breaks, eps = 4 * finfo(float).eps):
         while i < len(breaks) and abs(breaks[i][0] - ubreaks[-1][0]) <= eps:
             ubreaks[-1][1] |= breaks[i][1]
             ubreaks[-1][2] |= breaks[i][2]
+            ubreaks[-1][3] |= breaks[i][3]
+            ubreaks[-1][4] |= breaks[i][4]
             i += 1
     return ubreaks
 
