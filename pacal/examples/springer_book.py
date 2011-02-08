@@ -82,48 +82,48 @@ from pacal.distr import demo_distr
 #   for i in xrange(9):
 #       c += CauchyDistr()
 #   demo_distr(c, theoretical = CauchyDistr(gamma = 10, center = 1))
-   
-#! Ex. 3.12
-#! Exact formula for sum of 'N' uniform random variables
-#!
-#! 'warning': this formula is very inaccurate for large n!
-#! much worse than our results!
-from numpy import ceil, isscalar, zeros_like, asfarray
-def uniform_sum_pdf(n, xx):
-    if isscalar(xx):
-        xx = asfarray(xx)
-    y = zeros_like(asfarray(xx))
-    for j, x in enumerate(xx):
-        r = int(ceil(x))
-        if r <= 0 or r > n:
-            y[j] = 0
-        else:
-            nck = 1
-            pdf = 0.0
-            for k in xrange(r):
-                pdf += (-1)**k * nck * (x-k)**(n-1)
-                nck *= n - k
-                nck /= k + 1
-            for i in xrange(2, n):
-                pdf /= i
-            y[j] = pdf
-    return y
-#!
-#!
-u = UniformDistr(0,1) + UniformDistr(0,1)
-figure()
-demo_distr(u, theoretical = partial(uniform_sum_pdf, 2))
-for i in xrange(2):
-    u += UniformDistr(0,1)
-figure()
-demo_distr(u, theoretical = partial(uniform_sum_pdf, 3+i))
-
-u = UniformDistr(0,1)
-for i in xrange(49):
-    u += UniformDistr(0,1)
-figure()
-demo_distr(u, theoretical = partial(uniform_sum_pdf, i+2))
-
+#      
+#   #! Ex. 3.12
+#   #! Exact formula for sum of 'N' uniform random variables
+#   #!
+#   #! 'warning': this formula is very inaccurate for large n!
+#   #! much worse than our results!
+#   from numpy import ceil, isscalar, zeros_like, asfarray
+#   def uniform_sum_pdf(n, xx):
+#       if isscalar(xx):
+#           xx = asfarray(xx)
+#       y = zeros_like(asfarray(xx))
+#       for j, x in enumerate(xx):
+#           r = int(ceil(x))
+#           if r <= 0 or r > n:
+#               y[j] = 0
+#           else:
+#               nck = 1
+#               pdf = 0.0
+#               for k in xrange(r):
+#                   pdf += (-1)**k * nck * (x-k)**(n-1)
+#                   nck *= n - k
+#                   nck /= k + 1
+#               for i in xrange(2, n):
+#                   pdf /= i
+#               y[j] = pdf
+#       return y
+#   #!
+#   #!
+#   u = UniformDistr(0,1) + UniformDistr(0,1)
+#   figure()
+#   demo_distr(u, theoretical = partial(uniform_sum_pdf, 2))
+#   for i in xrange(2):
+#       u += UniformDistr(0,1)
+#   figure()
+#   demo_distr(u, theoretical = partial(uniform_sum_pdf, 3+i))
+#   
+#   u = UniformDistr(0,1)
+#   for i in xrange(49):
+#       u += UniformDistr(0,1)
+#   figure()
+#   demo_distr(u, theoretical = partial(uniform_sum_pdf, i+2))
+#   
 #   
 #   #! Ex. 3.15
 #   figure()
@@ -636,6 +636,48 @@ demo_distr(u, theoretical = partial(uniform_sum_pdf, i+2))
 #       figure()
 #       alpha = float(l2) / l1
 #       demo_distr(d, xmax = 10, theoretical = lambda x: alpha / (x+alpha)**2)
+#
+#   #! CHAPTER 5 - FUNCTIONS
+#   #!----------------------
+#   #! 
+#
+#   #!
+#   #! Example 5.1.3
+#   #!
+#   d = NormalDistr() + NormalDistr() * NormalDistr()
+#   demo_distr(d)
+#   
+#   #!
+#   #! Example 5.5
+#   #!
+#   d = ExponentialDistr() / (ExponentialDistr() + ExponentialDistr())
+#   demo_distr(d, xmax=20, ymax=1.5)
 
+#   #!
+#   #! Ex. 5.5
+#   #!
+#   # part a
+#   figure()
+#   demo_distr(NormalDistr() / sqrt((NormalDistr()**2 + NormalDistr()**2) / 2), xmin=-3, xmax=3)
+#   # part b
+#   figure()
+#   demo_distr(2 * NormalDistr()**2 / (NormalDistr()**2 + NormalDistr()**2), xmax=20, ymax=2)
+#   # part c
+#   figure()
+#   demo_distr(3 * NormalDistr()**2 / (NormalDistr()**2 + NormalDistr()**2 + NormalDistr()**2), xmax=20, ymax=2)
+#   # part d
+#   figure()
+#   demo_distr((NormalDistr()**2 + NormalDistr()**2) / (NormalDistr()**2 + NormalDistr()**2), xmax=20)
+
+#   #!
+#   #! Ex. 5.6
+#   #!
+d = sqrt(UniformDistr(0,1)**2 + UniformDistr(0,1)**2)
+# a bug in Springer??
+def theor_ampl_uni(x):
+    return (x<1)*numpy.pi/2*x + (x>=1)*(2*numpy.arcsin(1.0/x) - 0*numpy.pi/2)
+figure()
+#demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
+demo_distr(d)
 
 show()

@@ -1220,7 +1220,12 @@ class PiecewiseFunction(object):
                 leftFunction.addSegment(seg.squareComposition())
             else:
                 rightFunction.addSegment(seg.squareComposition())
-        copyFunction = leftFunction + rightFunction
+        if len(rightFunction.segments) == 0:
+            copyFunction = leftFunction
+        elif len(leftFunction.segments) == 0:
+            copyFunction = rightFunction
+        else:
+            copyFunction = leftFunction + rightFunction
         return copyFunction
     def copyAbsComposition(self):
         # TODO
