@@ -150,11 +150,11 @@ class Segment(object):
         else:
             xi = linspace(xmin, xmax, numberOfPoints)
         return xi
-    def plot(self, 
+    def plot(self,
              xmin = None,
              xmax = None,
-             show_nodes = True, 
-             show_segments = True, 
+             show_nodes = True,
+             show_segments = True,
              numberOfPoints = params.segments.plot.numberOfPoints, **args):
         leftRightEpsilon = params.segments.plot.leftRightEpsilon
         
@@ -1130,10 +1130,13 @@ class PiecewiseFunction(object):
              numberOfPoints = params.segments.plot.numberOfPoints, **args):
         for seg in self.segments:
             seg.plot(xmin = xmin,
-                   xmax = xmax,
-                   show_nodes = show_nodes,
-                   show_segments = show_segments,
-                   numberOfPoints = numberOfPoints, **args)
+                     xmax = xmax,
+                     show_nodes = show_nodes,
+                     show_segments = show_segments,
+                     numberOfPoints = numberOfPoints, **args)
+            if "label" in args:
+                # avoid a label in legend for every segment
+                del args["label"]
     def getPiecewiseSpace(self, 
              xmin = None,
              xmax = None,
