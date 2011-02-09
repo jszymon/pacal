@@ -21,7 +21,6 @@ from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar
 from pylab import loglog, show, semilogx, sqrt
 
-import matplotlib.pyplot as plt
 from scipy.optimize import ridder, brentq
 
 import params
@@ -313,7 +312,7 @@ if __name__ == "__main__":
     #                                       incremental_cheb_nodes(n),
     #                                       arange(m-1))[0]
 
-    #from pylab import plot, show, axvline
+    #from pylab import plot, show, axvline, figure
     #for i in xrange(2,5):
     #    print i, cheb_nodes1(i)
     #    plot(cheb_nodes1(i), [i]*i, "o")
@@ -323,7 +322,7 @@ if __name__ == "__main__":
         #segf2 = Segment(0.0, 2.0, lambda x:pi/2 * sqrt(1 - (x-1) ** 2))
         #segf1 = Segment(0.0, 1.0, lambda x: exp(-1/x))
     #segf2 = Segment(0.0, 0.5, lambda x:-1/log(x))
-    #plt.figure()
+    #figure()
     #print estimateDegreeOfZero(lambda x: x**0.5, 0)
     #n=7.0
     #estimateDegreeOfZero(lambda x:(n+1)/(n) * x ** (1/n), 0)
