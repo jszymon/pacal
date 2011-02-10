@@ -668,16 +668,22 @@ from pacal.distr import demo_distr
 #   # part d
 #   figure()
 #   demo_distr((NormalDistr()**2 + NormalDistr()**2) / (NormalDistr()**2 + NormalDistr()**2), xmax=20)
-
+#
 #   #!
 #   #! Ex. 5.6
 #   #!
-d = sqrt(UniformDistr(0,1)**2 + UniformDistr(0,1)**2)
-# a bug in Springer??
-def theor_ampl_uni(x):
-    return (x<1)*numpy.pi/2*x + (x>=1)*(2*numpy.arcsin(1.0/x) - 0*numpy.pi/2)
-figure()
-#demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
-demo_distr(d)
+#   d = sqrt(UniformDistr(0,1)**2 + UniformDistr(0,1)**2)
+#   # a bug in Springer??
+#   def theor_ampl_uni(x):
+#       return (x<1)*numpy.pi/2*x + (x>=1)*(2*numpy.arcsin(1.0/x) - 0*numpy.pi/2)
+#   figure()
+#   #demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
+#   demo_distr(d)
+
+#   #!
+#   #! Ex. 6.3
+#   #!
+d = NormalDistr() * NormalDistr() + NormalDistr() * NormalDistr()
+demo_distr(d, theoretical = LaplaceDistr())
 
 show()
