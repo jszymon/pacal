@@ -392,8 +392,8 @@ class LevyDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + self.c / 3.0, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + self.c / 3.0, self.pdf))
+        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + self.c, self.pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + self.c, self.pdf))
     def rand_raw(self, n = None):
         sigma = 1.0 / sqrt(self.c)
         return self.xmin + 1.0 / normal(0, sigma, n) ** 2
