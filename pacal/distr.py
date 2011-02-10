@@ -137,7 +137,7 @@ class Distr(object):
         other of pylab/plot **kvargs  
         """
         self.get_piecewise_pdf().plot(*args, **kvargs)      
-    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50):
+    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, **kwargs):
         """Histogram of PDF.
         
         Keyword arguments:
@@ -168,7 +168,7 @@ class Distr(object):
         counts, binx = histogram(X, bins)
         width = binx[1] - binx[0]
         for c, b in zip(counts, binx):
-            bar(b, float(c) * w, width = width, alpha = 0.25)
+            bar(b, float(c) * w, width = width, alpha = 0.25, **kwargs)
     
     def __call__(self, x):
         """Overload function calls."""
