@@ -27,19 +27,19 @@ pOptVar = fminbound(lambda p: fun(p).get_piecewise_pdf().var(), 0, 1, xtol = 1e-
 print "pOptVar = ", pOptVar 
 dopt = fun(pOptVar)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.05)
+print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 pOptMad = fminbound(lambda p: fun(p).get_piecewise_pdf().medianad(), 0, 1, xtol = 1e-16)
-print "pOptVar = ", pOptMad 
+print "pOptMAD = ", pOptMad 
 dopt = fun(pOptMad)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.05)
+print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 pOptIQrange = fminbound(lambda p: fun(p).get_piecewise_pdf().iqrange(0.025), 0, 1, xtol = 1e-16)
 print "pOptIQrange = ", pOptIQrange 
 dopt = fun(pOptIQrange)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.05)
+print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 print "-----------------------"
 figure()
