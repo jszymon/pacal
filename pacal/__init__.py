@@ -18,6 +18,7 @@ from standard_distr import LaplaceDistr
 from standard_distr import StudentTDistr
 from standard_distr import SemicircleDistr
 from standard_distr import FDistr
+from standard_distr import WeibullDistr
 from standard_distr import DiscreteDistr
 from standard_distr import ConstDistr
 from standard_distr import OneDistr

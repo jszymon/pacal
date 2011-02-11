@@ -2,8 +2,8 @@
 
 from numpy import Inf
 from numpy import isscalar, zeros_like, asfarray, zeros
-from numpy import pi, sqrt, exp, log, log1p, cos
-from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t
+from numpy import pi, sqrt, exp, log, log1p, cos, floor
+from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull
 from numpy.random import f as f_rand
 
 
@@ -523,6 +523,58 @@ class FDistr(Distr):
         return "F(df1={0},df2={1})#{2}".format(self.df1, self.df2, id(self))
     def getName(self):
         return "F({0},{1})".format(self.df1, self.df2)
+
+class WeibullDistr(Distr):
+    def __init__(self, k = 3, lmbda = 1):
+        super(WeibullDistr, self).__init__()
+        assert k > 0
+        assert lmbda > 0
+        self.k = k
+        self.lmbda = lmbda
+        self.nrm = float(self.k) / self.lmbda
+        if self.k < 1:
+            self.pdf_at_0 = Inf
+        elif self.k == 1:
+            self.pdf_at_0 = 1
+        else:
+            self.pdf_at_0 = 0
+    def pdf(self, x):
+        if isscalar(x):
+            if x < 0:
+                y = 0
+            elif x == 0:
+                y = self.pdf_at_0
+            else:
+                y = self.nrm * (x / self.lmbda)**(self.k-1) * exp(-(x / self.lmbda)**self.k)
+        else:
+            y = zeros_like(asfarray(x))
+            mask = (x > 0)
+            y[mask] = self.nrm * (x[mask] / self.lmbda)**(self.k-1) * exp(-(x[mask] / self.lmbda)**self.k)
+            mask_zero = (x == 0)
+            y[mask_zero] = self.pdf_at_0
+        return y
+    def init_piecewise_pdf(self):
+        if self.k <= 1:
+            self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+                                                       breakPoints = [0.0, self.k, Inf],
+                                                       lpoles=[True, False, False])
+        else:
+            mode = self.lmbda * (float(self.k - 1) / self.k)**(1.0/self.k)
+            if self.k == floor(self.k):
+                self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+                                                           breakPoints = [0.0, mode, Inf],
+                                                           lpoles=[False, False, False])
+            else:
+                self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+                                                           breakPoints = [0.0, mode, Inf],
+                                                           lpoles=[True, False, False])
+    def rand_raw(self, n = None):
+        return self.lmbda * weibull(self.k, n)
+    def __str__(self):
+        return "Weibull(k={0},lambda={1})#{2}".format(self.k, self.lmbda, id(self))
+    def getName(self):
+        return "Weibull({0},{1})".format(self.k, self.lmbda)
+
 
 ### Discrete distributions
 
