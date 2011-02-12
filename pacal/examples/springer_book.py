@@ -701,10 +701,23 @@ from pacal.distr import demo_distr
 #   #!
 #   #! Example 7.3.2
 #   #!
-x1 = BetaDistr(9,3)
-x2 = BetaDistr(8,3)
-x3 = BetaDistr(4,2)
+#   x1 = BetaDistr(9,3)
+#   x2 = BetaDistr(8,3)
+#   x3 = BetaDistr(4,2)
+#   figure()
+#   demo_distr(x1 * x2 * x3)
+
+#   #!
+#   #! Example 8.6.1
+#   #!
+x1 = abs(NormalDistr(0, 1.5))
+x2 = GammaDistr(.2,1)
+x3 = ExponentialDistr(1.0/0.4)
+x4 = abs(NormalDistr(0, 2))
 figure()
-demo_distr(x1 * x2 * x3)
+d = x1+x2*x3-5*x4
+demo_distr(d, xmax=20)
+exm = -6.7020187668243558
+print "exact mean =", exm, "err =", d.mean() - exm
 
 show()

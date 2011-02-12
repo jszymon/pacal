@@ -87,6 +87,11 @@ class Distr(object):
     
     def log_pdf(self,x):
         return log(self.pdf())
+
+    def mean(self):
+        """Mean of the distribution."""
+        return self.get_piecewise_pdf().mean()
+
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 

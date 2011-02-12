@@ -235,7 +235,7 @@ class ExponentialDistr(Distr):
         self.piecewise_pdf.addSegment(Segment(0, 1, self.pdf))
         self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
     def rand_raw(self, n = None):
-        return exponential(self.lmbda, n)
+        return exponential(1.0/self.lmbda, n)
     def __str__(self):
         return "Exponential(lambda={0})#{1}".format(self.lmbda, id(self))
     def getName(self):
