@@ -679,11 +679,32 @@ from pacal.distr import demo_distr
 #   figure()
 #   #demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
 #   demo_distr(d)
-
+#
 #   #!
 #   #! Ex. 6.3
 #   #!
-d = NormalDistr() * NormalDistr() + NormalDistr() * NormalDistr()
-demo_distr(d, theoretical = LaplaceDistr())
+#   d = NormalDistr() * NormalDistr() + NormalDistr() * NormalDistr()
+#   figure()
+#   demo_distr(d, theoretical = LaplaceDistr())
+
+#   #!
+#   #! Example 7.3.1
+#   #!
+#   w1 = WeibullDistr(2)
+#   w2 = WeibullDistr(3)
+#   #figure()
+#   #w1.plot()
+#   #w2.plot()
+#   figure()
+#   demo_distr(w1 * w2)
+
+#   #!
+#   #! Example 7.3.2
+#   #!
+x1 = BetaDistr(9,3)
+x2 = BetaDistr(8,3)
+x3 = BetaDistr(4,2)
+figure()
+demo_distr(x1 * x2 * x3)
 
 show()
