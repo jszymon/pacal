@@ -697,7 +697,7 @@ from pacal.distr import demo_distr
 #   #w2.plot()
 #   figure()
 #   demo_distr(w1 * w2)
-
+#
 #   #!
 #   #! Example 7.3.2
 #   #!
@@ -706,18 +706,29 @@ from pacal.distr import demo_distr
 #   x3 = BetaDistr(4,2)
 #   figure()
 #   demo_distr(x1 * x2 * x3)
-
+#
 #   #!
 #   #! Example 8.6.1
 #   #!
-x1 = abs(NormalDistr(0, 1.5))
-x2 = GammaDistr(.2,1)
-x3 = ExponentialDistr(1.0/0.4)
-x4 = abs(NormalDistr(0, 2))
-figure()
-d = x1+x2*x3-5*x4
-demo_distr(d, xmax=20)
-exm = -6.7020187668243558
-print "exact mean =", exm, "err =", d.mean() - exm
+#   x1 = abs(NormalDistr(0, 1.5))
+#   x2 = GammaDistr(.2,1)
+#   x3 = ExponentialDistr(1.0/0.4)
+#   x4 = abs(NormalDistr(0, 2))
+#   figure()
+#   d = x1+x2*x3-5*x4
+#   demo_distr(d, xmax=20)
+#   exm = -6.7020187668243558
+#   print "exact mean =", exm, "err =", d.mean() - exm
+
+#   #!
+#   #! Example 8.7.1
+#   #!
+#   #! poles at nonzero locations, not handled well yet
+#   x1 = GammaDistr(2,0.4)
+#   x2 = BetaDistr(2,0.5)
+#   x3 = ExponentialDistr(1.0/0.4)
+#   d = 0.25*x1*x2 + x3 + 7.21
+#   demo_distr(d)
+
 
 show()

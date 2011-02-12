@@ -1015,12 +1015,7 @@ class PiecewiseFunction(object):
             I = I + i             
         return I
     def std(self):
-        m = self.mean()
-        I = 0 
-        for seg in self.segments:
-            i,e = _segint(lambda x: (x - m) ** 2  * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
-            I = I + i             
-        return I
+        return sqrt(self.var())
     def mode(self):
         m = 0
         x = None
