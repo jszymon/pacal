@@ -719,7 +719,7 @@ from pacal.distr import demo_distr
 #   demo_distr(d, xmax=20)
 #   exm = -6.7020187668243558
 #   print "exact mean =", exm, "err =", d.mean() - exm
-
+#   
 #   #!
 #   #! Example 8.7.1
 #   #!
@@ -729,6 +729,18 @@ from pacal.distr import demo_distr
 #   x3 = ExponentialDistr(1.0/0.4)
 #   d = 0.25*x1*x2 + x3 + 7.21
 #   demo_distr(d)
-
+#   
+#   #!
+#   #! Example 8.13.1
+#   #!
+#   d = BetaDistr(5,2) * BetaDistr(6,2) * BetaDistr(6,3)
+#   figure()
+#   demo_distr(d)
+#   #!
+#   #! Example 8.13.2
+#   #!
+d = abs(NormalDistr()) + ExponentialDistr()
+figure()
+demo_distr(d)
 
 show()
