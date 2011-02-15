@@ -1236,6 +1236,7 @@ class PiecewiseFunction(object):
                 leftFunction.addSegment(seg.absComposition())
             else:
                 rightFunction.addSegment(seg.absComposition())
+        leftFunction = leftFunction.splitByPoints(rightFunction.getBreaks())
         leftFunction.add_diracs(rightFunction)
         copyFunction = leftFunction + rightFunction
         return copyFunction
