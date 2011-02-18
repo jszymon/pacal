@@ -36,16 +36,16 @@ class Distr(object):
     def __str__(self):
         return "Distr"
     def getName(self):
-        """return, string representation of PDF."""
-        return type
+        """return a string representation of PDF."""
+        return self.type
     
     def get_piecewise_pdf(self):
-        """return, PDF function, as PiecewiseDistribution object"""
+        """return PDF function as a PiecewiseDistribution object"""
         if self.piecewise_pdf is None:
             self.init_piecewise_pdf()
         return self.piecewise_pdf
     def get_piecewise_cdf(self):
-        """return, CDF function, as CumulativePiecewiseFunction object"""
+        """return CDF function as a CumulativePiecewiseFunction object"""
         if self.piecewise_cdf is None:
             self.piecewise_cdf = self.get_piecewise_pdf().cumint()      # integrals are computed directly - much slower
             #self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
@@ -686,7 +686,7 @@ def max(*args):
 
 from plotfun import histdistr
 import pylab
-from pylab import plot, subplot, xlim, ylim, show
+from pylab import plot, subplot, xlim, ylim, show, figure
 def demo_distr(d,
                theoretical = None,
                err_plot = True,
@@ -707,19 +707,8 @@ def demo_distr(d,
     if err_plot and theoretical is None:
         histogram = True
     if theoretical is not None:
-        # compute error with theoretical
+        # compute error against theoretical
         f = d.get_piecewise_pdf()
-        
-        #breaks = f.getBreaks()
-        #Xlist = []
-        #if isinf(breaks[0]):
-        #    #Xlist.append(-logspace())
-        #    breaks = breaks[1:]
-        #if isinf(breaks[-1]):
-        #    #Xlist.append(-logspace())
-        #    breaks = breaks[:-1]
-        #Xlist[1:1] = [linspace(breaks[0], breaks[-1], n_points)]
-        #X = hstack(Xlist)
         X = f.getPiecewiseSpace(numberOfPoints = n_points, xmin = xmin, xmax = xmax)
         #Yf = d(X)  # this should really be used...
         Yf = f(X)
@@ -734,10 +723,7 @@ def demo_distr(d,
         I = f.integrate()
     if not test_mode:
         if theoretical:
-            if isinstance(theoretical, Distr):
-                pylab.subplot(311)
-            else:
-                pylab.subplot(211)
+            pylab.subplot(211)
             plot(X, Yt, color='c', linewidth=4)
         d.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax, color='k')
         if histogram:
@@ -751,29 +737,24 @@ def demo_distr(d,
         if ymax is not None:
             ylim(ymax = ymax)
         if theoretical:
-            if isinstance(theoretical, Distr):
-                pylab.subplot(312)
-                #theoretical.plot(color = 'k')
-            else:
-                pylab.subplot(212)
+            pylab.subplot(212)
             abse = abs(Yf - Yt)
-            if max(abse) == 0:
-                log_scale = False
-            if log_scale:
-                pylab.semilogy(X, abse)
+            if isinstance(theoretical, Distr):
+                r = f - theoretical.get_piecewise_pdf()
+                r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax)
             else:
                 pylab.plot(X, abse)
             pylab.ylabel("abs. error")
-            if isinstance(theoretical, Distr):
-                pylab.subplot(313)                
-                r = f - theoretical.get_piecewise_pdf()
-                r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax)
+            if max(abse) == 0:
+                log_scale = False
+            if log_scale:
+                pylab.gca().set_yscale("log")
         if title is not None:
             pylab.suptitle(title)
     if summary:
         print "integral =", I
         print "pdf=", d.get_piecewise_pdf()
-        print "summary=", d.summary()
+        print d.summary()
         
         if theoretical:
             print "max. abs. error", maxabserr

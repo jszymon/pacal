@@ -441,3 +441,5 @@ for l1, l2 in [(1,1), (10,1), (1,10)]:
     figure()
     alpha = float(l2) / l1
     demo_distr(d, xmax = 10, theoretical = lambda x: alpha / (x+alpha)**2)
+
+show()
