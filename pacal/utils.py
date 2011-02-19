@@ -21,8 +21,6 @@ from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar
 from pylab import loglog, show, semilogx, sqrt
 
-from scipy.optimize import ridder, brentq
-
 import params
 
 
@@ -274,10 +272,43 @@ def stepfun(x, shift = 0.0):
         y = zeros_like(asfarray(x))
         y[mask] = 1.0
         return y
+
+# Root finding
+
+try:
+    from scipy.optimize import ridder, brentq
+    have_scipy_opt = True
+except:
+    have_scipy_opt = False
+#have_scipy_opt = False
 def findinv(fun, a = 0.0, b = 1.0, c = 0.5, **kwargs):
     """find solution of equation f(x)=c, on interval [a, b]"""
-    #ridder
-    return brentq(lambda x : fun(x) - c, a, b, **kwargs)
+    if have_scipy_opt:
+        #ridder
+        return brentq(lambda x : fun(x) - c, a, b, **kwargs)
+    else:
+        return bisect(lambda x : fun(x) - c, a, b, **kwargs)
+# copied from scipy
+def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, maxiter = 1000, args = ()):
+    tol = min(xtol, rtol*(abs(xa) + abs(xb))) # fix for long intervals
+    fa = f(xa, *args)
+    fb = f(xb, *args)
+    if fa*fb > 0: raise RuntimeError("Interval does not contain zero")
+    if fa == 0: return xa
+    if fb == 0: return xb
+
+    dm = xb - xa
+    for i in xrange(maxiter):
+        dm /= 2
+        xm = xa + dm
+        fm = f(xm, *args)
+        if fm*fa >= 0:
+            xa = xm
+        if fm == 0 or abs(dm) < tol:
+            return xm
+    print "WARNING: zero fidning did not converge"
+    return xm
+
 
 try:
     from math import lgamma
