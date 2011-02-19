@@ -273,6 +273,15 @@ class Distr(object):
             return ExpDistr(ShiftedScaledDistr(self, scale = numpy.log(x)))
         raise NotImplemented()
 
+def _wrapped_name(d, incl_classes = None):
+    """Return name of d wrapped in parentheses if necessary"""
+    d_name = d.getName()
+    if incl_classes is not None:
+        if isinstance(d, tuple(incl_classes)):
+            d_name = "(" + d_name + ")"
+    elif isinstance(d, OpDistr) and not isinstance(d, (FuncDistr, SquareDistr)):
+        d_name = "(" + d_name + ")"
+    return d_name
 
 class OpDistr(Distr):
     """Base class for operations on distributions.
@@ -284,7 +293,6 @@ class OpDistr(Distr):
         if id(self) not in cache:
             cache[id(self)] = self.rand_op(n, cache)
         return cache[id(self)]
-    
 class FuncDistr(OpDistr):
     """Injective function of random variable"""
     def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f"):
@@ -297,7 +305,7 @@ class FuncDistr(OpDistr):
         self.pole_at_zero = pole_at_zero 
     def pdf(self, x):
         f = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
-        if isscalar(x): # it this OK?????
+        if isscalar(x):
             if not isfinite(f):
                 f = 0
         else:
@@ -339,12 +347,14 @@ class ShiftedScaledDistr(OpDistr):
     def getName(self):
         if self.shift == 0 and self.scale == 1:
             return self.d.getName()
-        elif self.shift == 0:
-            return "{0}*{1}".format(self.scale, self.d.getName())
-        elif self.scale == 1:
-            return "{0}{1:+}".format(self.d.getName(), self.shift)
         else:
-            return "({2}*{0}+{1})".format(self.d.getName(), self.shift, self.scale)
+            d_name = _wrapped_name(self.d)
+            if self.shift == 0:
+                return "{0}*{1}".format(self.scale, d_name)
+            elif self.scale == 1:
+                return "{0}{1:+}".format(d_name, self.shift)
+            else:
+                return "{2}*{0}+{1}".format(d_name, self.shift, self.scale)
 
 class ExpDistr(FuncDistr):
     """Exponent of a random variable"""
@@ -428,7 +438,10 @@ class InvDistr(OpDistr):
     def __str__(self):
         return "1/#{0}".format(id(self.d))    
     def getName(self):
-        return "1/{0}".format(self.d.getName())    
+        d_name = self.d.getName()
+        if isinstance(self.d, OpDistr) and not isinstance(self.d, FuncDistr):
+            d_name = "(" + d_name + ")"
+        return "(1/{0})".format(d_name)
     @staticmethod
     def f_(x):
         if isscalar(x):
@@ -471,11 +484,11 @@ class PowDistr(FuncDistr):
             y[mask] = y = self.d.pdf(1.0/x[mask])/x[mask]**2
         return y
     def rand_op(self, n, cache):
-        return 1.0/self.d.rand(n, cache)
+        return self.d.rand(n, cache) ** self.alpha
     def __str__(self):
-        return "1/#{0}".format(id(self.d))    
+        return "#{0}^{1}".format(id(self.d1), self.alpha)
     def getName(self):
-        return "{0}^{1}".format(self.d.getName(), self.alpha)    
+        return "{0}^{1}".format(_wrapped_name(self.d), self.alpha)    
     def f_(self, x):
         if isscalar(x):
             if x != 0:
@@ -569,7 +582,7 @@ class SumDistr(OpDistr):
     def __str__(self):
         return "#{0}+#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}+{1})".format(self.d1.getName(), self.d2.getName())
+        return "{0}+{1}".format(self.d1.getName(), self.d2.getName())
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -585,7 +598,8 @@ class SubDistr(OpDistr):
     def __str__(self):
         return "#{0}-#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}-{1})".format(self.d1.getName(), self.d2.getName())
+        n2 = _wrapped_name(self.d2, incl_classes = [SumDistr])
+        return "{0}-{1}".format(self.d1.getName(), n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -602,7 +616,9 @@ class MulDistr(OpDistr):
     def __str__(self):
         return "#{0}*#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}*{1})".format(self.d1.getName(), self.d2.getName())
+        n1 = _wrapped_name(self.d1, incl_classes = [SumDistr, SubDistr, ShiftedScaledDistr])
+        n2 = _wrapped_name(self.d2, incl_classes = [SumDistr, SubDistr, ShiftedScaledDistr])
+        return "{0}*{1}".format(n1, n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -619,7 +635,9 @@ class DivDistr(OpDistr):
     def __str__(self):
         return "#{0}/#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}/{1})".format(self.d1.getName(), self.d2.getName())
+        n1 = _wrapped_name(self.d1)
+        n2 = _wrapped_name(self.d2)
+        return "{0}/{1}".format(n1, n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)

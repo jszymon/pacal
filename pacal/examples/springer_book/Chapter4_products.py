@@ -234,11 +234,10 @@ for mode in [1, 2]:
         if mode == 1:
             num *= df1
             den *= df2
-        figure()
-        demo_distr(num, theoretical = ChiSquareDistr(df1))
-        figure()
-        demo_distr(den, theoretical = ChiSquareDistr(df2))
-        figure()
+        #figure()
+        #demo_distr(num, theoretical = ChiSquareDistr(df1))
+        #figure()
+        #demo_distr(den, theoretical = ChiSquareDistr(df2))
         if df2 < 2:
             ymax = 3
         else:
@@ -247,6 +246,7 @@ for mode in [1, 2]:
             theor = FDistr(df1, df2)
         else:
             theor = partial(f_disrt_v2, df1, df2)
+        figure()
         demo_distr(f, theoretical = theor, xmax = 10, ymax = ymax)
 
 #! Exercise 4.15

@@ -141,7 +141,7 @@ class CauchyDistr(Distr):
         else:
             return "Cauchy(gamma={0}, center={1})#{2}".format(self.gamma, self.center, id(self))
     def getName(self):
-        return "C({0}, {1})".format(self.center, self.gamma)    
+        return "C({0},{1})".format(self.center, self.gamma)    
 
 class ChiSquareDistr(Distr):
     def __init__(self, df = 1):
