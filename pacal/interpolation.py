@@ -37,12 +37,12 @@ from integration import _debug_plot
 
 # import faster Cython versions if possible
 try:
-    import pyximport; pyximport.install()
+    #import pyximport; pyximport.install()
     from bary_interp import bary_interp
     have_Cython = True
-    print "Using Cython compilation"
+    print "Using compiled interpolation routine"
 except:
-    print "Cython not available"
+    print "Compiled interpolation routine not available"
     have_Cython = False
 
 
