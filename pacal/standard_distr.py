@@ -1070,7 +1070,7 @@ if __name__ == "__main__":
     F.plot()
     c.plot()
     figure()
-    hist(F.rand_invcdf(10000))
+    #hist(F.rand_invcdf(10000))
     F.plot()
     #show_distr = histdistr
     show_distr = plotdistr
