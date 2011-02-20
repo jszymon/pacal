@@ -3,8 +3,7 @@
 
 from pylab import *
 from pacal import *
-from distr import demo_distr
-import standard_distr
+from pacal.distr import demo_distr
 
 #! Here we describe inaccurate places in the PaCal project and future topics.
 
