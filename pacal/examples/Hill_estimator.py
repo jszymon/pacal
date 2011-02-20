@@ -1,4 +1,4 @@
-"""Hill estimator demo"""
+"""Hill's estimator demo"""
 
 from pacal import *
 from pylab import figure, show
@@ -16,9 +16,11 @@ def Hill_estim_distr(d, n, xmin):
 a = Hill_estim_distr(ParetoDistr(2, 1), 5, 1)
 a.summary()
 a.plot()
+
 figure()
 a = Hill_estim_distr(ParetoDistr(1, 1), 10, 1)
 a.summary()
 a.plot()
+
 
 show()

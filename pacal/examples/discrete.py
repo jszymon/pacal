@@ -7,11 +7,7 @@
 from pylab import figure, show, subplot
 
 from pacal import *
-#
-#! Constuctor
-#!------------
-#!
-#! Let import base *distr* ``module``
+
 from pacal.distr import demo_distr
 from pacal.plotfun import histdistr
 
@@ -29,7 +25,7 @@ S.plot()
 subplot(122)
 SM.plot()
 
-#! Nowz wzkres
+#! New plot
 #!-------------------
 #$ To jest \LaTeX $e^{i\pi} -1=0$
 #!* 1s d dfs

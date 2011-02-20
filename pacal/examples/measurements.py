@@ -1,57 +1,85 @@
-#! Examples from Springer's Book #
 #!==============================================
-from functools import partial
+#! Examples of physical measurements
+#!==============================================
+
 import numpy
-
-from scipy.optimize.optimize import fminbound
-
-from pylab import figure, show
+from pylab import *
 
 from pacal import *
 from pacal.distr import demo_distr
 
-X = UniformDistr(0,2)
-#Y = BetaDistr(2,2) 
-Y = BetaDistr(0.5,0.5) 
-X = UniformDistr(-1,1)
-Y = NormalDistr()
-X.summary()
-Y.summary()
 
-def fun(p):
-    p = numpy.squeeze(p)
-    print p
-    return p*X + (1-p)*Y
+#!
+#! coefficient of thermal expansion 
+#!
+L0 = UniformDistr(9,10)
+L1 = UniformDistr(11,12)
+dT = NormalDistr(1,2)
+k = (L1/L0 - 1)/dT
+k.plot(linewidth=3, color = "k")
+k.hist(xmin=-1,xmax=1,color="0.75")
+k.summary()
+print "P(K<0) - NormalDistr(1,2).cdf(0) =", k.cdf(0)[0] - NormalDistr(1,2).cdf(0)[0]
+xlim(-1,1)
+ylim(ymin=0)
+title("Distribution of thermal expansion coefficient")
 
-pOptVar = fminbound(lambda p: fun(p).get_piecewise_pdf().var(), 0, 1, xtol = 1e-16)
-print "pOptVar = ", pOptVar 
-dopt = fun(pOptVar)
+
+
+
+#!
+#! combining two independent measurements
+#!
+
+from scipy.optimize.optimize import fminbound
+
+
+# E1 = UniformDistr(0,2)
+# E2 = BetaDistr(2,2) 
+# E2 = BetaDistr(0.5,0.5) 
+E1 = UniformDistr(-1,1)
+E2 = NormalDistr()
+E1.summary()
+E2.summary()
+
+
+def E(alpha):
+    alpha = numpy.squeeze(alpha)
+    return alpha*E1 + (1 - alpha)*E2
+
+print
+print "Combining measurements for optimal variance"
+alphaOptVar = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().var(), 0, 1, xtol = 1e-16)
+print "alphaOptVar = ", alphaOptVar 
+dopt = E(alphaOptVar)
 dopt.summary()
 print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
-pOptMad = fminbound(lambda p: fun(p).get_piecewise_pdf().medianad(), 0, 1, xtol = 1e-16)
-print "pOptMAD = ", pOptMad 
-dopt = fun(pOptMad)
+print
+print "Combining measurements for optimal Median Absolute Deviance"
+alphaOptMad = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().medianad(), 0, 1, xtol = 1e-16)
+print "alphaOptMAD = ", alphaOptMad 
+dopt = E(alphaOptMad)
 dopt.summary()
 print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
-pOptIQrange = fminbound(lambda p: fun(p).get_piecewise_pdf().iqrange(0.025), 0, 1, xtol = 1e-16)
-print "pOptIQrange = ", pOptIQrange 
-dopt = fun(pOptIQrange)
+print
+print "Combining measurements for optimal 95% confidence interval"
+alphaOptIQrange = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().iqrange(0.025), 0, 1, xtol = 1e-16)
+print "alphaOptIQrange = ", alphaOptIQrange 
+dopt = E(alphaOptIQrange)
 dopt.summary()
 print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 print "-----------------------"
 figure()
-#X.plot(color='k')
-#Y.plot(color='k')
-fun(pOptVar).plot(color='r')
-fun(pOptMad).plot(color='g')
-fun(pOptIQrange).plot(color='b')
+E1.plot(color='k')
+E2.plot(color='k')
+E(alphaOptVar).plot(color='r')
+E(alphaOptMad).plot(color='g')
+E(alphaOptIQrange).plot(color='b')
 figure()
-X.get_piecewise_cdf().plot(color='k')
-Y.get_piecewise_cdf().plot(color='k')
-fun(pOptVar).get_piecewise_cdf().plot(color='r')
-fun(pOptMad).get_piecewise_cdf().plot(color='g')
-fun(pOptIQrange).get_piecewise_cdf().plot(color='b')
+E(alphaOptVar).get_piecewise_cdf().plot(color='r')
+E(alphaOptMad).get_piecewise_cdf().plot(color='g')
+E(alphaOptIQrange).get_piecewise_cdf().plot(color='b')
 show()

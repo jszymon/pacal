@@ -5,8 +5,6 @@ from matplotlib.pyplot import plot
 
 
 
-#def plotdistr(d, **kvargs):
-#    d.get_piecewise_pdf().plot(**kvargs)
 def plotdistr(d, l = -10, u = 10, numberOfPoints = 1000):
     X = linspace(l, u, numberOfPoints)
     #Y = [d.pdf(x) for x in X] # it should be vectorized
@@ -61,6 +59,3 @@ def dispNet(distr, file='', qm='', tab=''):
     #print file;
     return file;
 
-if __name__ == '__main__':
-    print """tu krotki tescik..."""
-    

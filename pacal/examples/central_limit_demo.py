@@ -1,43 +1,51 @@
 """Demo of central limit theorem"""
 
-from pylab import *
-
 import sys
-sys.path.append("../")
-from distr import NormalDistr, UniformDistr, DivDistr, SumDistr, ConstMulDistr, SquareDistr
-from distr import InterpolatedDistr
-import distr
 
-def plotdistr(d, l = 0, u = 1):
-    X = linspace(l,u,300)
-    Y = [d.pdf(x) for x in X]
-    plot(X,Y)
+from pylab import *
+from pacal import *
 
-from distr import set_plot__
-def central_limit_demo(X, n = 5, l=0, u=1):
+
+colors = "kbgrcmy"
+def central_limit_demo(X, N = 5, xmin = None, xmax = None, ymax = None, **args):
+    figure()
+    title("Limit of averages of " + X.getName())
+    X.plot(linewidth = 4, color = "c", **args)
     Y = X
-    for i in xrange(n):
-        if i > 0:
-            A = ConstMulDistr(Y, 1.0/(i+1))
-        else:
-            A = Y
-        plotdistr(A, l, u)
-        #set_plot__()
-        if i < n - 1:
-            Y = InterpolatedDistr(SumDistr(Y, X))
-            print "error =", Y.err, "interp. nodes used =", Y.n_nodes, "#breakpoints =", len(Y.breaks)
+    print "Limit of averages of " + X.getName() + ": ",
+    for i in xrange(N-1):
+        print i+2,
+        sys.stdout.flush()
+        Y += X
+        (Y/(i+2)).plot(color = colors[i%len(colors)], **args)
+    if xmin is not None:
+        xlim(xmin = xmin)
+    if xmax is not None:
+        xlim(xmax = xmax)
+    ylim(ymin = 0)
+    if ymax is not None:
+        ylim(ymax = ymax)
+    print
 
 if __name__ == "__main__":
     # uniform distribution
-    X = UniformDistr(0,1); l,u=0,1
-    # Chi^2_1
-    #X = interpolatedDistr(squareDistr(NormalDistr(0,1))); l,u=-5,5
-    #X = squareDistr(NormalDistr(0,1)); l,u=0,5
-    #X = squareDistr(NormalDistr(0,1)); l,u=0,5
-    # my favorite distribution
-    X = InterpolatedDistr(DivDistr(UniformDistr(1,3), UniformDistr(-2,1))); l,u=-6,6
-    # Cauchy
-    #X = InterpolatedDistr(DivDistr(NormalDistr(0,1), NormalDistr(0,1))); l,u=-5,5
+    X = UniformDistr(0,1)
+    central_limit_demo(X, xmin=-0.1, xmax=1.1)
     
-    central_limit_demo(X, 4, l, u)
+    # Chi^2_1
+    X = ChiSquareDistr(1)
+    central_limit_demo(X, N=10, ymax=1.5, xmax=3)
+
+    # a ratio distribution
+    X = UniformDistr(1,3) / UniformDistr(-2,1)
+    central_limit_demo(X, N = 5, xmin=-5, xmax=5)
+    
+    # Cauchy
+    X = CauchyDistr()
+    central_limit_demo(X)
+    
+    # Levy
+    X = LevyDistr()
+    central_limit_demo(X, xmax=10)
+
     show()
