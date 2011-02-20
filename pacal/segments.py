@@ -1069,9 +1069,10 @@ class PiecewiseFunction(object):
             r['var'] = identify(self.var())
             r['range'] = self.range()
             r['int_err'] = 1-self.integrate()
-            r['interp_errs'] = self.getInterpErrors()
+            #r['interp_errs'] = self.getInterpErrors()
             try:
-                r['mode'] = identify(self.mmode())
+                #r['mode'] = identify(self.mmode())
+                pass
             except Exception, e:           
                 traceback.print_exc()
             try:
@@ -1086,9 +1087,10 @@ class PiecewiseFunction(object):
             r['var'] = self.var()
             r['range'] = self.range()
             r['int_err'] = 1-self.integrate()
-            r['interp_errs'] = self.getInterpErrors()
+            #r['interp_errs'] = self.getInterpErrors()
             try:
-                r['mode'] = self.mode()
+                #r['mode'] = self.mode()
+                pass
             except Exception, e:           
                 traceback.print_exc()
             try:
@@ -1529,7 +1531,7 @@ class PiecewiseDistribution(PiecewiseFunction):
         r['var'] = self.var()
         r['range'] = self.range()
         r['int_err'] = 1-self.integrate()
-        r['intrp_errs'] = self.getInterpErrors()
+        #r['intrp_errs'] = self.getInterpErrors()
         try:
             r['median'] = self.median()
             r['iqrange(0.05)'] = self.iqrange(0.05)
