@@ -1,5 +1,8 @@
 """PaCal, the probabilistic calculator."""
 
+import numpy as _np
+_np.seterr(all="ignore")
+
 from utils import Inf
 
 from distr import exp, log, atan, min, max, sqrt
@@ -24,3 +27,6 @@ from standard_distr import ConstDistr
 from standard_distr import OneDistr
 from standard_distr import ZeroDistr
 from standard_distr import MixDistr
+
+from pylab import show
+

@@ -1,7 +1,6 @@
 """PiecewiseFunction for piecewise functions."""
 
 import bisect
-#from indeparith import _segint
 
 from integration import *
 from interpolation import *
@@ -20,7 +19,12 @@ from numpy.random import uniform
 from pylab import plot, semilogx, xlabel, ylabel, axis, loglog, figure, subplot
 from matplotlib.mlab import find
 
-from scipy.optimize.optimize import fminbound
+try:
+    from scipy.optimize.optimize import fminbound
+    have_Scipy_optimize = True
+except ImportError:
+    have_Scipy_optimize = False
+
 
 import traceback
 
