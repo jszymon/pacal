@@ -17,7 +17,7 @@ if have_Cython:
         #"ext_modules" : [Extension("pacal.bary_interp", ["pacal/bary_interp.pyx"], include_dirs=["c:/Python27/Lib/site-packages/numpy/core/include/"])],
         }
 else:
-    Cython_args = ()
+    Cython_args = {}
     
 setup(
     name='PaCal',
