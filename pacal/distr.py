@@ -14,7 +14,9 @@ from utils import Inf
 from numpy.lib.function_base import histogram
 from numpy import hstack
 from pylab import bar
- 
+
+import traceback
+
 from indeparith import conv, convprod, convdiv, convmin, convmax
 
 class Distr(object):
@@ -87,11 +89,25 @@ class Distr(object):
     
     def log_pdf(self,x):
         return log(self.pdf())
-
     def mean(self):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().mean()
-
+    def std(self):
+        """Mean of the distribution."""
+        return self.get_piecewise_pdf().std()
+    def var(self):
+        """Variance of the distribution."""
+        return self.get_piecewise_pdf().var()
+    def medianad(self):
+        """Median absolute dispersion of the distribution."""
+        return self.get_piecewise_pdf().medianad()
+    def median(self):
+        """Median of the distribution."""
+        return self.get_piecewise_pdf().median()
+    def iqrange(self, level=0.95):
+        """Inter-quantile range of the distribution."""
+        clevel = 1 - level
+        return self.quantile(1-clevel/2.0) - self.quantile(clevel/2)
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
@@ -112,14 +128,38 @@ class Distr(object):
         """The quantile function - inverse cumulative distribution 
         function."""
         return self.get_piecewise_cdf().inverse(y)
+    def ci(self, p = 0.05):    
+        """Confidence interval.
+        
+        Keyword arguments:
+        p : significance level"""    
+        return (self.quantile(p/2), self.quantile(1-p/2.0))
+    def summary_map(self):
+        r = {}
+        r['mean'] = self.mean()
+        r['std'] = self.std()
+        r['var'] = self.var()
+        r['range'] = self.get_piecewise_pdf().range()
+        r['int_err'] = 1-self.get_piecewise_pdf().integrate()
+        #r['interp_errs'] = self.getInterpErrors()
+        try:
+            r['median'] = self.median()
+            r['iqrange(0.95)'] = self.iqrange(0.95)
+            r['medianad'] = self.medianad()  
+            r['ci(0.05)'] = self.ci()       
+        except Exception, e:           
+            traceback.print_exc() 
+        return r
     def summary(self):
         """Summary statistics for a given distribution."""
         print "============= summary ============="
         #print self.get_piecewise_pdf()
-        summ = self.get_piecewise_pdf().summary()
+        summ = self.summary_map()
         print " ", self.getName()
-        for i in sorted(summ.keys()):
-            print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]
+        for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.95)',  'range', 'ci(0.05)', 'int_err']:
+            if summ.has_key(i): 
+                print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
+            
         
     def rand(self, n = None, cache = None):
         """Generates random numbers while tracking dependencies.
@@ -702,7 +742,7 @@ def max(*args):
     else:
         return _builtin_max(*args)
 
-from plotfun import histdistr
+#from plotfun import histdistr
 import pylab
 from pylab import plot, subplot, xlim, ylim, show, figure
 def demo_distr(d,
@@ -759,9 +799,26 @@ def demo_distr(d,
             abse = abs(Yf - Yt)
             if isinstance(theoretical, Distr):
                 r = f - theoretical.get_piecewise_pdf()
-                r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax)
+                r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax, color='k')
+                ss = d.summary_map()
+                sd = theoretical.summary_map()
+                print "============= summary ============="
+                print " ", d.getName()
+                for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.95)',  'ci(0.05)', 'range', 'int_err']:
+                    if ss.has_key(i): 
+                        try:
+                            if i=='int_err':
+                                r = abs(ss[i]-0)
+                            else:
+                                r = abs(ss[i]-sd[i])
+                            if not r==r:
+                                r = 0.0                           
+                            print '{0:{align}20}'.format(i, align = '>'), "=", '{0:{align}24}'.format(repr(ss[i]), align = '>'), " +/-", '%1.3g' % r    
+                        except Exception, e:  
+                            pass
             else:
-                pylab.plot(X, abse)
+                pylab.plot(X, abse, color='k')
+                print d.summary()
             pylab.ylabel("abs. error")
             if max(abse) == 0:
                 log_scale = False
@@ -769,12 +826,11 @@ def demo_distr(d,
                 pylab.gca().set_yscale("log")
         if title is not None:
             pylab.suptitle(title)
-    if summary:
-        print "integral =", I
-        print "pdf=", d.get_piecewise_pdf()
+    if summary and not theoretical:
+        #print "integral =", I
+        #print "pdf=", d.get_piecewise_pdf()
         print d.summary()
-        
-        if theoretical:
+    if summary and theoretical:
             print "max. abs. error", maxabserr
             print "max. rel. error", maxrelerr
-    #show()
+    show()
