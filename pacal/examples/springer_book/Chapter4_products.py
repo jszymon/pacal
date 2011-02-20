@@ -105,6 +105,7 @@ def prod_uni_uni(mu1, mu2, x):
     y[mask] = -log((mu1-0.5) * (mu2-0.5) / x[mask])
     return y
 demo_distr(UniformDistr(1, 2) * UniformDistr(0.5, 1.5), theoretical = partial(prod_uni_uni, 1.5, 1))
+figure()
 demo_distr(UniformDistr(1.5, 2.5) * UniformDistr(0.5, 1.5), theoretical = partial(prod_uni_uni, 2, 1))
 figure()
 demo_distr(UniformDistr(25, 26) * UniformDistr(14, 15), theoretical = partial(prod_uni_uni, 25.5, 14.5))
@@ -112,12 +113,16 @@ demo_distr(UniformDistr(25, 26) * UniformDistr(14, 15), theoretical = partial(pr
 #! Exercise 4.3
 figure()
 demo_distr(CauchyDistr() * UniformDistr(0,1), xmin = -3, xmax = 3)
+figure()
 demo_distr(CauchyDistr() * UniformDistr(0,1) + CauchyDistr() * UniformDistr(0,1), xmin = -3, xmax = 3)
 from numpy import pi, log1p
 def prodcauchy_uni_pdf(a, gamma, x):
     return 0.5/(pi*a*gamma)*log1p((a*a*gamma*gamma/(x*x)))
+figure()
 demo_distr(CauchyDistr() * UniformDistr(-1,1), theoretical = partial(prodcauchy_uni_pdf, 1, 1), xmin = -3, xmax = 3, ymax = 5)
+figure()
 demo_distr(CauchyDistr(gamma = 0.1) * UniformDistr(-3,3), theoretical = partial(prodcauchy_uni_pdf, 3, 0.1), xmin = -3, xmax = 3, ymax = 5)
+figure()
 demo_distr(CauchyDistr(gamma = 10) * UniformDistr(-0.3,0.3), theoretical = partial(prodcauchy_uni_pdf, 0.3, 10), xmin = -3, xmax = 3, ymax = 5)
 
 #! Exercise 4.4
