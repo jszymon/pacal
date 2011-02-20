@@ -584,7 +584,7 @@ class AbsDistr(OpDistr):
     def __str__(self):
         return "|#{0}|".format(id(self.d))
     def getName(self):
-        return "|#{0}|".format(self.d.getName())
+        return "|{0}|".format(self.d.getName())
     
 class SquareDistr(OpDistr):
     """Injective function of random variable"""

@@ -49,27 +49,24 @@ def E(alpha):
 
 print
 print "Combining measurements for optimal variance"
-alphaOptVar = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().var(), 0, 1, xtol = 1e-16)
+alphaOptVar = fminbound(lambda alpha: E(alpha).var(), 0, 1, xtol = 1e-16)
 print "alphaOptVar = ", alphaOptVar 
 dopt = E(alphaOptVar)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 print
 print "Combining measurements for optimal Median Absolute Deviance"
-alphaOptMad = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().medianad(), 0, 1, xtol = 1e-16)
+alphaOptMad = fminbound(lambda alpha: E(alpha).medianad(), 0, 1, xtol = 1e-16)
 print "alphaOptMAD = ", alphaOptMad 
 dopt = E(alphaOptMad)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 print
 print "Combining measurements for optimal 95% confidence interval"
-alphaOptIQrange = fminbound(lambda alpha: E(alpha).get_piecewise_pdf().iqrange(0.025), 0, 1, xtol = 1e-16)
+alphaOptIQrange = fminbound(lambda alpha: E(alpha).iqrange(0.025), 0, 1, xtol = 1e-16)
 print "alphaOptIQrange = ", alphaOptIQrange 
 dopt = E(alphaOptIQrange)
 dopt.summary()
-print "iqrange(0.025)=", dopt.get_piecewise_pdf().iqrange(0.025)
 
 print "-----------------------"
 figure()
