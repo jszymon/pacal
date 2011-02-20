@@ -174,7 +174,7 @@ class Distr(object):
         if id(self) not in cache:
             cache[id(self)] = self.rand_raw(n)
         return cache[id(self)]
-    def plot(self, *args, **kvargs):
+    def plot(self, color='k', *args, **kvargs):
         """Plot of PDF.
         
         Keyword arguments:
@@ -182,7 +182,7 @@ class Distr(object):
         xmax -- maximum x range        
         other of pylab/plot **kvargs  
         """
-        self.get_piecewise_pdf().plot(*args, **kvargs)      
+        self.get_piecewise_pdf().plot(color=color, *args, **kvargs)      
     def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, **kwargs):
         """Histogram of PDF.
         

@@ -238,7 +238,7 @@ class ExponentialDistr(Distr):
     def __str__(self):
         return "Exponential(lambda={0})#{1}".format(self.lmbda, id(self))
     def getName(self):
-        return "Ex({0})".format(self.lmbda)
+        return "ExpD({0})".format(self.lmbda)
 
 class GammaDistr(Distr):
     def __init__(self, k = 2, theta = 2):

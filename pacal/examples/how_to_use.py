@@ -1,13 +1,5 @@
-#! How to use PaCal
-#! ================
 from pacal import *
 
-#! User defined piecewise distribution
-#! -----------------------------------
-#! Let consider triangular distribution, it consists two smooth segments.
-
-from pacal.segments import PiecewiseDistribution, Segment
-from pacal.standard_distr import PDistr
 
 fun = PiecewiseDistribution([])
 fun.addSegment(Segment(0,1, lambda x:x))
