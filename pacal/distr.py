@@ -104,10 +104,11 @@ class Distr(object):
     def median(self):
         """Median of the distribution."""
         return self.get_piecewise_pdf().median()
-    def iqrange(self, level=0.95):
+    def iqrange(self, level=0.025):
         """Inter-quantile range of the distribution."""
-        clevel = 1 - level
-        return self.quantile(1-clevel/2.0) - self.quantile(clevel/2)
+        return self.quantile(1-level) - self.quantile(level)
+        #clevel = 1 - level
+        #return self.quantile(1-clevel/2.0) - self.quantile(clevel/2.0)
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
@@ -144,7 +145,7 @@ class Distr(object):
         #r['interp_errs'] = self.getInterpErrors()
         try:
             r['median'] = self.median()
-            r['iqrange(0.95)'] = self.iqrange(0.95)
+            r['iqrange(0.025)'] = self.iqrange()
             r['medianad'] = self.medianad()  
             r['ci(0.05)'] = self.ci()       
         except Exception, e:           
@@ -156,7 +157,7 @@ class Distr(object):
         #print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.95)',  'range', 'ci(0.05)', 'int_err']:
+        for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
             
@@ -804,7 +805,7 @@ def demo_distr(d,
                 sd = theoretical.summary_map()
                 print "============= summary ============="
                 print " ", d.getName()
-                for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.95)',  'ci(0.05)', 'range', 'int_err']:
+                for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.025)',  'ci(0.05)', 'range', 'int_err']:
                     if ss.has_key(i): 
                         try:
                             if i=='int_err':
@@ -831,6 +832,6 @@ def demo_distr(d,
         #print "pdf=", d.get_piecewise_pdf()
         print d.summary()
     if summary and theoretical:
-            print "max. abs. error", maxabserr
-            print "max. rel. error", maxrelerr
-    show()
+        print "max. abs. error", maxabserr
+        print "max. rel. error", maxrelerr
+    #show()
