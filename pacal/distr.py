@@ -819,7 +819,7 @@ def demo_distr(d,
                             pass
             else:
                 pylab.plot(X, abse, color='k')
-                print d.summary()
+                d.summary()
             pylab.ylabel("abs. error")
             if max(abse) == 0:
                 log_scale = False
@@ -830,7 +830,7 @@ def demo_distr(d,
     if summary and not theoretical:
         #print "integral =", I
         #print "pdf=", d.get_piecewise_pdf()
-        print d.summary()
+        d.summary()
     if summary and theoretical:
         print "max. abs. error", maxabserr
         print "max. rel. error", maxrelerr
