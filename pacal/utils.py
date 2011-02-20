@@ -18,10 +18,11 @@ from numpy import array, arange, empty, cos, abs
 from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
-from numpy import finfo, double, isscalar
+from numpy import finfo, double, isscalar, asfarray
 from pylab import loglog, show, semilogx, sqrt
 
 import params
+
 
 
 # safe infinity
@@ -263,10 +264,10 @@ class convergence_monitor(object):
         return best_y, best_ae, best_e
 def stepfun(x, shift = 0.0):
     if isscalar(x):
-        if x < a:
-            return 0
+        if x < shift:
+            return 0.0
         else:
-            return 1
+            return 1.0
     else:
         mask = (x >= 0.0) 
         y = zeros_like(asfarray(x))
