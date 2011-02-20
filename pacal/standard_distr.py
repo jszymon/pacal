@@ -184,7 +184,6 @@ class ChiSquareDistr(Distr):
         elif 20 < self.df:            
             mean = self.df
             std = sqrt(2 * self.df)
-            print "nodes=", [0.0, self.df*0.75, self.df*4.0/3.0,  Inf]
             self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,
                                                         breakPoints =[0.0, self.df*0.75, self.df*4.0/3.0,  Inf],
                                                         lpoles=[True, False, False, False])
