@@ -374,7 +374,7 @@ def norm_ratio_pdf(mu1, sigma1, mu2, sigma2, rho, x):
         N = NormalDistr()
         def norm_cdf(z):
             return N.cdf(z)
-#! WARNING: a bug in Springer's book in the next line
+    #! WARNING: a bug in Springer's book in the next line
     y =  b*d/(sqrt(2*numpy.pi)*sigma1*sigma2*a**3) * (norm_cdf(b/(sqrt(1-rho**2)*a)) - norm_cdf(-b/(sqrt(1-rho**2)*a)))
     y += sqrt(1-rho**2)/(numpy.pi*sigma1*sigma2*a**2) * exp(-c/(2*(1-rho**2)))
     return y
@@ -398,11 +398,11 @@ for A, B, q, p in [(1, 1, 3, 7),
     assert q < p
     u = GammaDistr(p, 1)
     v = BetaDistr(q, p-q)
-#! part a)
+    #! part a)
     figure()
     d = u*v
     demo_distr(d, theoretical = GammaDistr(q, 1))
-#! part b)
+    #! part b)
     if q == 0.5:
         figure()
         demo_distr(sqrt(2*d), theoretical = abs(NormalDistr(0, 1)))

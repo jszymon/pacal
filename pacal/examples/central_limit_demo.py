@@ -1,4 +1,7 @@
-"""Demo of central limit theorem"""
+#!===============================
+#! Demo of central limit theorem
+#!===============================
+
 
 import sys
 
@@ -26,26 +29,36 @@ def central_limit_demo(X, N = 5, xmin = None, xmax = None, ymax = None, **args):
     if ymax is not None:
         ylim(ymax = ymax)
     print
-
-if __name__ == "__main__":
-    # uniform distribution
-    X = UniformDistr(0,1)
-    central_limit_demo(X, xmin=-0.1, xmax=1.1)
-    
-    # Chi^2_1
-    X = ChiSquareDistr(1)
-    central_limit_demo(X, N=10, ymax=1.5, xmax=3)
-
-    # a ratio distribution
-    X = UniformDistr(1,3) / UniformDistr(-2,1)
-    central_limit_demo(X, N = 5, xmin=-5, xmax=5)
-    
-    # Cauchy
-    X = CauchyDistr()
-    central_limit_demo(X)
-    
-    # Levy
-    X = LevyDistr()
-    central_limit_demo(X, xmax=10)
-
     show()
+
+#!----------------------
+#! uniform distribution
+#!----------------------
+X = UniformDistr(0,1)
+central_limit_demo(X, xmin=-0.1, xmax=1.1)
+
+#!----------------------
+#! Chi^2_1
+#!----------------------
+X = ChiSquareDistr(1)
+central_limit_demo(X, N=10, ymax=1.5, xmax=3)
+
+#!----------------------
+#! a ratio distribution
+#!----------------------
+X = UniformDistr(1,3) / UniformDistr(-2,1)
+central_limit_demo(X, N = 5, xmin=-5, xmax=5)
+
+#!----------------------
+#! Cauchy distribution
+#!----------------------
+X = CauchyDistr()
+central_limit_demo(X)
+
+#!----------------------
+#! Levy distribution
+#!----------------------
+X = LevyDistr()
+central_limit_demo(X, xmax=10)
+
+show()

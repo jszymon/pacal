@@ -9,9 +9,9 @@ from pacal import *
 from pacal.distr import demo_distr
 
 
-#!
+#!----------------------------------
 #! coefficient of thermal expansion 
-#!
+#!----------------------------------
 L0 = UniformDistr(9,10)
 L1 = UniformDistr(11,12)
 dT = NormalDistr(1,2)
@@ -26,10 +26,9 @@ title("Distribution of thermal expansion coefficient")
 
 
 
-
-#!
+#!----------------------------------------
 #! combining two independent measurements
-#!
+#!----------------------------------------
 
 from scipy.optimize.optimize import fminbound
 
@@ -75,6 +74,7 @@ E2.plot(color='k')
 E(alphaOptVar).plot(color='r')
 E(alphaOptMad).plot(color='g')
 E(alphaOptIQrange).plot(color='b')
+show()
 figure()
 E(alphaOptVar).get_piecewise_cdf().plot(color='r')
 E(alphaOptMad).get_piecewise_cdf().plot(color='g')
