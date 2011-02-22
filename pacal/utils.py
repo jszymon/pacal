@@ -308,7 +308,7 @@ def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, m
     print "WARNING: zero fidning did not converge"
     return xm
 
-def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = True, pos = True):
+def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = False, pos = True):
     if fromTo is None:
         fromTo = (1,100)        
     ex = logspace(fromTo[0], fromTo[1], N)
@@ -360,7 +360,7 @@ if __name__ == "__main__":
     L = LevyDistr()
     L.summary()
     show()
-    A= ChiSquareDistr(1) / ChiSquareDistr(1) 
+    A= ChiSquareDistr(1) / ChiSquareDistr(1.1) 
     A.summary()
     A.plot()
     show()
