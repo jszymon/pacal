@@ -329,6 +329,8 @@ class OpDistr(Distr):
 
     Currently only does caching for random number generation."""
     def rand(self, n = 1, cache = None):
+        if self.indep:
+            return self.rand_op(n, None)
         if cache is None:
             cache = {}
         if id(self) not in cache:
