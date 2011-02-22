@@ -356,13 +356,27 @@ def binomial_coeff(n, k):
 
 if __name__ == "__main__":
     from standard_distr import *
+    from pylab import *
     print estimateTailExponent(LevyDistr(), pos = True)
     L = LevyDistr()
     L.summary()
-    show()
-    A= ChiSquareDistr(1) / ChiSquareDistr(1.1) 
+
+    A= UniformDistr() / UniformDistr()
+ # ChiSquareDistr(1) / ChiSquareDistr(1.1) 
     A.summary()
     A.plot()
+    S =A
+    figure()
+    for i in linspace(1,10,10):
+        S_1 = S * 2
+        S = S + S        
+        subplot(211)
+        (S/(2**(i))).plot(xmin=0,xmax=50)
+        print i,
+        (S/(2**(i))).summary()
+        subplot(212)
+        r = S.get_piecewise_pdf() - S_1.get_piecewise_pdf() 
+        r.plot(xmin=0,xmax=50)
     show()
     0/0
     #m = 3
