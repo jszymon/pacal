@@ -135,6 +135,9 @@ class Distr(object):
         Keyword arguments:
         p : significance level"""    
         return (self.quantile(p/2), self.quantile(1-p/2.0))
+    def tailexp(self):
+        """Check whether distribution is positive definite."""
+        return self.get_piecewise_pdf().tailexp()
     def summary_map(self):
         r = {}
         r['mean'] = self.mean()
@@ -142,6 +145,7 @@ class Distr(object):
         r['var'] = self.var()
         r['range'] = self.get_piecewise_pdf().range()
         r['int_err'] = 1-self.get_piecewise_pdf().integrate()
+        r['tailexp'] = self.tailexp()
         #r['interp_errs'] = self.getInterpErrors()
         try:
             r['median'] = self.median()
@@ -157,7 +161,7 @@ class Distr(object):
         #print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
+        for i in ['mean', 'std', 'var', 'tailexp', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
             
@@ -836,4 +840,9 @@ def demo_distr(d,
     if summary and theoretical:
         print "max. abs. error", maxabserr
         print "max. rel. error", maxrelerr
-    #show()
+    show()
+    
+if __name__ == "__main__":
+    figure()
+    from standard_distr import *
+    demo_distr(NormalDistr(2,1) * NormalDistr(3,1))

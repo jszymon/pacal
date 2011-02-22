@@ -19,11 +19,9 @@ from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar, asfarray
-from pylab import loglog, show, semilogx, sqrt
+from pylab import plot, loglog, show, semilogx, sqrt
 
 import params
-
-
 
 # safe infinity
 try:
@@ -310,6 +308,35 @@ def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, m
     print "WARNING: zero fidning did not converge"
     return xm
 
+def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = True, pos = True):
+    if fromTo is None:
+        fromTo = (1,100)        
+    ex = logspace(fromTo[0], fromTo[1], N)
+    if pos:
+        lx = ex
+        xi = log(ex)
+    else:
+        lx = -ex
+        xi = -log(ex)
+    y = abs(f(lx))
+    yi = log(y)
+    ind = isfinite(yi)
+    xi = xi[ind]
+    yi = yi[ind]
+    ri = yi[1:] - yi[0:-1] 
+    di = abs(xi[1:]-xi[0:-1])
+    if debug_plot:
+        print ri, di
+        plot(xi,yi)
+    if len(yi) > 1:
+        ex = ri[-1]/di[-1]
+        if ex>50:
+            return Inf
+        else:
+            return ex 
+    else:
+        return 0
+    
 
 try:
     from math import lgamma
@@ -328,8 +355,16 @@ def binomial_coeff(n, k):
 
 
 if __name__ == "__main__":
-    
-    
+    from standard_distr import *
+    print estimateTailExponent(LevyDistr(), pos = True)
+    L = LevyDistr()
+    L.summary()
+    show()
+    A= ChiSquareDistr(1) / ChiSquareDistr(1) 
+    A.summary()
+    A.plot()
+    show()
+    0/0
     #m = 3
     #n = 2*m-1
     #print cheb_nodes(m)

@@ -4,7 +4,7 @@ import bisect
 
 from integration import *
 from interpolation import *
-from utils import epsunique, estimateDegreeOfPole, testPole, findinv
+from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent
 
 import params
 
@@ -484,6 +484,8 @@ class MInfSegment(Segment):
             return PInfSegment(self.b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
     def isMInf(self):
         return True
+    def tailexp(self):
+        return estimateTailExponent(self.f, pos = False)
 
 class PInfSegment(Segment):
     """Segment = (a, inf] 
@@ -538,6 +540,8 @@ class PInfSegment(Segment):
             return MInfSegment(self.a * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
     def isPInf(self):
         return True    
+    def tailexp(self):
+        return estimateTailExponent(self, pos = True)
     
 class DiracSegment(Segment):
     """Segment = single Dirac function at point a
@@ -1059,7 +1063,18 @@ class PiecewiseFunction(object):
         """Interquartile range for a given level."""
         cpf = self.cumint()        
         return cpf.inverse(1-level)-cpf.inverse(level) 
-    
+    def tailexp(self):        
+        segMInf  =self.segments[0]
+        segPInf  =self.segments[-1]
+        if segMInf.isMInf():
+            mexp= segMInf.tailexp()
+        else:
+            mexp = None
+        if segPInf.isPInf():
+            pexp= segPInf.tailexp()
+        else:
+            pexp = None
+        return (mexp, pexp)
     def summary(self):
         r = {}
         if params.segments.summary.identify == True:
