@@ -1,59 +1,80 @@
 #os.system("E:\prog\python26_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf E:\m_\ecPro\pacal\demos\springer_book.py")
 #os.system("D:\prog\python_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf D:\m_\ecPro\pacal\demos\demo.py")
-#! Examples for distributions having different kinds of singularities 
-#! ===================================================================
-#!
-#! The first import ``distr`` module.
-#!
-from functools import partial
+#!===================================================================
+#! Examples of distributions with singularities 
+#!===================================================================
 
-from numpy import log
-from pylab import figure, show
+from functools import partial
+from pylab import *
+from mpl_toolkits.axes_grid.inset_locator import zoomed_inset_axes
+from mpl_toolkits.axes_grid.inset_locator import mark_inset
 
 from pacal import *
 from pacal.distr import demo_distr
-#$
-#$ Product of two normal variables is equal to $f_{N\cdotN}(z)=\pi^{-1}K_0(|z|)$
-#$ where $K0$ is the modified Bessel function of the second kind
-#$
-figure()
-demo_distr(NormalDistr(0,1) * NormalDistr(0,1))
-#!
+
+
+#!-------------------------------------------
 #! Product of two shifted normal variables
-#!
+#!-------------------------------------------
+#! such a product always has a singularity at 0, but the further the factors' means are from zero, the 'lighter' the singularity becomes
+figure()
+d = NormalDistr(0,1) * NormalDistr(0,1)
+demo_distr(d, ymax=1.5, xmin=-5, xmax=5)
+show()
 
 figure()
-demo_distr(NormalDistr(2,1) * NormalDistr(3,1))
+d = NormalDistr(1,1) * NormalDistr(1,1)
+demo_distr(d)
+show()
+
 figure()
-demo_distr(NormalDistr(-2,1) / NormalDistr(3,2))
+d = NormalDistr(2,1) * NormalDistr(2,1)
+demo_distr(d)
+show()
+
 figure()
-demo_distr(UniformDistr(-2,1) * NormalDistr(-1,3))
+d = NormalDistr(3,1) * NormalDistr(3,1)
+d.plot()
+d.hist()
+ax=gca()
+axins = zoomed_inset_axes(ax, 6, loc=1)
+d.plot(xmin=-1.5, xmax=1.5)
+axins.set_xlim(-1.5, 1.5)
+xticks(rotation="vertical")
+axins.set_ylim(0, 0.01)
+mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+show()
+
 figure()
-demo_distr(NormalDistr(1,1) / UniformDistr(-2,1))
-figure()
-demo_distr(NormalDistr(1,1) * NormalDistr(1,1))
-figure()
-demo_distr(NormalDistr(1,1) / NormalDistr(1,1))
-figure()
-demo_distr(NormalDistr(3,1) * NormalDistr(-5,1))
-figure()
-demo_distr(NormalDistr(-5,1) / NormalDistr(2,1))#), xmin = -50, xmax=50)
-figure()
-demo_distr(UniformDistr(1,3) * NormalDistr(-1,3))
-figure()
-demo_distr(NormalDistr(1,1) / UniformDistr(2,3))
-figure()
-demo_distr(NormalDistr(0.5,1) * NormalDistr(0.5,1))
-figure()
-demo_distr(UniformDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1)* NormalDistr(0,1) * NormalDistr(0,1))
+d = NormalDistr(4,1) * NormalDistr(4,1)
+d.plot()
+d.hist()
+ax=gca()
+axins = zoomed_inset_axes(ax, 12000, loc=1)
+d.plot(xmin=-.001, xmax=.001)
+axins.set_xlim(-.001, .001)
+xticks(rotation="vertical")
+axins.set_ylim(0.000072, 0.000075)
+mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+show()
+
+
+
+#   demo_distr(UniformDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1)* NormalDistr(0,1) * NormalDistr(0,1))
+
+#!-------------------------------------------
+#! Product of six uniform distributions
+#!-------------------------------------------
 def prod_uni_pdf(n, x):
     pdf = (-log(x)) ** (n-1)
     for i in xrange(2, n):
         pdf /= i
     return pdf
 figure()
-demo_distr(UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1), theoretical = partial(prod_uni_pdf, 6))
-figure()
-demo_distr(UniformDistr(0,1.1) * UniformDistr(0,1.1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1))
-
+d = UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1)
+demo_distr(d, ymax=100, xmin=-0.01, xmax=0.3, theoretical = partial(prod_uni_pdf, 6))
 show()
+
+#   figure()
+#   demo_distr(UniformDistr(0,1.1) * UniformDistr(0,1.1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1))
+
