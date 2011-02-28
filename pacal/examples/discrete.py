@@ -16,12 +16,19 @@ from pylab import *
 #!
 import time
 t0 =time.time()
-U = LevyDistr()
-S = U
-for i in range(20):
-    S = S+U
+U = max(ZeroDistr(), UniformDistr(-2,1))
+S = ZeroDistr()
+for i in range(30):
+    S = S+max(ZeroDistr(), UniformDistr(-1,1))
 S.summary()
+S.plot()
+S.get_piecewise_cdf().plot()
+S.hist(bins=200)
+
+
 print "done ", time.time()-t0 
+show()
+0/0
 #! Bernoulli distribution $B(k,5,0.8)$
 #! -----------------------------------
 figure()
