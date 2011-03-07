@@ -3,7 +3,7 @@
 #!===================================================
 
 from pacal import *
-from pylab import figure, show
+from pylab import figure, title, show
 
 def Hill_estim_distr(d, n, xmin):
     """The distribution of Hill's estimator for given distribution d
@@ -17,10 +17,12 @@ def Hill_estim_distr(d, n, xmin):
 a = Hill_estim_distr(ParetoDistr(2, 1), 5, 1)
 a.summary()
 a.plot()
-show()
+title("Sample distribution of Hill's estimator on 5 Pareto(2) samples")
+#show()
 
 figure()
 a = Hill_estim_distr(ParetoDistr(1, 1), 10, 1)
 a.summary()
 a.plot()
+title("Sample distribution of Hill's estimator on 10 Pareto(1) samples")
 show()

@@ -29,7 +29,7 @@ def central_limit_demo(X, N = 5, xmin = None, xmax = None, ymax = None, **args):
     if ymax is not None:
         ylim(ymax = ymax)
     print
-    show()
+    #show()
 
 #!----------------------
 #! uniform distribution

@@ -30,53 +30,66 @@ title("Distribution of thermal expansion coefficient")
 #! combining two independent measurements
 #!----------------------------------------
 
-from scipy.optimize.optimize import fminbound
+try:
+    from scipy.optimize.optimize import fminbound
+except ImportError:
+    print "Scipy not available, exiting..."
+    import sys
+    sys.exit(10)
 
+E1 = UniformDistr(-1,1)   # error of the fist measurement
+E2 = NormalDistr()        # error of the second measurement
 
 # E1 = UniformDistr(0,2)
 # E2 = BetaDistr(2,2) 
 # E2 = BetaDistr(0.5,0.5) 
-E1 = UniformDistr(-1,1)
-E2 = NormalDistr()
+
+
 E1.summary()
 E2.summary()
 
 
 def E(alpha):
+    """Error of a linear combination of measurements."""
     alpha = numpy.squeeze(alpha)
     return alpha*E1 + (1 - alpha)*E2
 
 print
 print "Combining measurements for optimal variance"
 alphaOptVar = fminbound(lambda alpha: E(alpha).var(), 0, 1, xtol = 1e-16)
-print "alphaOptVar = ", alphaOptVar 
+print "alpha for optimal variance = ", alphaOptVar 
 dopt = E(alphaOptVar)
 dopt.summary()
 
 print
 print "Combining measurements for optimal Median Absolute Deviance"
 alphaOptMad = fminbound(lambda alpha: E(alpha).medianad(), 0, 1, xtol = 1e-16)
-print "alphaOptMAD = ", alphaOptMad 
+print "alpha for optimal MAD = ", alphaOptMad 
 dopt = E(alphaOptMad)
 dopt.summary()
 
 print
 print "Combining measurements for optimal 95% confidence interval"
 alphaOptIQrange = fminbound(lambda alpha: E(alpha).iqrange(0.025), 0, 1, xtol = 1e-16)
-print "alphaOptIQrange = ", alphaOptIQrange 
+print "alpha for optimal 95% c.i. = ", alphaOptIQrange 
 dopt = E(alphaOptIQrange)
 dopt.summary()
 
 print "-----------------------"
 figure()
-E1.plot(color='k')
-E2.plot(color='k')
-E(alphaOptVar).plot(color='r')
-E(alphaOptMad).plot(color='g')
-E(alphaOptIQrange).plot(color='b')
-show()
+#E1.plot(color='k')
+#E2.plot(color='k')
+E(alphaOptVar).plot(color='r', label="optimal variance")
+E(alphaOptMad).plot(color='g', label="optimal MAD")
+E(alphaOptIQrange).plot(color='b', label="optimal 95% c.i.")
+title("Density of combined measurement error")
+legend()
+#show()
+
 figure()
-E(alphaOptVar).get_piecewise_cdf().plot(color='r')
-E(alphaOptMad).get_piecewise_cdf().plot(color='g')
-E(alphaOptIQrange).get_piecewise_cdf().plot(color='b')
+E(alphaOptVar).get_piecewise_cdf().plot(color='r', label="optimal variance")
+E(alphaOptMad).get_piecewise_cdf().plot(color='g', label="optimal MAD")
+E(alphaOptIQrange).get_piecewise_cdf().plot(color='b', label="optimal 95% c.i.")
+title("Cumulative distribution function of combined measurement error")
+legend(loc="lower right")
 show()
