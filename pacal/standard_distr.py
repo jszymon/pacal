@@ -145,6 +145,7 @@ class CauchyDistr(Distr):
 
 class ChiSquareDistr(Distr):
     def __init__(self, df = 1):
+        assert df > 0
         super(ChiSquareDistr, self).__init__()
         self.df = df
         self.df2 = df / 2.0
