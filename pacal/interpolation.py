@@ -96,42 +96,46 @@ class BarycentricInterpolator(Interpolator):
         self.weights = array(weights)
     def interp_at(self, x):
         """Barycentric interpolation"""
+        scalar_x = isscalar(x)
         if have_Cython:
-            return bary_interp(self.Xs, self.Ys, self.weights, atleast_1d(x))
-        # split x if necessary to avoid overflow
-        max_size = 100000
-        if isscalar(x):
-            x_parts = [x]
-        elif x.size <= max_size:
-            x_parts = [x]
-        else:
-            n_parts = (x.size * len(self.Xs) + max_size - 1) // max_size
-            x_parts = array_split(x, n_parts)
-        # now interpolate each part of x
-        results = []
-        for x_p in x_parts:
-            xdiff = subtract.outer(x_p, self.Xs)
-            ind = where(xdiff == 0)
-            xdiff[ind] = 1
-            temp = self.weights / xdiff
-            num = dot(temp, self.Ys)
-            den = temp.sum(axis=-1)
-            # Tricky case which can occur when ends of the interval are
-            # almost equal.  xdiff can be close to but nonzero, but the sum
-            # in the denominator can be exactly zero.
-            if (den == 0).any():
-                num[den == 0] = self.Ys[abs(xdiff[den == 0]).argmin(axis=-1)]
-                den[den == 0] = 1
-            ret = array(num/den)
+            y = bary_interp(self.Xs, self.Ys, self.weights, atleast_1d(x))
+            if scalar_x:
+                y = y[0]
+        else:    
+            # split x if necessary to avoid overflow
+            max_size = 100000
+            if scalar_x:
+                x_parts = [x]
+            elif x.size <= max_size:
+                x_parts = [x]
+            else:
+                n_parts = (x.size * len(self.Xs) + max_size - 1) // max_size
+                x_parts = array_split(x, n_parts)
+            # now interpolate each part of x
+            results = []
+            for x_p in x_parts:
+                xdiff = subtract.outer(x_p, self.Xs)
+                ind = where(xdiff == 0)
+                xdiff[ind] = 1
+                temp = self.weights / xdiff
+                num = dot(temp, self.Ys)
+                den = temp.sum(axis=-1)
+                # Tricky case which can occur when ends of the interval are
+                # almost equal.  xdiff can be close to but nonzero, but the sum
+                # in the denominator can be exactly zero.
+                if (den == 0).any():
+                    num[den == 0] = self.Ys[abs(xdiff[den == 0]).argmin(axis=-1)]
+                    den[den == 0] = 1
+                ret = array(num/den)
 
-            if len(ind[0]) > 0:
-                ret[ind[:-1]] = self.Ys[ind[-1]]
-            results.append(ret)
-        # concatenate results
-        if isscalar(x):
-            y = results[0]
-        else:
-            y = concatenate(results)
+                if len(ind[0]) > 0:
+                    ret[ind[:-1]] = self.Ys[ind[-1]]
+                results.append(ret)
+            # concatenate results
+            if scalar_x:
+                y = results[0]
+            else:
+                y = concatenate(results)
         return y
     def copyShiftedAndScaled(self, shift, scale):
         return BarycentricInterpolator( (self.Xs[::-1] - shift)/scale, self.Ys[::-1] * scale, self.weights[::-1])

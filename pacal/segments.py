@@ -1145,7 +1145,6 @@ class PiecewiseFunction(object):
              show_segments = params.segments.plot.showSegments, 
              numberOfPoints = params.segments.plot.numberOfPoints, **args):
         
-        xi = self.segments[0].a 
         h0 = h1 = 0        
         for seg in self.segments:
             xi = seg.a
@@ -1168,7 +1167,8 @@ class PiecewiseFunction(object):
             if "label" in args:
                 # avoid a label in legend for every segment
                 del args["label"]
-        xi = self.segments[-1].b 
+        seg = self.segments[-1]
+        xi = seg.b
         if (not seg.isPInf()): 
             plot([xi,xi], [h0, 0], 'k--')
     def getPiecewiseSpace(self, 
