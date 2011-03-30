@@ -4,7 +4,7 @@ def noncentral_t(df, mu, x):
     nonc_t = NormalDistr(mu, 1) / sqrt(ChiSquareDistr(df) / df)
     pdf = nonc_t(x)
     cdf = nonc_t.cdf(x)
-    return nonc_t, pdf[0], cdf[0]
+    return nonc_t, pdf, cdf
 
 
 

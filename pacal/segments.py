@@ -923,9 +923,9 @@ class PiecewiseFunction(object):
             # binary search
             segment = self.findSegment(x)
             if segment is None :
-                return 0;
+                return 0
             else:
-                return segment.f(array([x]))
+                return segment.f(x)
             return None
         else:
             # iterate over segments

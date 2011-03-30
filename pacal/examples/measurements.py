@@ -19,7 +19,7 @@ k = (L1/L0 - 1)/dT
 k.plot(linewidth=3, color = "k")
 k.hist(xmin=-1,xmax=1,color="0.75")
 k.summary()
-print "P(K<0) - NormalDistr(1,2).cdf(0) =", k.cdf(0)[0] - NormalDistr(1,2).cdf(0)[0]
+print "P(K<0) - NormalDistr(1,2).cdf(0) =", k.cdf(0) - NormalDistr(1,2).cdf(0)
 xlim(-1,1)
 ylim(ymin=0)
 title("Distribution of thermal expansion coefficient")
