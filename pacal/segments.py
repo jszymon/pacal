@@ -716,9 +716,13 @@ class SegmentWithPole(Segment):
         if self.left_pole:
             xmin = xmin + leftRightEpsilon
             xi = xmin + logspace(log10(abs(leftRightEpsilon)), log10(abs(xmax-xmin)), numberOfPoints)
+            if xi[-1] > self.b:
+                xi[-1] = self.b
         if not self.left_pole:
             xmax = xmax - leftRightEpsilon
             xi = xmax - logspace(log10(abs(xmin-xmax)), log10(abs(leftRightEpsilon)), numberOfPoints)
+            if xi[0] < self.a:
+                xi[0] = self.a
         yi = self.f(xi)
         plot(xi, yi,'-', **args)
         # show segment         

@@ -140,37 +140,37 @@ from pacal.distr import demo_distr
 #       figure()
 #       demo_distr(s, xmax=15, theoretical = nonc_chi2(nsum, noncsum))
 #   
-
-#! Section 9.9.7
-for n1, n2, xm in [(1, 1, 10),
-               (2, 1, 10),
-               (3, 5, 10),
-               (13, 20, None),
-               (130, 50, None),
-               ]:
-    d = ChiSquareDistr(n1) * ChiSquareDistr(n2)
-    figure()
-    if xm is not None:
-        demo_distr(d, xmax=xm)
-    else:
-        demo_distr(d)
-        
-
-#   def nonc_chi2(n, d):
-#       t = NormalDistr(sqrt(d))**2
-#       nc = t
-#       for i in xrange(n-1):
-#           nc += NormalDistr()**2
-#       return nc
-#   for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
-#                  (2, 1.5, 1, 0.7),
-#                  (3, 0.15, 5, 4.1),
+#   
+#   #! Section 9.9.7
+#   for n1, n2, xm in [(1, 1, 10),
+#                  (2, 1, 10),
+#                  (3, 5, 10),
+#                  (13, 20, None),
+#                  (130, 50, None),
 #                  ]:
-#       d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
+#       d = ChiSquareDistr(n1) * ChiSquareDistr(n2)
 #       figure()
-#       demo_distr(d, xmax=10)
-#       d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
-#       figure()
-#       demo_distr(d, xmax=10)
+#       if xm is not None:
+#           demo_distr(d, xmax=xm)
+#       else:
+#           demo_distr(d)
+        
+def nonc_chi2(n, d):
+    t = NormalDistr(sqrt(d))**2
+    nc = t
+    for i in xrange(n-1):
+        nc += NormalDistr()**2
+    return nc
+for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
+                       (2, 1.5, 1, 0.7),
+                       (3, 0.15, 5, 4.1),
+                       ]:
+    d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
+    figure()
+    demo_distr(d, xmax = 10, ymax=10)
+    d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
+    figure()
+    demo_distr(d, xmax = 10, ymax=10)
+
 
 show()

@@ -187,7 +187,7 @@ class Distr(object):
         other of pylab/plot **kvargs  
         """
         self.get_piecewise_pdf().plot(color=color, *args, **kvargs)      
-    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, **kwargs):
+    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, max_samp = None, **kwargs):
         """Histogram of PDF.
         
         Keyword arguments:
@@ -199,13 +199,15 @@ class Distr(object):
         Histogram show frequencies rather then cardinalities thus it can be
         compared with PDF function in continuous case. When xmin, xmax
         are defined then conditional histogram is presented."""
+        if max_samp is None:
+            max_samp = 100 * n
         if xmin is None and xmax is None:
             X = self.rand(n, None)
             allDrawn = len(X)
         else:
             X = []
             allDrawn = 0
-            while len(X) < n:
+            while len(X) < n and allDrawn < max_samp:
                 x = self.rand(n - len(X))
                 allDrawn = allDrawn + len(x)
                 if xmin is not None:
