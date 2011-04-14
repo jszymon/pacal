@@ -70,23 +70,107 @@ from pacal.distr import demo_distr
 #       demo_distr(d, theoretical = partial(theor_geom_unif, n))
 #       figure()
 #       demo_distr(d2, theoretical = partial(theor_geom_unif, n))
+#   
+#   #!-------------------
+#   #! Section 9.1.3
+#   #!-------------------
+#   #! Harmonic mean of uniforms
+#   for n in [2, 3, 7]:
+#       d = 1 / UniformDistr(0, 1)
+#       for i in xrange(n-1):
+#           d += 1 / UniformDistr(0, 1)
+#       d = n / d
+#       figure()
+#       demo_distr(d)
+#   
+#   
+#   #!-------------------
+#   #! Section 9.2
+#   #!-------------------
+#   #! tested elsewhere
+#   
+#   #!-------------------
+#   #! Section 9.6
+#   #!-------------------
+#   from numpy import pi, sin, cos
+#   for n1, n2, theta in [(5, 8, pi/4),
+#                         #(5, 8, pi/2), does not work because of multiplication by ~0
+#                         (25, 80, pi/8),
+#                         (1, 1, pi/3),
+#                         (2, 1, pi/3),
+#                         ]:
+#       d = StudentTDistr(n1) * sin(theta) + StudentTDistr(n2) * cos(theta)
+#       figure()
+#       demo_distr(d, xmin=-10, xmax=10)
+#   
+#   
+#   #!-------------------
+#   #! Section 9.9
+#   #!-------------------
+#   #! TODO: Bessel function distributions
+#   
+#   #! Corollary 9.9.1b
+#   for n in [2, 3, 6]:
+#       s = GammaDistr()
+#       for i in xrange(n-1):
+#           s += GammaDistr()
+#       s /= n
+#       figure() 
+#       demo_distr(s, theoretical = GammaDistr(2*n, 2.0/n))
+#   
+#   
+#   #! Theorem 9.9.2
+#   def nonc_chi2(n, d):
+#       t = NormalDistr(sqrt(d))**2
+#       nc = t
+#       for i in xrange(n-1):
+#           nc += NormalDistr()**2
+#       return nc
+#   for noncs in [[(2, 0), (1, 0)],
+#                 [(1, 1.5), (1, 0.5)],
+#                 [(3, 2.5), (2, 0.5)],
+#                 ]:
+#       nsum = noncs[0][0]
+#       noncsum = noncs[0][1]
+#       s = nonc_chi2(*noncs[0])
+#       for n, d in noncs[1:]:
+#           nsum += n
+#           noncsum += d
+#           s += nonc_chi2(n, d)
+#       figure()
+#       demo_distr(s, xmax=15, theoretical = nonc_chi2(nsum, noncsum))
+#   
 
-#! Section 9.1.3
-#! Harmonic mean of uniforms
-for n in [2, 3, 7]:
-    d = 1 / UniformDistr(0, 1)
-    for i in xrange(n-1):
-        d += 1 / UniformDistr(0, 1)
-    d = n / d
+#! Section 9.9.7
+for n1, n2, xm in [(1, 1, 10),
+               (2, 1, 10),
+               (3, 5, 10),
+               (13, 20, None),
+               (130, 50, None),
+               ]:
+    d = ChiSquareDistr(n1) * ChiSquareDistr(n2)
     figure()
-    demo_distr(d)
+    if xm is not None:
+        demo_distr(d, xmax=xm)
+    else:
+        demo_distr(d)
+        
 
-
-#!-------------------
-#! Section 9.2
-#!-------------------
-#! tested elsewhere
-
-
+#   def nonc_chi2(n, d):
+#       t = NormalDistr(sqrt(d))**2
+#       nc = t
+#       for i in xrange(n-1):
+#           nc += NormalDistr()**2
+#       return nc
+#   for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
+#                  (2, 1.5, 1, 0.7),
+#                  (3, 0.15, 5, 4.1),
+#                  ]:
+#       d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
+#       figure()
+#       demo_distr(d, xmax=10)
+#       d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
+#       figure()
+#       demo_distr(d, xmax=10)
 
 show()
