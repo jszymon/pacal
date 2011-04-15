@@ -506,11 +506,6 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
                                                 *args, **kwargs)
     def interp_at(self, x):
         y = expm1(super(PoleInterpolatorP, self).interp_at(self.xtinv(x)))
-        if isscalar(x):
-            if x > self.orig_b:
-                return 0
-            return y
-        y[x > self.orig_b] = 0
         return y
     #def get_incremental_nodes1(self, new_n):
     #    return incremental_cheb_nodes1(new_n, self.a, self.b)
@@ -545,11 +540,6 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
                                                 *args, **kwargs)
     def interp_at(self, x):
         y = expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
-        if isscalar(x):
-            if x > self.orig_b:
-                return 0
-            return y
-        y[x > self.orig_b] = 0
         return y
     #def get_incremental_nodes1(self, new_n):
     #    return incremental_cheb_nodes1(new_n, self.a, self.b)

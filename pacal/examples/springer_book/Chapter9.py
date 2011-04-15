@@ -120,12 +120,14 @@ from pacal.distr import demo_distr
 #   
 #   
 #   #! Theorem 9.9.2
-#   def nonc_chi2(n, d):
-#       t = NormalDistr(sqrt(d))**2
-#       nc = t
-#       for i in xrange(n-1):
-#           nc += NormalDistr()**2
-#       return nc
+def nonc_chi2(n, d):
+    t = NormalDistr(sqrt(d))**2
+    nc = t
+    if n > 1:
+        nc += ChiSquareDistr(n-1)
+    #for i in xrange(n-1):
+    #    nc += NormalDistr()**2
+    return nc
 #   for noncs in [[(2, 0), (1, 0)],
 #                 [(1, 1.5), (1, 0.5)],
 #                 [(3, 2.5), (2, 0.5)],
@@ -154,23 +156,66 @@ from pacal.distr import demo_distr
 #           demo_distr(d, xmax=xm)
 #       else:
 #           demo_distr(d)
-        
-def nonc_chi2(n, d):
-    t = NormalDistr(sqrt(d))**2
-    nc = t
-    for i in xrange(n-1):
-        nc += NormalDistr()**2
-    return nc
-for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
-                       (2, 1.5, 1, 0.7),
-                       (3, 0.15, 5, 4.1),
-                       ]:
-    d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
-    figure()
-    demo_distr(d, xmax = 10, ymax=10)
-    d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
-    figure()
-    demo_distr(d, xmax = 10, ymax=10)
+#           
+#   # check this: first version of the nonc_chi2 gives better results for
+#   # multiplication but worse for division!!!!
+#   for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
+#                          (2, 1.5, 1, 0.7),
+#                          (3, 0.15, 5, 4.1),
+#                          ]:
+#       d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
+#       figure()
+#       demo_distr(d, xmax = 10)
+#       d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
+#       figure()
+#       demo_distr(d, xmax = 10)
+#       #figure()
+#       #d.get_piecewise_pdf().plot_tails()
+#   
+#   from pacal.utils import lgamma
+#   def quot_chi_theor(n1, n2, x):
+#       n1 = float(n1)
+#       n2 = float(n2)
+#       t1 = n1/2
+#       t2 = n2/2
+#       ly =  lgamma(t1+t2) + t1*log(t1/4) + t2*log(t2/4) + (2*t1-1)*log(x)
+#       ly -= lgamma(t1) + lgamma(t2) + (t1+t2)*log(t1/4*x*x+t2/4)
+#       return 2*exp(ly)
+#   for n1, n2 in [(1, 1),
+#                  (2, 1),
+#                  (3, 5),
+#                  (13, 20),
+#                  (130, 50),
+#                  ]:
+#       d = sqrt(ChiSquareDistr(n1)) * sqrt(ChiSquareDistr(n2))
+#       figure()
+#       demo_distr(d)
+#       d2 = sqrt(ChiSquareDistr(n1)) / sqrt(ChiSquareDistr(n2))
+#       figure()
+#       demo_distr(d2)
+#       # theoretical formula in Springer seems wrong:
+#       #demo_distr(d2, theoretical = partial(quot_chi_theor, n1, n2))
+#   
+#   for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
+#                          (2, 1.5, 1, 0.7),
+#                          (3, 0.15, 5, 4.1),
+#                          ]:
+#       nc1 = nonc_chi2(n1, d1)
+#       nc2 = nonc_chi2(n2, d2)
+#       d = nc1 * nc2
+#       figure()
+#       demo_distr(d, xmax = 10)
+#       d = nc1 / nc2
+#       figure()
+#       demo_distr(d, xmax = 10)
 
+#! folded normal distribution
+def theor_quot_folded_normal(sigma1, sigma2, x):
+    return 2*sigma1*sigma2 / numpy.pi / (sigma1**2 + x**2*sigma2**2)
+fn = abs(NormalDistr())
+figure()
+demo_distr(fn * fn)
+figure()
+demo_distr(fn / fn, theoretical = partial(theor_quot_folded_normal, 1, 1))
 
 show()

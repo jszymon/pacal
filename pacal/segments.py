@@ -214,7 +214,10 @@ class Segment(object):
     def shiftAndScale(self, shift, scale):
         """Scale and shift a segment: replace scale*f(x)+shift
         """
-        _1_scale = 1.0 / scale
+        if scale is 1:
+            _1_scale = 1
+        else:
+            _1_scale = 1.0 / scale
         if scale > 0:
             a = self.a
             b = self.b
@@ -225,7 +228,15 @@ class Segment(object):
     def probComposition(self, g, ginv, ginvderiv, pole_at_zero = False):
         """It produce probalilistic composition g o f for a given distribution f 
         """
-        fun = lambda x: _safe_call(self.f(ginv(x)) * abs(ginvderiv(x)))
+        def fun(x):
+            if isscalar(x):
+                try:
+                    y = self.f(ginv(x)) * abs(ginvderiv(x))
+                except ArithmeticError:
+                    y = 0
+            else:
+                y = _safe_call(self.f(ginv(x)) * abs(ginvderiv(x)))
+            return y
         if self.isDirac():
             return DiracSegment(g(self.a), self.f)
         if (isinf(g(array([self.a])))):

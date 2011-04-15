@@ -377,7 +377,10 @@ class ShiftedScaledDistr(OpDistr):
         self.d = d
         self.shift = shift
         self.scale = scale
-        self._1_scale = 1.0 / scale
+        if self.scale is 1:
+            self._1_scale = 1
+        else:
+            self._1_scale = 1.0 / scale
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyShiftedAndScaled(self.shift, self.scale)
     def pdf(self, x):
