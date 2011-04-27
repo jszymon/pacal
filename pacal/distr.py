@@ -342,6 +342,7 @@ class OpDistr(Distr):
         if id(self) not in cache:
             cache[id(self)] = self.rand_op(n, cache)
         return cache[id(self)]
+
 class FuncDistr(OpDistr):
     """Injective function of random variable"""
     def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f"):

@@ -9,10 +9,9 @@ from numpy.random import f as f_rand
 
 import params
 from utils import lgamma
-from distr import Distr
+from distr import Distr, MinDistr, MaxDistr
 from segments import PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
-from compiler.ast import Raise
 
 
 class FunDistr(Distr):
@@ -623,6 +622,34 @@ class ZeroDistr(ConstDistr):
     def __init__(self):
         super(ZeroDistr, self).__init__(c = 0.0)
 
+
+class CondGtDistr(Distr):
+    def __init__(self, d, L=None):
+        self.L = L
+        self.d = d
+        super(CondGtDistr, self).__init__(d)
+    def init_piecewise_pdf(self):
+        Z = MaxDistr(ConstDistr(self.L), self.d)    
+        diracB = Z.get_piecewise_pdf().segments.pop(0)
+        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
+    def __str__(self):
+        return "{0} | x>{1}".format(self.d, self.L)
+    def getName(self):
+        return "{0} | x>{1}".format(self.d.getName(), self.L)
+
+class CondLtDistr(Distr):
+    def __init__(self, d, U=None):
+        self.U = U
+        self.d = d
+        super(CondLtDistr, self).__init__(d)
+    def init_piecewise_pdf(self):
+        Z = MinDistr(ConstDistr(self.U), self.d)    
+        diracB = Z.get_piecewise_pdf().segments.pop(-1)
+        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
+    def __str__(self):
+        return "{0} | x<{1}".format(self.d, self.U)
+    def getName(self):
+        return "{0} | x<{1}".format(self.d.getName(), self.U)
 
 
 
