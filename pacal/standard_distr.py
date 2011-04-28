@@ -636,6 +636,8 @@ class CondGtDistr(Distr):
         return "{0} | x>{1}".format(self.d, self.L)
     def getName(self):
         return "{0} | x>{1}".format(self.d.getName(), self.L)
+    def rand_raw(self, n):
+        return self.rand_invcdf(n)
 
 class CondLtDistr(Distr):
     def __init__(self, d, U=None):
@@ -650,6 +652,8 @@ class CondLtDistr(Distr):
         return "{0} | x<{1}".format(self.d, self.U)
     def getName(self):
         return "{0} | x<{1}".format(self.d.getName(), self.U)
+    def rand_raw(self, n):
+        return self.rand_invcdf(n)
 
 
 

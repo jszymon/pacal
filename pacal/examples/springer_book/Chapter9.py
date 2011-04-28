@@ -208,14 +208,29 @@ def nonc_chi2(n, d):
 #       d = nc1 / nc2
 #       figure()
 #       demo_distr(d, xmax = 10)
+#   
+#   #! folded normal distribution
+#   def theor_quot_folded_normal(sigma1, sigma2, x):
+#       return 2*sigma1*sigma2 / numpy.pi / (sigma1**2 + x**2*sigma2**2)
+#   fn = abs(NormalDistr())
+#   figure()
+#   demo_distr(fn * fn)
+#   figure()
+#   demo_distr(fn / fn, theoretical = partial(theor_quot_folded_normal, 1, 1))
+#   
+#   
+#   #!-------------------
+#   #! Section 9.10
+#   #!-------------------
+#   #! Linear combination of truncated exponential distributions
+#   def truncExp(alpha, theta):
+#       return CondLtDistr(ExponentialDistr(alpha), theta)
+#   
+#   demo_distr(truncExp(1, 10))
+#   te1 = truncExp(1, 10)
+#   demo_distr(te1 + te1 + te1)
+#   demo_distr(te1 + 10*truncExp(2, 5))
 
-#! folded normal distribution
-def theor_quot_folded_normal(sigma1, sigma2, x):
-    return 2*sigma1*sigma2 / numpy.pi / (sigma1**2 + x**2*sigma2**2)
-fn = abs(NormalDistr())
-figure()
-demo_distr(fn * fn)
-figure()
-demo_distr(fn / fn, theoretical = partial(theor_quot_folded_normal, 1, 1))
+
 
 show()
