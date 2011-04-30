@@ -260,13 +260,45 @@ def nonc_chi2(n, d):
 #! Section 9.12
 #!-------------------------
 
-for ps in [[1,2,3],
-           [6,8,10,12]]:
-    pqs = zip(ps[:-1], ps[1:])
-    pr = OneDistr()
-    for p, q in pqs:
-        pr *= BetaDistr(p, q-p)
-    figure()
-    demo_distr(pr, theoretical = BetaDistr(ps[0], ps[-1]-ps[0]))
+#   for ps in [[1,2,3],
+#              [6,8,10,12]]:
+#       pqs = zip(ps[:-1], ps[1:])
+#       pr = OneDistr()
+#       for p, q in pqs:
+#           pr *= BetaDistr(p, q-p)
+#       figure()
+#       demo_distr(pr, theoretical = BetaDistr(ps[0], ps[-1]-ps[0]))
+#   
+#   #! Exaple 9.13.1 (following Kotlarski)
+#   p0 = 2; p = 5
+#   m = 3
+#   def gr1(r, x):
+#       ly = lgamma(float(p+r-1)/m)-lgamma(float(p0+r-1)/m)-lgamma(float(p-p0)/m) + (p0+r-1)*log(x)
+#       y = m * exp(ly)*(1.0-x**m) **(float(p-p0)/m - 1)
+#       return y
+#   grcache = {}
+#   def gr(r, x):
+#       if r in grcache:
+#           scale = grcache[r]
+#       else:
+#           f = FunDistr(partial(gr1, i), [0,1])
+#           scale = f.cdf(1)
+#           grcache[r] = scale
+#       y = gr1(r, x)
+#       return y / scale
+#       
+#   
+#   pr = OneDistr()
+#   for i in xrange(m):
+#       f = FunDistr(partial(gr, i), [0,1])
+#       pr *= f
+#       figure()
+#       f.plot()
+#   figure()
+#   demo_distr(pr, theoretical = BetaDistr(p0, p-p0))
+#   
+
+
+
 
 show()
