@@ -10,6 +10,7 @@ from pylab import figure, show
 
 from pacal import *
 from pacal.distr import demo_distr
+from pacal.utils import lgamma
 
 
 #!-------------------
@@ -172,7 +173,6 @@ def nonc_chi2(n, d):
 #       #figure()
 #       #d.get_piecewise_pdf().plot_tails()
 #   
-#   from pacal.utils import lgamma
 #   def quot_chi_theor(n1, n2, x):
 #       n1 = float(n1)
 #       n2 = float(n2)
@@ -230,7 +230,43 @@ def nonc_chi2(n, d):
 #   te1 = truncExp(1, 10)
 #   demo_distr(te1 + te1 + te1)
 #   demo_distr(te1 + 10*truncExp(2, 5))
+#   
+#   #!-------------------------
+#   #! Section 9.11
+#   #! Generalized F variables
+#   #!-------------------------
+#   
+#   def gen_f(p, m, a, h, x):
+#       h = float(h)
+#       logk = p/h*log(a)+lgamma(m)-lgamma(p/h)-lgamma(m-p/h)
+#       k = h * exp(logk)
+#       return k * x**(p-1) / (1 + a*x**h)**m
+#   f = FunDistr(partial(gen_f, 1, 1, 1, 2), [0,1,Inf])
+#   
+#   demo_distr(f, theoretical = abs(CauchyDistr()))
+#   
+#   for genfs in [[(1, 1, 1, 2), (1, 1, 1, 2)],
+#                 [(1, 1, 1, 2), (3, 2, 1, 2), (1, 7, 0.0, 3)]
+#                 ]:
+#       pr = OneDistr()
+#       for gf in genfs:
+#           f = FunDistr(partial(gen_f, 1, 1, 1, 2), [0,1,Inf])
+#           pr *= f
+#       figure()
+#       pr.plot()
+#       pr.summary()
 
+#!-------------------------
+#! Section 9.12
+#!-------------------------
 
+for ps in [[1,2,3],
+           [6,8,10,12]]:
+    pqs = zip(ps[:-1], ps[1:])
+    pr = OneDistr()
+    for p, q in pqs:
+        pr *= BetaDistr(p, q-p)
+    figure()
+    demo_distr(pr, theoretical = BetaDistr(ps[0], ps[-1]-ps[0]))
 
 show()

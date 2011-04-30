@@ -812,6 +812,7 @@ def demo_distr(d,
             abse = abs(Yf - Yt)
             if isinstance(theoretical, Distr):
                 r = f - theoretical.get_piecewise_pdf()
+                log_scale = False
                 r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax, color='k')
                 ss = d.summary_map()
                 sd = theoretical.summary_map()
