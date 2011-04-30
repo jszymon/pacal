@@ -278,6 +278,7 @@ def nonc_chi2(n, d):
 #       return y
 #   grcache = {}
 #   def gr(r, x):
+#       """Need to scale the distributions.  Examples in Springer/Kotlarski seem not normalized"""
 #       if r in grcache:
 #           scale = grcache[r]
 #       else:
@@ -292,8 +293,6 @@ def nonc_chi2(n, d):
 #   for i in xrange(m):
 #       f = FunDistr(partial(gr, i), [0,1])
 #       pr *= f
-#       figure()
-#       f.plot()
 #   figure()
 #   demo_distr(pr, theoretical = BetaDistr(p0, p-p0))
 #   
