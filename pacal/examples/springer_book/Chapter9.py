@@ -255,11 +255,11 @@ def nonc_chi2(n, d):
 #       figure()
 #       pr.plot()
 #       pr.summary()
-
-#!-------------------------
-#! Section 9.12
-#!-------------------------
-
+#   
+#   #!-------------------------
+#   #! Section 9.13
+#   #!-------------------------
+#   
 #   for ps in [[1,2,3],
 #              [6,8,10,12]]:
 #       pqs = zip(ps[:-1], ps[1:])
@@ -296,8 +296,110 @@ def nonc_chi2(n, d):
 #   figure()
 #   demo_distr(pr, theoretical = BetaDistr(p0, p-p0))
 #   
+#   
+#   #!-------------------------
+#   #! Section 9.14
+#   #!-------------------------
+#   
+#   f = FunDistr(lambda x: sqrt(2)/numpy.pi / (1+x**4), [-Inf, -1, 0, 1, Inf])
+#   figure()
+#   demo_distr(f, err_plot = False)
+#   figure()
+#   demo_distr(f/f, theoretical = CauchyDistr())
+#   
+#   
+#   
+#   
+#   #! Exercise 9.1
+#   for l, n in [[1, 2],
+#                [1, 5],
+#                ]:
+#       e = ExponentialDistr(l)
+#       s = ZeroDistr()
+#       for i in xrange(n):
+#           s += e
+#       s /= n
+#       figure()
+#       demo_distr(s, theoretical = GammaDistr(n, 1)/n)
+#   
+#   
+#   #! Exercise 9.2
+#   f = FunDistr(lambda x: 1.5*x*x, [-1,1])
+#   m = (f + f) / 2
+#   figure()
+#   demo_distr(m, err_plot = False)
+#   #! Exercise 9.3
+#   m2 = (m + m) /2
+#   figure()
+#   demo_distr(m2, err_plot = False)
+#   
+#   #! Exercise 9.4
+#   for k, n in [[2,2]]:
+#       s = ZeroDistr()
+#       for i in xrange(n):
+#           s += GammaDistr(k)
+#       figure()
+#       demo_distr(s, theoretical = GammaDistr(k*n))
+#   
+#   #! Exercise 9.5: see central_limit_demo.py
+#   
+#   #! Exercise 9.6
+#   maxwell = sqrt(NormalDistr()**2 + NormalDistr()**2 + NormalDistr()**2)
+#   for n in [2, 3, 5]:
+#       s = maxwell
+#       for i in xrange(n-1):
+#           s += maxwell
+#       s /= n
+#       figure()
+#       demo_distr(s)
+#   
+#   #! Exercise 9.7
+#   rayleigh = sqrt(NormalDistr()**2 + NormalDistr()**2)
+#   for n in [2, 3, 5]:
+#       s = rayleigh
+#       for i in xrange(n-1):
+#           s += rayleigh
+#       s /= n
+#       figure()
+#       demo_distr(s)
+#   
+#   #! Exercise 9.8: see Exercise 9.4
+#   
+#   #! Exercise 9.11
+#   for n, p in [[2, 5]]:
+#       pr = OneDistr()
+#       for i in xrange(n):
+#           pr *= GammaDistr(p+float(i)/n, 1)
+#       gm = pr ** (1.0/n)
+#       figure()
+#       demo_distr(gm, theoretical = GammaDistr(n*p, 1) / n)
+#   
+#   #! Exercise 9.12
+#   figure()
+#   demo_distr((BetaDistr(5, 2) * BetaDistr(6, 2) * BetaDistr(6, 3))**(1.0/3), xmin = 0, xmax = 1)
+#   
+#   #! Exercise 9.13: see singularities.py
+#   
+#   #! Exercise 9.14: see Exercise 4.2
+#   for u1, u2 in [[-1,1],
+#                  [4.5,0.5],
+#                  [0.5,0.5],
+#                  ]:
+#       p = UniformDistr(u1-0.5, u1+0.5) * UniformDistr(u2-0.5, u2+0.5)
+#       figure()
+#       demo_distr(p)
+#   
+#   #! Exercise 9.15:
+#   for a, b, c in [[1,2,3]]:
+#       pr = BetaDistr(a, b) * BetaDistr(a+b, c)
+#       figure()
+#       demo_distr(pr, theoretical = BetaDistr(a, b+c))
+#   
+#   #! Exercise 9.16: see Section 9.13
+
+#! Exercise 9.17
 
 
-
+#! Exercise 9.28: see Section 9.14
 
 show()
