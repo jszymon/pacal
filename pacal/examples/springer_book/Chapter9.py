@@ -396,10 +396,62 @@ def nonc_chi2(n, d):
 #       demo_distr(pr, theoretical = BetaDistr(a, b+c))
 #   
 #   #! Exercise 9.16: see Section 9.13
+#   
+#   #! Exercise 9.17
+#   a1 = 3
+#   bs = [2,3]
+#   p = len(bs)
+#   As = [a1]
+#   for i in xrange(p-1):
+#       As.append(As[i] + bs[i])
+#   pr = OneDistr()
+#   for i in xrange(p):
+#       pr *= 1/(1+GammaDistr(bs[i], 1) / GammaDistr(As[i], 1))
+#   figure()
+#   demo_distr(pr, theoretical = BetaDistr(a1, sum(bs)))
+#   
+#   #! Exercises 9.21-9.27
+#   for a1, b1, a2, b2 in [[2, 0, 0.5, -1], #FIX: !!!! discontinuity at 0!!!! singularity in derivative not detected?
+#                          [1, 0, 1, 1],
+#                          [4, 0, 4, 0],
+#                          ]:
+#       tr = UniformDistr() + UniformDistr()
+#       tr1 = b1 + tr/sqrt(a1)
+#       tr2 = b2 + tr/sqrt(a2)
+#       figure()
+#       pr = tr1 * tr2
+#       demo_distr(pr)
+#   
+#   #! Exercise 9.28: see Section 9.14
+#   
+#   #! Exercise 9.29: see Section 9.1.2
+#   
+#   #! Exercise 9.34
+#   figure()
+#   demo_distr(StudentTDistr(5) - StudentTDistr(5))
+#   
+#   
+#   #! Exercises 9.35, 9.36
+#   n = 5
+#   v = abs(NormalDistr()) * abs(NormalDistr()) / ChiSquareDistr(n) * n
+#   figure()
+#   demo_distr(v, xmax = 10, ymax = 2)
+#   
+#   #! Exercise 9.37
+#   for n1, n2 in [[1, 1],
+#                  [2, 3],
+#                  [5, 10],
+#                  [5, 100],
+#                  ]:
+#       c1 = ChiSquareDistr(n1)
+#       c2 = ChiSquareDistr(n2)
+#       v = 1/(1+c2/c1)
+#       figure()
+#       demo_distr(v, theoretical = BetaDistr(n1/2.0, n2/2.0))
 
-#! Exercise 9.17
-
-
-#! Exercise 9.28: see Section 9.14
+#! Exercise 9.37
+for p in [1, 3, 5, 100]:
+    figure()
+    demo_distr(GammaDistr(p, 1) - GammaDistr(p, 1))
 
 show()
