@@ -301,17 +301,17 @@ class BetaDistr(Distr):
         super(BetaDistr, self).__init__()
         self.alpha = alpha
         self.beta = beta
-        self.norm = exp(lgamma(self.alpha + self.beta) - lgamma(self.alpha) - lgamma(self.beta))
+        self.lg_norm = lgamma(self.alpha + self.beta) - lgamma(self.alpha) - lgamma(self.beta)
     def pdf(self, x):
         if isscalar(x):
             if x < 0 or x > 1:
                 y = 0
             else:
-                y = self.norm * x**(self.alpha - 1) * (1-x)**(self.beta - 1)
+                y = exp(self.lg_norm + log(x)*(self.alpha - 1) + log(1-x)*(self.beta - 1))
         else:
             y = zeros_like(asfarray(x))
             mask = (x >= 0) & (x <= 1)
-            y[mask] = self.norm * x[mask]**(self.alpha - 1) * (1-x[mask])**(self.beta - 1)
+            y[mask] = exp(self.lg_norm + log(x[mask])*(self.alpha - 1) + log(1-x[mask])*(self.beta - 1))
         return y
     def init_piecewise_pdf(self):
         if self.alpha > 1 and self.beta > 1:
