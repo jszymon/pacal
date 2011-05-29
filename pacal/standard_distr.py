@@ -383,11 +383,11 @@ class LevyDistr(Distr):
             if x <= self.xmin:
                 y = 0
             else:
-                y = self.nrm / (x - self.xmin)**1.5 * exp(-0.5 * self.c / (x - self.xmin))
+                y = self.nrm * exp(log(x - self.xmin)*(-1.5) -0.5 * self.c / (x - self.xmin))
         else:
             y = zeros_like(asfarray(x))
             mask = (x > self.xmin)
-            y[mask] = self.nrm / (x[mask] - self.xmin)**1.5 * exp(-0.5 * self.c / (x[mask] - self.xmin))
+            y[mask] = self.nrm *exp( log(x[mask] - self.xmin)*(-1.5) -0.5 * self.c / (x[mask] - self.xmin))
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
