@@ -319,10 +319,9 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
         lx = -ex
         xi = -log(ex)
     y = abs(f(lx))
-    yi = log(y)
-    ind = isfinite(yi)
+    ind = (y > 0)
     xi = xi[ind]
-    yi = yi[ind]
+    yi = log(y[ind])
     ri = yi[1:] - yi[0:-1] 
     di = abs(xi[1:]-xi[0:-1])
     if debug_plot:

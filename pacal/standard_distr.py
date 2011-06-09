@@ -6,6 +6,9 @@ from numpy import pi, sqrt, exp, log, log1p, cos, floor
 from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel
 from numpy.random import f as f_rand
 
+from numpy import finfo, double
+_MAX_EXP_ARG = log(finfo(double).max)
+
 import params
 from utils import lgamma
 from distr import Distr, MinDistr, MaxDistr
@@ -573,8 +576,6 @@ class WeibullDistr(Distr):
     def getName(self):
         return "Weibull({0},{1})".format(self.k, self.lmbda)
 
-from numpy import finfo, double
-_MAX_EXP_ARG = log(finfo(double).max)
 
 class GumbelDistr(Distr):
     def __init__(self, mu = 0, sigma = 1):
@@ -599,7 +600,6 @@ class GumbelDistr(Distr):
         # split at inflection points
         infl1 = self.mu - self.sigma * log((3 + sqrt(5))/2)
         infl2 = self.mu + self.sigma * log((3 + sqrt(5))/2)
-        print infl1, infl2, log((3 - sqrt(5))/2), log((3 + sqrt(5))/2)
         self.piecewise_pdf = PiecewiseDistribution([])
         self.piecewise_pdf.addSegment(MInfSegment(infl1, self.pdf))
         self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
@@ -1256,5 +1256,10 @@ if __name__ == "__main__":
     figure()
     g = GumbelDistr()
     demo_distr(g)
-        
+    figure()
+    g2 = GumbelDistr(3, 5)
+    demo_distr(g2)
+    figure()
+    gg = g + g2
+    demo_distr(gg)
     show()
