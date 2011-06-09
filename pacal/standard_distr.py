@@ -3,9 +3,8 @@
 from numpy import Inf
 from numpy import isscalar, zeros_like, asfarray, zeros
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
-from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull
+from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel
 from numpy.random import f as f_rand
-
 
 import params
 from utils import lgamma
@@ -387,7 +386,7 @@ class LevyDistr(Distr):
         else:
             y = zeros_like(asfarray(x))
             mask = (x > self.xmin)
-            y[mask] = self.nrm *exp( log(x[mask] - self.xmin)*(-1.5) -0.5 * self.c / (x[mask] - self.xmin))
+            y[mask] = self.nrm * exp(log(x[mask] - self.xmin)*(-1.5) -0.5 * self.c / (x[mask] - self.xmin))
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
@@ -544,11 +543,11 @@ class WeibullDistr(Distr):
             elif x == 0:
                 y = self.pdf_at_0
             else:
-                y = self.nrm * (x / self.lmbda)**(self.k-1) * exp(-(x / self.lmbda)**self.k)
+                y = self.nrm * exp(log(x / self.lmbda)*(self.k-1) - (x / self.lmbda)**self.k)
         else:
             y = zeros_like(asfarray(x))
             mask = (x > 0)
-            y[mask] = self.nrm * (x[mask] / self.lmbda)**(self.k-1) * exp(-(x[mask] / self.lmbda)**self.k)
+            y[mask] = self.nrm * exp(log(x[mask] / self.lmbda)*(self.k-1) - (x[mask] / self.lmbda)**self.k)
             mask_zero = (x == 0)
             y[mask_zero] = self.pdf_at_0
         return y
@@ -573,6 +572,45 @@ class WeibullDistr(Distr):
         return "Weibull(k={0},lambda={1})#{2}".format(self.k, self.lmbda, id(self))
     def getName(self):
         return "Weibull({0},{1})".format(self.k, self.lmbda)
+
+from numpy import finfo, double
+_MAX_EXP_ARG = log(finfo(double).max)
+
+class GumbelDistr(Distr):
+    def __init__(self, mu = 0, sigma = 1):
+        assert sigma > 0
+        super(GumbelDistr, self).__init__()
+        self.mu = mu
+        self.sigma = sigma
+        self.one_over_sigma = 1.0 / sigma
+    def pdf(self, x):
+        t = self.one_over_sigma * (self.mu - x)
+        if isscalar(x):
+            if t > _MAX_EXP_ARG:
+                y = 0
+            else:
+                y = self.one_over_sigma * exp(t - exp(t))
+        else:
+            y = zeros_like(asfarray(x))
+            mask = (t <= _MAX_EXP_ARG)
+            y[mask] = self.one_over_sigma * exp(t[mask] - exp(t[mask]))
+        return y
+    def init_piecewise_pdf(self):
+        # split at inflection points
+        infl1 = self.mu - self.sigma * log((3 + sqrt(5))/2)
+        infl2 = self.mu + self.sigma * log((3 + sqrt(5))/2)
+        print infl1, infl2, log((3 - sqrt(5))/2), log((3 + sqrt(5))/2)
+        self.piecewise_pdf = PiecewiseDistribution([])
+        self.piecewise_pdf.addSegment(MInfSegment(infl1, self.pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(infl2, self.pdf))
+    def rand_raw(self, n = None):
+        return gumbel(self.mu, self.sigma, n)
+    def __str__(self):
+        return "GumbelDistr(mu={0},sigma={1})#{2}".format(self.mu, self.sigma, id(self))
+    def getName(self):
+        return "Gumbel({0},{1})".format(self.mu, self.sigma)
+
 
 
 ### Discrete distributions
@@ -666,37 +704,37 @@ if __name__ == "__main__":
     from numpy import ceil, log1p
 
 
-    M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
-                 [UniformDistr(-0.5,0.5)+4**0,
-                  UniformDistr(-0.5,0.5)+4**1,
-                  UniformDistr(-0.5,0.5)+4**2,
-                  UniformDistr(-0.5,0.5)+4**3,
-                  UniformDistr(-0.5,0.5)+4**4,
-                  ])
-    #M.plot()
-    (M/M).plot()
-    show()
-    0/0
-    
-    mix = MixDistr([0.25, 0.75], [NormalDistr(-1,0.5), NormalDistr(1,2)])
-    print "======", mix.get_piecewise_pdf()
-    mix.summary()
-    mix.plot()
-    d = mix/mix
-    d.plot()
-    figure()
-    M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
-                 [UniformDistr(-1,1)/4+1, 
-                 UniformDistr(-1,1)/8+2,
-                 UniformDistr(-1,1)/16+4,
-                 UniformDistr(-1,1)/32+8, 
-                 UniformDistr(-1,1)/64+16])
-    M.summary()
-    M.plot()
-    M.get_piecewise_cdf().plot()
-    d= M/M
-    d.summary()
-    d.plot()
+    # M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
+    #              [UniformDistr(-0.5,0.5)+4**0,
+    #               UniformDistr(-0.5,0.5)+4**1,
+    #               UniformDistr(-0.5,0.5)+4**2,
+    #               UniformDistr(-0.5,0.5)+4**3,
+    #               UniformDistr(-0.5,0.5)+4**4,
+    #               ])
+    # #M.plot()
+    # (M/M).plot()
+    # show()
+    # 0/0
+    # 
+    # mix = MixDistr([0.25, 0.75], [NormalDistr(-1,0.5), NormalDistr(1,2)])
+    # print "======", mix.get_piecewise_pdf()
+    # mix.summary()
+    # mix.plot()
+    # d = mix/mix
+    # d.plot()
+    # figure()
+    # M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
+    #              [UniformDistr(-1,1)/4+1, 
+    #              UniformDistr(-1,1)/8+2,
+    #              UniformDistr(-1,1)/16+4,
+    #              UniformDistr(-1,1)/32+8, 
+    #              UniformDistr(-1,1)/64+16])
+    # M.summary()
+    # M.plot()
+    # M.get_piecewise_cdf().plot()
+    # d= M/M
+    # d.summary()
+    # d.plot()
     
 
 
@@ -1021,34 +1059,34 @@ if __name__ == "__main__":
     # figure()
     # demo_distr(NormalDistr() / (sqrt(ChiSquareDistr(3))) * sqrt(3.0), theoretical = StudentTDistr(3), xmin = -5, xmax = 5)
 
-    figure()
-    n = 4
-    T10 = (NormalDistr() / sqrt(ChiSquareDistr(n))) * n ** 0.5
-    demo_distr(T10, theoretical = StudentTDistr(n), xmin = -1e10, xmax=1e10)
-    figure()
-    def test_student(n):
-        N1 = NormalDistr()
-        print "================================================num===="
-        num = N1
-        for i in range(n-1): 
-            num  += N1
-        num.get_piecewise_pdf()
-        C1 = ChiSquareDistr(1)
-        print "================================================den===="
-        den = C1
-        for i in range(n-1): 
-            den  += C1
-        Tn = num / den**0.5 #* 5 ** 0.5
-        
-        print Tn.get_piecewise_pdf().segments[0].f.vl.getNodes()
-        figure()
-        demo_distr(num, theoretical = NormalDistr(0, n**0.5), xmin = -1e2, xmax=1e2)
-        figure()
-        demo_distr(den, theoretical = ChiSquareDistr(n), xmin = 0, xmax=1e1)
-        figure()
-        demo_distr(Tn, theoretical = StudentTDistr(n), xmin = -1e1, xmax=1e1)
-     	return num, den, Tn
-    test_student(5)
+    # figure()
+    # n = 4
+    # T10 = (NormalDistr() / sqrt(ChiSquareDistr(n))) * n ** 0.5
+    # demo_distr(T10, theoretical = StudentTDistr(n), xmin = -1e10, xmax=1e10)
+    # figure()
+    # def test_student(n):
+    #     N1 = NormalDistr()
+    #     print "================================================num===="
+    #     num = N1
+    #     for i in range(n-1): 
+    #         num  += N1
+    #     num.get_piecewise_pdf()
+    #     C1 = ChiSquareDistr(1)
+    #     print "================================================den===="
+    #     den = C1
+    #     for i in range(n-1): 
+    #         den  += C1
+    #     Tn = num / den**0.5 #* 5 ** 0.5
+    #     
+    #     print Tn.get_piecewise_pdf().segments[0].f.vl.getNodes()
+    #     figure()
+    #     demo_distr(num, theoretical = NormalDistr(0, n**0.5), xmin = -1e2, xmax=1e2)
+    #     figure()
+    #     demo_distr(den, theoretical = ChiSquareDistr(n), xmin = 0, xmax=1e1)
+    #     figure()
+    #     demo_distr(Tn, theoretical = StudentTDistr(n), xmin = -1e1, xmax=1e1)
+    #  	return num, den, Tn
+    # test_student(5)
     # test_student(4)
 
     # demo_distr(NormalDistr(1,1) * NormalDistr(1,1))
@@ -1064,61 +1102,61 @@ if __name__ == "__main__":
     # figure()
     # demo_distr(FDistr(2, 2) + FDistr(4, 5) + FDistr(1, 1), xmax = 10)
 
-    figure()
-    df1, df2, df3 = 2, 101,40
-    c1 =ChiSquareDistr(df1)
-    c2 =ChiSquareDistr(df2)
-    c3 =ChiSquareDistr(df3)
-    c4 =ChiSquareDistr(df3)
-    d = c1 + c2
-    c1.summary()
-    c2.summary()
-    c3.summary()
-    d.summary()
-    d.plot(right=1e4)
-    demo_distr(d, theoretical = ChiSquareDistr(df1  + df2 ), xmax = 1e4)
-    
-    show()
-    0/0
-
+    # figure()
+    # df1, df2, df3 = 2, 101,40
+    # c1 =ChiSquareDistr(df1)
+    # c2 =ChiSquareDistr(df2)
+    # c3 =ChiSquareDistr(df3)
+    # c4 =ChiSquareDistr(df3)
+    # d = c1 + c2
+    # c1.summary()
+    # c2.summary()
+    # c3.summary()
+    # d.summary()
+    # d.plot(right=1e4)
+    # demo_distr(d, theoretical = ChiSquareDistr(df1  + df2 ), xmax = 1e4)
+    # 
+    # show()
+    # 0/0
+    # 
+    # # figure()
+    # # demo_distr(SemicircleDistr())
+    # figure()
+    # demo_distr(SemicircleDistr() + SemicircleDistr())
+    # # figure()
+    # # demo_distr(SemicircleDistr() + SemicircleDistr() + SemicircleDistr())
+    # figure()
+    # demo_distr(SemicircleDistr() + BetaDistr(0.2, 0.9))
+    # 
     # figure()
     # demo_distr(SemicircleDistr())
-    figure()
-    demo_distr(SemicircleDistr() + SemicircleDistr())
+    # figure()
+    # demo_distr(BetaDistr(0.2, 0.9))
+    # 
+    # figure()
+    # F = SemicircleDistr() + BetaDistr(0.2, 0.9)
+    # c = F.get_piecewise_cdf()
+    # F.plot()
+    # c.plot()
+    # figure()
+    # #hist(F.rand_invcdf(10000))
+    # F.plot()
+    # #show_distr = histdistr
+    # show_distr = plotdistr
+    # 
+    # # figure()
+    # # demo_distr(SemicircleDistr())
+    # figure()
+    # demo_distr(SemicircleDistr() + SemicircleDistr())
     # figure()
     # demo_distr(SemicircleDistr() + SemicircleDistr() + SemicircleDistr())
-    figure()
-    demo_distr(SemicircleDistr() + BetaDistr(0.2, 0.9))
-    
-    figure()
-    demo_distr(SemicircleDistr())
-    figure()
-    demo_distr(BetaDistr(0.2, 0.9))
-    
-    figure()
-    F = SemicircleDistr() + BetaDistr(0.2, 0.9)
-    c = F.get_piecewise_cdf()
-    F.plot()
-    c.plot()
-    figure()
-    #hist(F.rand_invcdf(10000))
-    F.plot()
-    #show_distr = histdistr
-    show_distr = plotdistr
-
+    # # this does not work (at least not yet ;)
     # figure()
-    # demo_distr(SemicircleDistr())
-    figure()
-    demo_distr(SemicircleDistr() + SemicircleDistr())
-    figure()
-    demo_distr(SemicircleDistr() + SemicircleDistr() + SemicircleDistr())
-    # this does not work (at least not yet ;)
-    figure()
-    dd = SemicircleDistr() + BetaDistr(0.3, 0.1)
-    demo_distr(dd)
-    figure()
-    dd = SemicircleDistr() + BetaDistr(0.5, 0.5)
-    demo_distr(dd)
+    # dd = SemicircleDistr() + BetaDistr(0.3, 0.1)
+    # demo_distr(dd)
+    # figure()
+    # dd = SemicircleDistr() + BetaDistr(0.5, 0.5)
+    # demo_distr(dd)
     
 
     #show_distr = histdistr
@@ -1214,6 +1252,9 @@ if __name__ == "__main__":
     # A2.get_piecewise_cdf().plot()
     # A3.get_piecewise_cdf().plot()
     # A4.get_piecewise_cdf().plot()
-    
+
+    figure()
+    g = GumbelDistr()
+    demo_distr(g)
         
     show()
