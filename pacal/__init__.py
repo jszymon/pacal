@@ -30,5 +30,7 @@ from standard_distr import MixDistr
 from standard_distr import CondGtDistr
 from standard_distr import CondLtDistr
 
+from stats.iid_ops import iid_sum, iid_prod, iid_max, iid_min, iid_average
+
 from pylab import show
 
