@@ -612,6 +612,47 @@ class GumbelDistr(Distr):
         return "Gumbel({0},{1})".format(self.mu, self.sigma)
 
 
+class FrechetDistr(Distr):
+    def __init__(self, alpha = 2, s = 1, m = 0):
+        assert alpha > 0
+        assert s > 0
+        super(FrechetDistr, self).__init__()
+        self.alpha = alpha
+        self.s = float(s)
+        self.m = m
+        self.nrm = self.alpha / self.s
+    def pdf(self, x):
+        t = (x - self.m) / self.s
+        if isscalar(x):
+            if t <= 0:
+                y = 0
+            else:
+                y = self.nrm * exp(-(self.alpha+1) * log(t) - t ** (-self.alpha))
+        else:
+            y = zeros_like(asfarray(x))
+            mask = (t > 0)
+            y[mask] = self.nrm * exp(-(self.alpha+1) * log(t[mask]) - t[mask] ** (-self.alpha))
+        return y
+    def init_piecewise_pdf(self):
+        # split at inflection points
+        a = self.alpha
+        infl1 = a*(3*(a+1) - sqrt(1 + 6*a + 5*a**2))/(a+1)/(a+2)/2
+        infl2 = a*(3*(a+1) + sqrt(1 + 6*a + 5*a**2))/(a+1)/(a+2)/2
+        infl1 = self.m + (infl1 ** (1.0/a) * self.s)
+        infl2 = self.m + (infl2 ** (1.0/a) * self.s)
+        self.piecewise_pdf = PiecewiseDistribution([])
+        self.piecewise_pdf.addSegment(Segment(self.m, infl1, self.pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(infl2, self.pdf))
+    def rand_raw(self, n = None):
+        x = uniform(0,1,n)
+        return self.m + self.s*(-log(x))**(-1.0/self.alpha)
+    def __str__(self):
+        return "FrechetDistr(alpha={0},s={1},m={2})#{3}".format(self.alpha, self.s, self.m, id(self))
+    def getName(self):
+        return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
+
+
 
 ### Discrete distributions
 
@@ -1253,13 +1294,17 @@ if __name__ == "__main__":
     # A3.get_piecewise_cdf().plot()
     # A4.get_piecewise_cdf().plot()
 
+    # figure()
+    # g = GumbelDistr()
+    # demo_distr(g)
+    # figure()
+    # g2 = GumbelDistr(3, 5)
+    # demo_distr(g2)
+    # figure()
+    # gg = g + g2
+    # demo_distr(gg)
+
     figure()
-    g = GumbelDistr()
-    demo_distr(g)
-    figure()
-    g2 = GumbelDistr(3, 5)
-    demo_distr(g2)
-    figure()
-    gg = g + g2
-    demo_distr(gg)
+    f = FrechetDistr(s=3)
+    demo_distr(f, xmax=10)
     show()
