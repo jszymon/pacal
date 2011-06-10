@@ -22,6 +22,8 @@ from standard_distr import StudentTDistr
 from standard_distr import SemicircleDistr
 from standard_distr import FDistr
 from standard_distr import WeibullDistr
+from standard_distr import GumbelDistr
+from standard_distr import FrechetDistr
 from standard_distr import DiscreteDistr
 from standard_distr import ConstDistr
 from standard_distr import OneDistr
