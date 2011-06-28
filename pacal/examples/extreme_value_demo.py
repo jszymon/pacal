@@ -9,7 +9,7 @@ from pacal.distr import demo_distr
 
 EulConst = 0.5772156649015328606
 
-colors = "kbgrcmy"
+colors = "kbgrcmykbgrcmykbgrcmy"
 def extreme_limit_demo(X, ns, an, bn, limit_distr, xmin = None, xmax = None, ymax = None, **args):
     figure()
     title("Limit of maxima of " + X.getName())
@@ -34,7 +34,7 @@ def extreme_limit_demo(X, ns, an, bn, limit_distr, xmin = None, xmax = None, yma
     legend()
 
 
-ns = [8, 16, 32, 64, 128]
+ns = [8, 16, 32, 64, 128, 256, 1024, 2048]
 
 
 X = UniformDistr(0,1)

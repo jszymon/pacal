@@ -15,7 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
-from numpy import array_split, concatenate
+from numpy import array_split, concatenate, squeeze
 from numpy import where, dot, zeros
 from numpy import maximum
 from numpy import newaxis, subtract, isscalar, hstack
@@ -105,7 +105,7 @@ class BarycentricInterpolator(Interpolator):
             # split x if necessary to avoid overflow
             max_size = 100000
             if scalar_x:
-                x_parts = [x]
+                x_parts = [atleast_1d(x)]
             elif x.size <= max_size:
                 x_parts = [x]
             else:
@@ -133,7 +133,7 @@ class BarycentricInterpolator(Interpolator):
                 results.append(ret)
             # concatenate results
             if scalar_x:
-                y = results[0]
+                y = squeeze(results)
             else:
                 y = concatenate(results)
         return y
