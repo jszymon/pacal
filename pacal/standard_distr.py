@@ -652,7 +652,18 @@ class FrechetDistr(Distr):
     def getName(self):
         return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
 
-
+class NoncentralTDistr(Distr):
+    def __new__(self, df = 2):
+        assert df > 0
+        super(StudentTDistr, self).__init__()
+        self.df = df
+        self.lg_norm = lgamma(float(self.df + 1) / 2) - lgamma(float(self.df) / 2) - 0.5 * (log(self.df) + log(pi))
+    def __init__(self, *args):
+        pass
+    def __str__(self):
+        return "StudentTDistr(df={0})#{1}".format(self.df, id(self))
+    def getName(self):
+        return "StudentT({0})".format(self.df)
 
 ### Discrete distributions
 
