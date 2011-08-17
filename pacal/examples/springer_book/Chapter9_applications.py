@@ -121,27 +121,19 @@ for n in [2, 3, 6]:
 
 
 #! Theorem 9.9.2
-def nonc_chi2(n, d):
-    t = NormalDistr(sqrt(d))**2
-    nc = t
-    if n > 1:
-        nc += ChiSquareDistr(n-1)
-    #for i in xrange(n-1):
-    #    nc += NormalDistr()**2
-    return nc
 for noncs in [[(2, 0), (1, 0)],
               [(1, 1.5), (1, 0.5)],
               [(3, 2.5), (2, 0.5)],
               ]:
     nsum = noncs[0][0]
     noncsum = noncs[0][1]
-    s = nonc_chi2(*noncs[0])
+    s = NoncentralChiSquareDistr(*noncs[0])
     for n, d in noncs[1:]:
         nsum += n
         noncsum += d
-        s += nonc_chi2(n, d)
+        s += NoncentralChiSquareDistr(n, d)
     figure()
-    demo_distr(s, xmax=15, theoretical = nonc_chi2(nsum, noncsum))
+    demo_distr(s, xmax=15, theoretical = NoncentralChiSquareDistr(nsum, noncsum))
 
 
 #! Section 9.9.7
@@ -158,16 +150,14 @@ for n1, n2, xm in [(1, 1, 10),
     else:
         demo_distr(d)
         
-# check this: first version of the nonc_chi2 gives better results for
-# multiplication but worse for division!!!!
 for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
                        (2, 1.5, 1, 0.7),
                        (3, 0.15, 5, 4.1),
                        ]:
-    d = nonc_chi2(n1, d1) * nonc_chi2(n2, d2)
+    d = NoncentralChiSquareDistr(n1, d1) * NoncentralChiSquareDistr(n2, d2)
     figure()
     demo_distr(d, xmax = 10)
-    d = nonc_chi2(n1, d1) / nonc_chi2(n2, d2)
+    d = NoncentralChiSquareDistr(n1, d1) / NoncentralChiSquareDistr(n2, d2)
     figure()
     demo_distr(d, xmax = 10)
     #figure()
@@ -200,8 +190,8 @@ for n1, d1, n2, d2 in [(1, 0.4, 1, 2.1),
                        (2, 1.5, 1, 0.7),
                        (3, 0.15, 5, 4.1),
                        ]:
-    nc1 = nonc_chi2(n1, d1)
-    nc2 = nonc_chi2(n2, d2)
+    nc1 = NoncentralChiSquareDistr(n1, d1)
+    nc2 = NoncentralChiSquareDistr(n2, d2)
     d = nc1 * nc2
     figure()
     demo_distr(d, xmax = 10)
@@ -234,10 +224,9 @@ demo_distr(te1 + te1 + te1, hist_points=10000)
 figure()
 demo_distr(te1 + 10*truncExp(2, 5), hist_points=10000)
 
-#!-------------------------
-#! Section 9.11
-#! Generalized F variables
-#!-------------------------
+#!---------------------------------------
+#! Section 9.11: Generalized F variables
+#!---------------------------------------
 
 def gen_f(p, m, a, h, x):
     h = float(h)

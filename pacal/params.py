@@ -99,7 +99,7 @@ class integration_infinite(integration):
 class integration_asymp(integration):
     maxn = 1000
 class integration_pole(integration):
-    exponent = 4
+    exponent = 8
     maxn = 1000
 
 

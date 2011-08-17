@@ -1,7 +1,7 @@
 from pacal import *
 
 def noncentral_t(df, mu, x):
-    nonc_t = NormalDistr(mu, 1) / sqrt(ChiSquareDistr(df) / df)
+    nonc_t = NoncentralTDistr(df, mu)
     pdf = nonc_t(x)
     cdf = nonc_t.cdf(x)
     return nonc_t, pdf, cdf

@@ -24,6 +24,9 @@ from standard_distr import FDistr
 from standard_distr import WeibullDistr
 from standard_distr import GumbelDistr
 from standard_distr import FrechetDistr
+from standard_distr import NoncentralTDistr
+from standard_distr import NoncentralChiSquareDistr
+
 from standard_distr import DiscreteDistr
 from standard_distr import ConstDistr
 from standard_distr import OneDistr
