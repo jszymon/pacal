@@ -7,11 +7,11 @@ from numpy import linspace
 from numpy import finfo, double
 
 #from distr import *
-from integration import *
-from interpolation import ChebyshevInterpolator, ChebyshevInterpolator_PMInf
-from interpolation import ChebyshevInterpolator_PInf, ChebyshevInterpolator_MInf
+from pacal.integration import *
+from pacal.interpolation import ChebyshevInterpolator, ChebyshevInterpolator_PMInf
+from pacal.interpolation import ChebyshevInterpolator_PInf, ChebyshevInterpolator_MInf
 
-from plotfun import dispNet
+from pacal import *
 
 eps = finfo(double).eps
 
@@ -35,7 +35,6 @@ class TestBasicstat(unittest.TestCase):
         
     def tearDown(self):
         te = time.time()
-        #print 'X=',dispNet(self.X)
         #print 'mean(X)={0} (EX=df={2}), var={1} (VX=2*df={3})'.format(self.m, self.v, self.EX, self.VX)
         #print 'test done,   time=%7.5f s' % (te - self.ts)      
     
@@ -44,8 +43,8 @@ class TestBasicstat(unittest.TestCase):
         mu = -17.0
         sigma = 20.0
         self.X = NormalDistr(mu, sigma)
-        self.m, err = mean(self.X)
-        self.v,err = var(self.X)
+        self.m = self.X.mean()
+        self.v = self.X.var()
         self.EX = mu
         self.VX = sigma**2
         self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
@@ -53,9 +52,9 @@ class TestBasicstat(unittest.TestCase):
     def testChi2(self):
         #print """basic stats of Chi2 distribution"""
         df = 50
-        self.X = Chi2Distr(df)
-        self.m, err = mean(self.X)
-        self.v,err = var(self.X)
+        self.X = ChiSquareDistr(df)
+        self.m = self.X.mean()
+        self.v = self.X.var()
         self.EX = df
         self.VX = df*2
         self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
@@ -65,8 +64,8 @@ class TestBasicstat(unittest.TestCase):
         a = 0.0
         b = 6.0
         self.X = UniformDistr(a, b)
-        self.m, err = mean(self.X)
-        self.v, err = var(self.X)
+        self.m = self.X.mean()
+        self.v = self.X.var()
         self.EX = (a+b)/2.0
         self.VX = (b-a)**2/12.0
         self.assert_((abs(self.m-self.EX) + abs(self.v-self.VX)) < self.tol, self.errMsg);
@@ -74,7 +73,7 @@ class TestBasicstat(unittest.TestCase):
 class TestIntegral(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""        
-        self.tol = 4 * eps
+        self.tol = 8 * eps
         self.ts = time.time()
     def _assert_integ(self, err, I):
         self.assert_(err < self.tol, repr(I) + " +/- " + str(err))
@@ -211,7 +210,7 @@ class TestVectorisation(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""        
         self.x = linspace(-2,2,10001)
-        self.x_mat = (arange(25, dtype="f") / 25).reshape(5,5)
+        self.x_mat = (arange(25, dtype=float) / 25)#.reshape(5,5)
         self.xleft = linspace(-10,0,10000)
         self.xright = linspace(0,10,10000)
         self. ts = time.time()     
@@ -229,7 +228,7 @@ class TestVectorisation(unittest.TestCase):
         #plot(self.x, y)
         self.assert_(0 < 1)    
     def testChi2(self):
-        Ch = Chi2Distr(4)
+        Ch = ChiSquareDistr(4)
         y=Ch.pdf(self.x)
         self.assert_(0 < 1)      
     def testUniformFor(self):
@@ -240,19 +239,19 @@ class TestVectorisation(unittest.TestCase):
         self.assert_(0 < 1)    
     def testChebFor(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
-        y=[c.interp_at(x) for x in self.x]
+        y = [c.interp_at(x) for x in self.x]
         #print self.x,y
         #plot(self.x, y)
         self.assert_(0 < 1) 
     def testCheb(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
-        y=c.interp_at(self.x)       
+        y = c.interp_at(self.x)       
         #print self.x,y
         #plot(self.x, y)
         self.assert_(0 < 1) 
     def testChebMat(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
-        y=c.interp_at(self.x_mat)       
+        y = c.interp_at(self.x_mat)       
         #print self.x_mat
         #print y
         self.assert_(0 < 1) 

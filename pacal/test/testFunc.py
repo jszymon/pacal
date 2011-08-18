@@ -1,20 +1,19 @@
-from compiler.ast import For
 import unittest
-from pylab import *;
-from scipy.integrate import quad, Inf;
-from numpy import *;
-from scipy.stats import *;
-from distr import *; 
-from evaluator import *;
+from pylab import *
+from scipy.integrate import quad, Inf
+from numpy import *
+from scipy.stats import *
+from pacal import *
+
 import time
 import matplotlib.pyplot as plt
 
 class TestFunc(unittest.TestCase):
     def setUp(self):
         print """====Test starting============================="""        
-        self.N1 = NormDistr(0,1)
-        self.N2 = NormDistr(0,1)        
-        self. ts = time.time()
+        self.N1 = NormalDistr(0,1)
+        self.N2 = NormalDistr(0,1)        
+        self.ts = time.time()
         
     def tearDown(self):
         te = time.time()
@@ -26,11 +25,10 @@ class TestFunc(unittest.TestCase):
         """
         fig = plt.figure()
         print "comparing \chi^2_1 with N(0,1)^2" 
-        orgChi2 =  Chi2Distr(1)             
-        testChi2 = SquareDistr(self.N1)
-        #testChi2 = SquareDistr(N1)
-        plotdistr(orgChi2,0.001,10)
-        plotdistr(testChi2,0.001,10)
+        orgChi2 =  ChiSquareDistr(1)             
+        testChi2 = self.N1 ** 2
+        orgChi2.plot()
+        testChi2.plot()
         L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,Inf)
         print 'L_1 difference = {0}'.format(L1diff)
         self.assert_(L1diff < 1e-8);
@@ -41,14 +39,14 @@ class TestFunc(unittest.TestCase):
         """
         fig = plt.figure()
         print "testing \chi^2_1 = N(0,1)^2, with interpolation" 
-        N1 = NormDistr(0,1)
-        orgChi2 =  Chi2Distr(1)             
-        squareN1 = SquareDistr(N1)
-        testChi2 = InterpolatedDistr(squareN1)
+        N1 = NormalDistr(0,1)
+        orgChi2 =  ChiSquareDistr(1)             
+        squareN1 = N1**2
+        testChi2 = squareN1
         #testChi2 = SquareDistr(N1)
-        plotdistr(orgChi2,0.001,10)
-        plotdistr(testChi2,0.001,10)
-        histdistr(squareN1, 10000, 0, 10, 100)
+        orgChi2.plot()
+        testChi2.plot()
+        squareN1.hist()
         L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,Inf)
         print 'L_1 difference = {0}'.format(L1diff)
         self.assert_(0< 1e-8);
@@ -61,12 +59,12 @@ class TestFunc(unittest.TestCase):
         """
             sum of squares of three independent normal variables
         """
-        self.assert_(0< 1e-8);
+        self.assert_(0< 1e-8)
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestFunc("testChiSqr"))
     suite.addTest(TestFunc("testChiSqrWithInterpolation"))
-    return suite;
+    return suite
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()

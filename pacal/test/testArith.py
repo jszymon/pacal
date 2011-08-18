@@ -1,14 +1,13 @@
-from pylab import *;
-from scipy.integrate import quad;
-import basicstat as stat
-
-from numpy import cos, arange, pi;
-import unittest
-from scipy.stats import *;
 from pylab import *
-from distr import * 
+from scipy.integrate import quad
 
-from plotfun import *
+from numpy import cos, arange, pi
+import unittest
+from scipy.stats import *
+from pylab import *
+from pacal import * 
+
+from pacal.plotfun import dispNet
 import time
 import matplotlib.pyplot as plt
 
@@ -26,21 +25,19 @@ class TestArith(unittest.TestCase):
         n = 2
         mu = 2
         sigma = 1
-        S = NormDistr(mu, sigma)
+        S = NormalDistr(mu, sigma)
         for i in xrange(n-1):
-            histdistr(S)
-            S = InterpolatedDistr(SumDistr(S, NormDistr(mu,sigma)))                            
-        plotdistr(S, -0, 30, 100)
-        histdistr(S)
+            S.hist()
+            S = S + NormalDistr(mu,sigma)
+        S.plot()
+        S.hist()
         print 'S=',dispNet(S)
-        m, err = stat.mean(S)
-        s, err = stat.std(S)
-        #Y = InterpolatedDistr(S)
-        print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
+        m = S.mean()
+        s = S.std()
+        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
         te = time.time()
-        print te-self.ts
-        self.assert_(abs(s-sqrt(n))<1e-15 and (te-self.ts)<1, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
-        
+        self.assert_(abs(s-sqrt(n))<1e-15 and (te-self.ts)<10, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
+
     def testCentralLimitUniform(self):
         fig = plt.figure()
         n = 7
@@ -48,17 +45,17 @@ class TestArith(unittest.TestCase):
         b = 1
         sigma = 1
         S = UniformDistr(a, b)
-        plotdistr(S, 0, 4, 1000)
+        S.plot()
         for i in xrange(n-1):
-            histdistr(S)
-            S = InterpolatedDistr(SumDistr(S, UniformDistr(a,b)))                            
-            plotdistr(S, 0, 6, 1000)
-        histdistr(S)
+            S.hist()
+            S = S + UniformDistr(a,b)
+            S.plot()
+        S.hist()
         print 'S=',dispNet(S)
-        m, err = stat.mean(S)
-        s, err = stat.std(S)
+        m = S.mean()
+        s = S.std()
         #Y = InterpolatedDistr(S)
-        print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
+        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
         te = time.time()
         print te-self.ts
         print s - sqrt(n/12.0)
@@ -70,11 +67,11 @@ class TestArith(unittest.TestCase):
         n = 7
         mu=5
         sigma=1
-        S=NormDistr(mu, sigma)
+        S = NormalDistr(mu, sigma)
         for i in range(n-1):
-            X = NormDistr(mu, sigma)
-            S=SumDistr(S,X)
-            histdistr(S)        
+            X = NormalDistr(mu, sigma)
+            S = S + X
+            S.hist()        
         print 'sum of {0} normal N({1}, {2}) variables:'.format(n, mu, sigma) 
         print dispNet(S)
         
@@ -82,17 +79,17 @@ class TestArith(unittest.TestCase):
         print """sum of two the same normal variables X+X=2X, 
         not two i.i.d."""
         fig = plt.figure()
-        X = NormDistr(1,1)
-        Y = SumDistr(X,X)
-        correctAnswer =  NormDistr(2,2)
-        plotdistr(Y)
-        plotdistr(correctAnswer)
-        histdistr(Y)
-        m, err = stat.mean(Y)
-        s, err = stat.std(Y)
+        X = NormalDistr(1,1)
+        Y = X+X
+        correctAnswer =  NormalDistr(2,2)
+        Y.plot()
+        correctAnswer.plot()
+        Y.hist()
+        m = Y.mean()
+        s = Y.std()
         print dispNet(Y)
         print 'mean(X)={0}, std={1}, abs(std-sqrt(2))={2}'.format(m,s, abs(s-sqrt(2)))        
-        self.assert_(abs(s-2)<1e-10,'suma zmiennych zaleznych jeszcze nie dziala, ale przynajmniej losowanie jest ok :)')
+        self.assert_(abs(s-2)<1e-10,'sum of dependent variables not working yet')
 
     def testCupOfTeaExample(self):
         """ The cup of tea example, take n times sip of tea 
@@ -109,9 +106,9 @@ class TestArith(unittest.TestCase):
     
 def suite():
     suite = unittest.TestSuite()
-    #suite.addTest(TestArith("testCentralLimit"))
+    suite.addTest(TestArith("testCentralLimit"))
     suite.addTest(TestArith("testCentralLimitUniform"))
-    #suite.addTest(TestArith("testSumOfSquares"))
+    suite.addTest(TestArith("testSumOfSquares"))
     #suite.addTest(TestArith("testSumDependent"))
     #suite.addTest(TestArith("testCupOfTeaExample"))
     return suite;

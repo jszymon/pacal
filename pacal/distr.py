@@ -760,7 +760,6 @@ def max(*args):
     else:
         return _builtin_max(*args)
 
-#from plotfun import histdistr
 import pylab
 from pylab import plot, subplot, xlim, ylim, show, figure
 def demo_distr(d,

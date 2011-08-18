@@ -773,7 +773,6 @@ class CondLtDistr(Distr):
 if __name__ == "__main__":
     from pylab import figure, show
     from distr import demo_distr, log, exp, max, min, sqrt
-    from plotfun import plotdistr, histdistr
 
     import numpy
     from numpy import ceil, log1p
@@ -813,7 +812,7 @@ if __name__ == "__main__":
     
 
 
-    #Ua = UniformDistr(1,2); #plotdistr(Ua)
+    #Ua = UniformDistr(1,2); #Ua.plot()
     #Ub = UniformDistr(0.25,2);
     #Uc = UniformDistr(0.25,2);
     #A = Ua + Ub
@@ -828,34 +827,17 @@ if __name__ == "__main__":
     #I = max(UniformDistr(0,0.1), UniformDistr(1,2))
     #J = min(UniformDistr(0,0.1), UniformDistr(1,2))
     #K = min(UniformDistr(0,1), NormalDistr(1,2))
-    #A.plot()
-    #B.plot()
-    #C.plot()
-    #D.plot()
-    #E.plot()
-    #F.plot()
-    #G.plot()
-    #H.plot()
-    #I.plot()
-    #J.plot()
-    #K.plot()
-    #histdistr(A)
-    #histdistr(B)
-    #histdistr(C)
-    #histdistr(D)
-    #histdistr(E)
-    #histdistr(F)
-    #histdistr(G)
-    #histdistr(H)
-    #histdistr(I)
-    #histdistr(J)
-    #histdistr(K)
-    #A.summary()
-    #B.summary()
-    #C.summary()
-    #D.summary()
-    #E.summary()
-    #F.summary()
+    #demo_distr(A)
+    #demo_distr(B)
+    #demo_distr(C)
+    #demo_distr(D)
+    #demo_distr(E)
+    #demo_distr(F)
+    #demo_distr(G)
+    #demo_distr(H)
+    #demo_distr(I)
+    #demo_distr(J)
+    #demo_distr(K)
 
     # n = 4
     # T10 = (NormalDistr() / ChiSquareDistr(n)**0.5 ) * sqrt(n)
@@ -882,35 +864,35 @@ if __name__ == "__main__":
     #N2 = N2 - 1; demo_distr(N2, theoretical = NormalDistr(1,1))
     #Nerr = N1 + "a"
     #N3 = N1 + N2; demo_distr(N3, theoretical = NormalDistr(1,sqrt(2)))
-    #negN2 = -N2; plotdistr(negN2)
-    #N4 = N1 - N2; plotdistr(N4)
+    #negN2 = -N2; negN2.plot()
+    #N4 = N1 - N2; N4.plot()
 
-    #N5 = N1 ** 2; plotdistr(N5)
-    #N6 = N2 ** 2; plotdistr(N6)
+    #N5 = N1 ** 2; demo_distr(N5)
+    #N6 = N2 ** 2; demo_distr(N6)
     #N7 = DivDistr(N1, N1)
     #N8 = DivDistr(N2, N2)
     #N9 = MulDistr(N2, SumDistr(N2, N2))
     #N10 = SquareDistr(N1)
-    #N11 = N5 + N5; plotdistr(N11)
-    #N12 = N5 + N11; plotdistr(N12)
+    #N11 = N5 + N5; demo_distr(N11)
+    #N12 = N5 + N11; demo_distr(N12)
     #N13 = MulDistr(N1, N1)
-    #N13prime = N1 * NormalDistr(0,1); plotdistr(N13prime)
+    #N13prime = N1 * NormalDistr(0,1); demo_distr(N13prime)
     #N14 = 0.5 * N2
     #N15 = N2 * -1
-    #N16 = NormalDistr(0,1) / NormalDistr(0,1); plotdistr(N16)
+    #N16 = NormalDistr(0,1) / NormalDistr(0,1); demo_distr(N16)
     #N17 = 2 - N1
 
     # figure()
-    # N18 = 2 / N1; plotdistr(N18)
-    # N19 = (N18 + N18) / 2; plotdistr(N19)
-    # N20 = (N19 * 2 + N18) / 3; plotdistr(N20)
-    # N21 = (N20 * 3 + N18) / 4; plotdistr(N21)
+    # N18 = 2 / N1; N18.plot()
+    # N19 = (N18 + N18) / 2; N19.plot()
+    # N20 = (N19 * 2 + N18) / 3; N20.plot()
+    # N21 = (N20 * 3 + N18) / 4; N21.plot()
 
     # absolute value
     # figure()
-    # N22 = abs(N1); plotdistr(N22)
-    # N23 = abs(N2); plotdistr(N23)
-    # N24 = N22 + N23; plotdistr(N24)
+    # N22 = abs(N1); N22.plot()
+    # N23 = abs(N2); N23.plot()
+    # N24 = N22 + N23; N24.plot()
 
     # figure()
     # #demo_distr(NormalDistr(0,1) / NormalDistr(0,1))
@@ -926,53 +908,53 @@ if __name__ == "__main__":
 
     # # powers, exponents, logs
     # figure()
-    #N26 = exp(N1); print N26; plotdistr(N26)
-    #N27 = N26 + N26; plotdistr(N27)
-    # #N28 = exp(NormalDistr(0,1) / NormalDistr(0,1)); plotdistr(N28)
-    # #N29 = N28 + N28; plotdistr(N29)
-    # N30 = 2 ** N1; print N30; plotdistr(N30)
-    #N31 = log(abs(N1)); print N31; plotdistr(N31)
+    #N26 = exp(N1); print N26; demo_distr(N26)
+    #N27 = N26 + N26; demo_distr(N27)
+    # #N28 = exp(NormalDistr(0,1) / NormalDistr(0,1)); demo_distr(N28)
+    # #N29 = N28 + N28; demo_distr(N29)
+    # N30 = 2 ** N1; print N30; demo_distr(N30)
+    #N31 = log(abs(N1)); print N31; demo_distr(N31)
     # N32 = abs(N1) ** N1; demo_distr(N32, xmin=0, xmax = 3, ymax = 2)
     # figure()
     # u = UniformDistr(1,2)**UniformDistr(1,2)
     # u.plot()
-    # histdistr(u)
+    # u.hist()
     # figure()
     # u = UniformDistr(0,1)**UniformDistr(0,2)
     # demo_distr(u, xmin=0, xmax = 1, ymax = 3)
 
     # figure()
     # U1 = UniformDistr(1,3)
-    # # UN1 = U1 / N2; plotdistr(UN1)
+    # # UN1 = U1 / N2; demo_distr(UN1)
     # # UN2 = U1 + N2
     # # UN3 = U1 - UniformDistr(2,5)
     # # UN4 = FuncDistr(MulDistr(U1, U1), f = lambda x: x/3.0, f_inv = lambda x: 3*x, f_inv_deriv = lambda x: 3)
-    # UN5 = UniformDistr(1,2) / UniformDistr(3,4); plotdistr(UN5)
-    # UN7 = N2 * UniformDistr(9,11); plotdistr(UN7)
-    # UN9 = UniformDistr(9,11) * N2; plotdistr(UN9)
-    # UN11 = UniformDistr(-2,1) / UniformDistr(-2,1); plotdistr(UN11)
-    # UN6 = atan(UN5); plotdistr(UN6)
-    # UN10 = atan(UniformDistr(3,5)); plotdistr(UN10); print UN10
+    # UN5 = UniformDistr(1,2) / UniformDistr(3,4); demo_distr(UN5)
+    # UN7 = N2 * UniformDistr(9,11); demo_distr(UN7)
+    # UN9 = UniformDistr(9,11) * N2; demo_distr(UN9)
+    # UN11 = UniformDistr(-2,1) / UniformDistr(-2,1); demo_distr(UN11)
+    # UN6 = atan(UN5); demo_distr(UN6)
+    # UN10 = atan(UniformDistr(3,5)); demo_distr(UN10); print UN10
 
     # figure()
-    # UN8 = UniformDistr(1,3) / UniformDistr(-2,1); plotdistr(UN8)
-    # UN12 = (UN8 + UN8) / 2; plotdistr(UN12)
-    # UN13 = (UN12 * 2 + UN8) / 3; plotdistr(UN13)
-    # UN14 = (UN13 * 3 + UN8) / 4; plotdistr(UN14)
-    # UN14_2 = (UN14 * 4 + UN8) / 5; plotdistr(UN14_2)
-    # UN14_2 = (UN14 * 4 + UN8) / 5; plotdistr(UN14_2)
-    # UN14_3 = (UN14_2 * 5 + UN8) / 6; plotdistr(UN14_3)
-    # UN14_4 = (UN14_3 * 6 + UN8) / 7; plotdistr(UN14_4)
-    # UN14_5 = (UN14_4 * 7 + UN8) / 8; plotdistr(UN14_5)
+    # UN8 = UniformDistr(1,3) / UniformDistr(-2,1); demo_distr(UN8)
+    # UN12 = (UN8 + UN8) / 2; demo_distr(UN12)
+    # UN13 = (UN12 * 2 + UN8) / 3; demo_distr(UN13)
+    # UN14 = (UN13 * 3 + UN8) / 4; demo_distr(UN14)
+    # UN14_2 = (UN14 * 4 + UN8) / 5; demo_distr(UN14_2)
+    # UN14_2 = (UN14 * 4 + UN8) / 5; demo_distr(UN14_2)
+    # UN14_3 = (UN14_2 * 5 + UN8) / 6; demo_distr(UN14_3)
+    # UN14_4 = (UN14_3 * 6 + UN8) / 7; demo_distr(UN14_4)
+    # UN14_5 = (UN14_4 * 7 + UN8) / 8; demo_distr(UN14_5)
 
     # the slash distribution
     #figure()
-    #UN15 = NormalDistr(0,1) / UniformDistr(0,1); plotdistr(UN15)
-    #UN16 = (UN15 + UN15) / 2; plotdistr(UN16)
-    #UN17 = (UN16 * 2 + UN15) / 3; plotdistr(UN17)
-    #UN18 = (UN17 * 3 + UN15) / 4; plotdistr(UN18)
-    #UN19 = (UN18 * 4 + UN15) / 5; plotdistr(UN19)
-    #UN20 = (UN19 * 5 + UN15) / 6; plotdistr(UN20)
+    #UN15 = NormalDistr(0,1) / UniformDistr(0,1); demo_distr(UN15)
+    #UN16 = (UN15 + UN15) / 2; demo_distr(UN16)
+    #UN17 = (UN16 * 2 + UN15) / 3; demo_distr(UN17)
+    #UN18 = (UN17 * 3 + UN15) / 4; demo_distr(UN18)
+    #UN19 = (UN18 * 4 + UN15) / 5; demo_distr(UN19)
+    #UN20 = (UN19 * 5 + UN15) / 6; demo_distr(UN20)
 
     # from Springer and others
     #figure()
@@ -982,11 +964,11 @@ if __name__ == "__main__":
     #demo_distr(UN21, histogram = True)
     #UN21.summary()
     #UN22 = NormalDistr(-1,1) / NormalDistr(-1,1)# * UniformDistr(0,1)
-    #plotdistr(UN22)
+    #demo_distr(UN22)
     #UN23 = NormalDistr(-1,1) / NormalDistr(-1,1) * UniformDistr(0,1)
     #figure()
     #UN23.plot()
-    #histdistr(UN23, l=-2, u=2)
+    #UN23.hist(xmin=-2, xmax=2)
     #UN23_copy = NormalDistr(-1,1) / NormalDistr(-1,1) * UniformDistr(0,1)
     #UN24 = (UN23 + UN23_copy) / 2
     #figure()
@@ -1216,10 +1198,7 @@ if __name__ == "__main__":
     # figure()
     # #hist(F.rand_invcdf(10000))
     # F.plot()
-    # #show_distr = histdistr
-    # show_distr = plotdistr
-    # 
-    # # figure()
+
     # # demo_distr(SemicircleDistr())
     # figure()
     # demo_distr(SemicircleDistr() + SemicircleDistr())
@@ -1234,37 +1213,33 @@ if __name__ == "__main__":
     # demo_distr(dd)
     
 
-    #show_distr = histdistr
-    show_distr = plotdistr
-
-    #show_distr(N1)
-    #show_distr(N2)
-    #show_distr(UN2)
-    #show_distr(N4)
-    #show_distr(N5)
-    #show_distr(N6)
-    #show_distr(N7)
-    #show_distr(N8)
-    #show_distr(N9)
-    #show_distr(N10);show_distr(N13) # Example: X**2 the same as X*X with our semantics
-    #show_distr(N10);show_distr(N13prime) # Example: X**2 not the same as X*X.copy()
-    #show_distr(N11)
-    #show_distr(N14);show_distr(N15) # multiply by a constant
-    #show_distr(U1)
-    #show_distr(UN1)
-    #show_distr(UN2)
-    #show_distr(UN3);print UN3.breaks
-    #show_distr(UN4)
-    #show_distr(UN6)
-    #show_distr(UN7)
-    #show_distr(UN8, l=-6, u=6) # my favorite distr
-    #show_distr(UN9)
-    #show_distr(UN10);print UN10.breaks
-    #show_distr(UN11)
-    #histdistr(UN11, l=4, u=4)
-    #show_distr(UN1);print UN1.breaks;histdistr(UN1, l = -10, u = 10)
-    #show_distr(UI1); print "U1.err =",UI1.err
-    #show_distr(UI2);
+    #demo_distr(N1)
+    #demo_distr(N2)
+    #demo_distr(UN2)
+    #demo_distr(N4)
+    #demo_distr(N5)
+    #demo_distr(N6)
+    #demo_distr(N7)
+    #demo_distr(N8)
+    #demo_distr(N9)
+    #demo_distr(N10);demo_distr(N13) # Example: X**2 the same as X*X with our semantics
+    #demo_distr(N10);demo_distr(N13prime) # Example: X**2 not the same as X*X.copy()
+    #demo_distr(N11)
+    #demo_distr(N14);demo_distr(N15) # multiply by a constant
+    #demo_distr(U1)
+    #demo_distr(UN1)
+    #demo_distr(UN2)
+    #demo_distr(UN3);print UN3.breaks
+    #demo_distr(UN4)
+    #demo_distr(UN6)
+    #demo_distr(UN7)
+    #demo_distr(UN8, xmin=-6, xmax=6) # my favorite distr
+    #demo_distr(UN9)
+    #demo_distr(UN10);print UN10.breaks
+    #demo_distr(UN11, xmax = 4)
+    #demo_distr(UN1, xmin = -10, xmax = 10);print UN1.breaks
+    #demo_distr(UI1); print "U1.err =",UI1.err
+    #demo_distr(UI2)
 
 
 
@@ -1283,18 +1258,12 @@ if __name__ == "__main__":
     #R = divDistr(Ni, Di)
     #Ri = interpolatedDistr(R)
     #print integrate(lambda x: Ri.PDF(x), limit=100)
-    #show_distr(Ri, L, U);histdistr(R, l = L, u = U, n = 1000000)
+    #demo_distr(Ri, L, U)
     #xlim(L, U)
 
 
     # Distrete
     
-    # figure()
-    # I = One()
-    # Two = I + I
-    # Two.plot()
-    # Two.get_piecewise_cdf().plot()
-    # histdistr(Two)
     # 
     # figure()
     # d = DiscreteDistr(xi =[0, 1], pi = [0.2, 0.8])
@@ -1302,8 +1271,7 @@ if __name__ == "__main__":
     # b5 = d + d + d + d + d
     # b5.plot()
     # b5.get_piecewise_cdf().plot()
-    # from pylab import hist
-    # histdistr(b5)
+    # b5.hist()
     # 
     # d = DiscreteDistr(xi =[1, 2], pi = [0.2, 0.8])
     # U = UniformDistr(0,2)
@@ -1317,10 +1285,10 @@ if __name__ == "__main__":
     # A2.plot()
     # A3.plot()
     # A4.plot()
-    # histdistr(A1)
-    # histdistr(A2)
-    # histdistr(A3, l=0.5, u =5)
-    # histdistr(A4)
+    # A1.hist(A1)
+    # A2.hist(A2)
+    # A3.hist(A3, xmin=0.5, xmax=5)
+    # A4.hist(A4)
     # 
     # figure()
     # A1.get_piecewise_cdf().plot()

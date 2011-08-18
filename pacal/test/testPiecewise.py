@@ -7,20 +7,19 @@ from numpy import logspace, sqrt, log10
 
 from pylab import plot, semilogx, semilogy, xlabel, ylabel, axis, legend, hist
 
-from utils import epsunique, estimateDegreeOfPole
-from utils import findinv
+from pacal.utils import epsunique, estimateDegreeOfPole
+from pacal.utils import findinv
 
 #from testNumeric import cauchy, normpdf
 import time
 import matplotlib.pyplot as plt
 import matplotlib.text as text
 
-from segments import *
-from indeparith import *
-from integration import integrate_fejer2
+from pacal.segments import *
+from pacal.indeparith import *
+from pacal.integration import integrate_fejer2
 from math import factorial
 
-from plotfun import histdistr
 
 from scipy.optimize import fmin
 
@@ -225,7 +224,7 @@ def integrationTester(fun):
     subplot(2,1,2)
     ifun.plot()
     subplot(2,1,1)
-    histdistr(ifun, n=10000, bins = 1000)
+    ifun.hist()
     levels =  array([0.05, 0.1, 0.5, 0.9, 0.95])
     for level in levels:
         print "level={0} cv={1}".format(level, ifun.inverse(level))
@@ -240,7 +239,7 @@ class TestPicewiseConvs(unittest.TestCase):
     def tearDown(self):
         te = time.time()
         print 'test done,   time=%7.5f s' % (te - self.ts) 
-    def testPicewiseFunction(self):
+    def testPiecewiseFunction(self):
         """Fragment of Cauchy distribution as piecewise function"""
         fig = plt.figure()
         f=PiecewiseFunction([])
@@ -369,7 +368,7 @@ class TestPicewiseConvs(unittest.TestCase):
         f.plot(linewidth=1, color = 'r', linestyle='-')
         
         #h.plot(linewidth=3, color = 'b', linestyle='-')
-        for i in range(1) :
+        for i in range(1):
             h = conv(f,f)
             k = h.copyShiftedAndScaled(0.0,1.0*(0+2))
             #subplot(self.n,1,i+1)
@@ -381,11 +380,10 @@ class TestPicewiseConvs(unittest.TestCase):
             estimateDegreeOfPole(h, Inf)
         print f
         print h
-        int = h.integrate()
+        it = h.integrate()
         intf = f.integrate()
-        print "intf=", intf * intf, "int=", int, ", tol=", intf*intf-int
-        int
-        self.assert_(abs(int-1)<self.tol, 'integral = {0}'.format(abs(intf*intf-int)))
+        print "intf=", intf * intf, "int=", it, ", tol=", intf*intf-it
+        self.assert_(abs(it-1)<self.tol, 'integral = {0}'.format(abs(it)))
         
     def testConvNormalScaled(self):
         """Mean of the N normal random variables, on figure difference between original single cauchy and mean of N ..."""
@@ -1234,7 +1232,7 @@ class TestPicewiseConvs(unittest.TestCase):
         c.plot()  
         plt.figure()
         g.plot()
-        histdistr(c)       
+        c.hist()       
         self.assert_(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1))) 
 
     def testConvDiscreteMix2(self):
@@ -1295,11 +1293,9 @@ class TestPicewiseConvs(unittest.TestCase):
     
         subplot(n+3,2,2*n+5)
         h.plot()
-        histdistr(ch, n = 10000, bins  = 20)
         
         subplot(n+3,2,2*n+6)
         p.plot()
-        histdistr(cp, n = 10000, bins  = 20)
             
         err = max(abs(inth-1),abs(inth-1))       
         self.assert_( err < self.tol, 'integral = {0}'.format(err))        
@@ -1834,7 +1830,7 @@ class TestPicewiseConvs(unittest.TestCase):
             
 def suite():
     suite = unittest.TestSuite()
-    #suite.addTest(TestPicewiseConvs("testPicewiseFunction"))
+    #suite.addTest(TestPicewiseConvs("testPiecewiseFunction"))
 
     #suite.addTest(TestPicewiseConvs("testConvUniform"))
     #suite.addTest(TestPicewiseConvs("testConvUniformMix"))

@@ -1,11 +1,10 @@
-from compiler.ast import For
 import unittest
-from pylab import *;
-from scipy.integrate import quad, Inf;
-from numpy import *;
-from scipy.stats import *;
-from distr import *; 
-from evaluator import *;
+from pylab import *
+from scipy.integrate import quad, Inf
+from numpy import *
+from scipy.stats import *
+from distr import *
+from evaluator import *
 from plotfun import *
 import time
 
@@ -30,23 +29,19 @@ class TestPlot(unittest.TestCase):
     def testPlotPdf(self):
         print """pdfs and histograms ..."""
         fig = plt.figure()
-        #plotdistr(self.N1,-5, 5)
-        #plotdistr(self.N2, -4, 6)
-        plotdistr(self.Chi4, 0, 8)
-        plotdistr(self.SumN1N2, -5, 8)        
-        plotdistr(self.U1, -5, 8)   
-        histdistr(self.Chi4, 100000, 0, 8, 50)
-        histdistr(self.SumN1N2, 100000, 1, 3, 20)        
-        histdistr(self.U1, 100000, -2, 8, 20)             
+        self.Chi4.plot()
+        self.SumN1N2.plot()
+        self.U1.plot()
+        self.Chi4.hist()
+        self.SumN1N2.hist()
+        self.U1.hist()
         self.assert_(True);
     def testHistdistr(self):
         print """histograms ..."""
         fig = plt.figure()
-        #histdistr(self.N1, 1000, -5, 5, 10)
-        #histdistr(self.N2, 10000, -4, 6, 100)
-        histdistr(self.Chi4, 100000, 0, 8, 50)
-        histdistr(self.SumN1N2, 100000, 1, 3, 20)        
-        histdistr(self.U1, 100000, -2, 8, 20)        
+        self.Chi4.hist()
+        self.SumN1N2.hist()
+        self.U1.hist()
         self.assert_(True);
     
        
@@ -61,6 +56,7 @@ class TestPlot(unittest.TestCase):
         out= dispNet(MulDistr(NegS1,SumDistr(NegS1,NegDistr(M1))))
         print out
         self.assert_(True);
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestPlot("testPlotPdf"))
