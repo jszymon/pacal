@@ -8,11 +8,11 @@ from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
 from numpy import sqrt, pi, arctan, tan, asfarray
 from numpy.random import uniform
 from numpy import minimum, maximum
+from numpy import hstack
+from numpy import histogram
 
 from utils import Inf
 
-from numpy.lib.function_base import histogram
-from numpy import hstack
 from pylab import bar
 
 import traceback
@@ -215,10 +215,15 @@ class Distr(object):
                 if xmax is not None:
                     x = x[(x <= xmax)]
                 X = hstack([X, x])
+        #hist(X, bins, normed = True, alpha = 0.25, **kwargs)
         dw = (X.max() - X.min()) / bins
+        if dw == 0:
+            dw = 1
         w = (float(n)/float(allDrawn)) / n / dw
         counts, binx = histogram(X, bins)
         width = binx[1] - binx[0]
+        if width == 0:
+            width = X.max() * 0.01
         for c, b in zip(counts, binx):
             bar(b, float(c) * w, width = width, alpha = 0.25, **kwargs)
     
