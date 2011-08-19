@@ -50,6 +50,8 @@ def combine_interpolation_nodes_fast(oldXs, oldYs, newXs, newYs):
 def cheb_nodes(n, a = -1, b = 1):
     """Chebyshev nodes for given degree n"""
     apb = 0.5 * (a + b)
+    if n == 1:
+        return array([apb])
     bma = 0.5 * (b - a)
     cs = apb - bma * cos(arange(n) * pi / (n-1))
     # ensure that endpoints are exact
@@ -350,6 +352,44 @@ def binomial_coeff(n, k):
         c = c * (n - i)
         c = c / (i + 1)
     return c
+
+
+
+_debug_fig = None
+_debug_cancelled = False
+def debug_plot(a, b, nodes, fs, coeffs):
+    global _debug_fig, _debug_cancelled
+    if _debug_cancelled:
+        return
+    if 'show' not in locals():
+        from pylab import axes, subplot, subplots_adjust, figure, draw, plot, axvline, xlim, title, waitforbuttonpress, gcf
+        from matplotlib.widgets import Button
+    if _debug_fig is None:
+        #curfig = gcf()
+        #print dir(curfig)
+        _debug_fig = figure()
+        ax = _debug_fig.add_subplot(111)
+        #subplots_adjust(bottom=0.15)
+        butax = axes([0.8, 0.015, 0.1, 0.04])
+        button = Button(butax, 'Debug', hovercolor='0.975')
+        def debug(event):
+            import pdb; pdb.set_trace()
+        button.on_clicked(debug)
+        _debug_fig.sca(ax)
+        draw()
+        #figure(curfig)
+    _debug_fig.gca().clear()
+    plot(nodes, fs, linewidth=5, figure = _debug_fig)
+    axvline(a, color="r", figure = _debug_fig)
+    axvline(b, color="r", figure = _debug_fig)
+    d = 0.05 * (b-a)
+    _debug_fig.gca().set_xlim(a-d, b+d)
+    title("press key in figure for next debugplot or close window to continue")
+    try:
+        while not _debug_cancelled and not _debug_fig.waitforbuttonpress(-1):
+            pass
+    except:
+        _debug_cancelled = True
 
 
 
