@@ -91,39 +91,7 @@ class Segment(object):
         else:
             iseg = InterpolatedSegment(self.a, self.b, ChebyshevInterpolator(self.f, self.a, self.b, par = params.interpolation_finite))
         return iseg
-        #test = self.testPole()
-        #if test is None:
-        #    return InterpolatedSegment(self.a, self.b, 
-        #                           ChebyshevInterpolator(self.f, self.a, self.b)) # przywraca stan oryginalny
-        #                           #ChebyshevInterpolator1(self.f, self.a, self.b)) 
-        #                           #ValTransformInterpolator(self.f, self.a, self.b))
-        #                           #LogTransformInterpolator(self.f, self.a, self.b))
-        #elif test == False:
-        #    return InterpolatedSegment(self.a, self.b, 
-        #                           #ChebyshevInterpolatorNoL(self.f, self.a, self.b)) 
-        #                           ChebyshevInterpolator1(self.f, self.a, self.b))                    
-        #elif test == True:
-        #    #return InterpolatedSegmentWithPole2(self.a, self.b, self, pole=test[0], exponent=test[1], residue=test[2])
-        #    return InterpolatedSegmentWithPole(self.a, self.b, self, pole=0.0)
-    
-    def testPole(self):
-        return None
-        #return False
-        # TODO check this, it make segment with pole  at 0
-        if self.a != 0 and self.b != 0 :            
-            return None
-        else:
-            #return False # TODO add sign for estimate pole properly
-            if params.segments.debug_info:
-                print "estimate pole=", self.a, self.b
-            est = estimateDegreeOfPole(self.f, 0)
-            if params.segments.debug_info:
-                print "estimate pole=", est
-            if abs(est) < 0.1: # TODO: to make it better
-                return False
-            else:
-                #est=0.5
-                return True
+
     def findLeftpoint(self):
         return self.a
     def findRightpoint(self):
