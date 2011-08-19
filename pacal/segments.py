@@ -503,9 +503,8 @@ class MInfSegment(Segment):
 class PInfSegment(Segment):
     """Segment = (a, inf] 
     """    
-    def __init__(self, a, f, inf_val = 0):
-        super(PInfSegment, self).__init__(a, Inf, f)
-        self.inf_val = inf_val
+    def __init__(self, a, f):
+        super(PInfSegment, self).__init__(a, Inf, f)        
     def toInterpolatedSegment(self):
         return PInfInterpolatedSegment(self.a, 
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
@@ -1565,6 +1564,30 @@ class PiecewiseFunction(object):
             else:
                 fun.addSegment(Segment(a, b, seg.f))
         return fun
+    def invfun(self, use_end_poles = True):
+        """
+        return inverse of cumulative distribution function as piecewise function
+        """
+        def _tmp_inv(x):
+            return self.inverse(x)
+        vals = self.getSegVals()
+        breakvals = []
+        rpoles = []
+        lpoles = []
+        for i in range(len(vals)):
+            breakvals.extend(vals[i])
+        breakvals[0] = 0
+        breakvals[-1] = 1
+        breakvals = epsunique(array(breakvals),0.0001)    
+        for i in breakvals:
+            lpoles.append(False)
+            rpoles.append(False)
+        if use_end_poles:
+            rpoles[-1]=True
+            lpoles[0]=True 
+        fun2 = PiecewiseFunction(fun = _tmp_inv, breakPoints=breakvals, 
+                             lpoles=lpoles, rpoles=rpoles).toInterpolated()
+        return fun2
 
 class PiecewiseDistribution(PiecewiseFunction):
     """
