@@ -84,7 +84,6 @@ E(alphaOptMad).plot(color='g', label="optimal MAD")
 E(alphaOptIQrange).plot(color='b', label="optimal 95% c.i.")
 title("Density of combined measurement error")
 legend()
-#show()
 
 figure()
 E(alphaOptVar).get_piecewise_cdf().plot(color='r', label="optimal variance")
@@ -92,4 +91,5 @@ E(alphaOptMad).get_piecewise_cdf().plot(color='g', label="optimal MAD")
 E(alphaOptIQrange).get_piecewise_cdf().plot(color='b', label="optimal 95% c.i.")
 title("Cumulative distribution function of combined measurement error")
 legend(loc="lower right")
+
 show()

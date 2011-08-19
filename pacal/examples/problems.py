@@ -79,7 +79,7 @@ C = CauchyDistr()
 figure()
 demo_distr(exp(C))
 
-#! Singular poins outside zero
+#! Singularities outside zero
 #! ---------------------------
 
 #! Our interpolators give high accuracy around zero, however singularities 
