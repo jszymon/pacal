@@ -36,6 +36,6 @@ from standard_distr import CondGtDistr
 from standard_distr import CondLtDistr
 
 from stats.iid_ops import iid_sum, iid_prod, iid_max, iid_min, iid_average
+from stats.iid_ops import iid_order_stat, iid_median
 
 from pylab import show
-
