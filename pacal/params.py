@@ -114,6 +114,7 @@ class segments(params_class):
         leftRightEpsilon  = 1e-20
         yminEpsilon  = 1e-3
         nodeMarkerSize  = 3
+        ciLevel = None        # a confidence interval level for the range of plots
         showNodes = False
         showSegments = False
     class cumint(params_class):

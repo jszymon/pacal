@@ -453,9 +453,11 @@ class MInfSegment(Segment):
                                    #ChebyshevInterpolator_MInf(self.f, self.b))
                                    MInfInterpolator(self.f, self.b))
     def findLeftpoint(self):
-        x = self.b-1;
-        while (self.f(array([x]))>params.segments.plot.yminEpsilon):
-            x = x-1.2*abs(x-self.b)
+        step = 1
+        x = self.b - step
+        while (self.f(array([x])) > params.segments.plot.yminEpsilon):
+            step *= 1.2
+            x = self.b - step
             if abs(x)>1e20:
                 break
         return x
@@ -508,11 +510,11 @@ class PInfSegment(Segment):
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
                                    PInfInterpolator(self.f, self.a))
     def findRightpoint(self):
-        x = self.a+1;
-        fx = self.f(array([x]))
-        while not ((fx < params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([1.2*x]))) < params.segments.plot.yminEpsilon)):
-            x = x + 1.2 * abs(x-self.a)
-            fx = self.f(array([x]))
+        step = 1
+        x = self.a + step
+        while (self.f(array([x]))>params.segments.plot.yminEpsilon):
+            step *= 1.2
+            x = self.a + step
             if abs(x)>1e20:
                 break
         return x
@@ -979,7 +981,14 @@ class PiecewiseFunction(object):
                 return None
         else:
             assert(False)
-        
+
+    def findSegmentByEnds(self, a, b):
+        """Return the segment with end points (a,b)"""
+        for seg in self.segments: 
+            if seg.a == a and seg.b == b:
+                return seg
+        return None
+    
     def toInterpolated(self):
         interpolatedPFun = PiecewiseFunction([]);        
         for seg in self.segments:
@@ -994,7 +1003,7 @@ class PiecewiseFunction(object):
         if b==None:
             b = +Inf 
         for seg in self.segments:
-            i = seg.integrate(a, b)      
+            i = seg.integrate(a, b)
             I = I + i             
         return I
     def getInterpErrors(self):
@@ -1071,6 +1080,19 @@ class PiecewiseFunction(object):
         f3 = f2.copyAbsComposition();
         return f3.median()
 
+    def entropy(self):
+        fun = self * self._log1()
+        return fun.integrate()
+ 
+    def L2_distance(self, other):
+        tmpf = self - other
+        fun = tmpf * tmpf
+        return fun.integrate()**0.5
+        
+    def KL_distance(self, other):
+        fun = self * (self._log() - other._log())
+        return fun.integrate()
+
     def range(self):
         breaks = self.getBreaks()
         return (breaks[0], breaks[-1]) 
@@ -1078,6 +1100,10 @@ class PiecewiseFunction(object):
         """Interquartile range for a given level."""
         cpf = self.cumint()        
         return cpf.inverse(1-level)-cpf.inverse(level) 
+    def ci(self, level):
+        """Interquartile range for a given level."""
+        cpf = self.cumint()        
+        return cpf.inverse(level), cpf.inverse(1-level)
     def tailexp(self):        
         segMInf  =self.segments[0]
         segPInf  =self.segments[-1]
@@ -1150,24 +1176,46 @@ class PiecewiseFunction(object):
         if not integralPFun.segments[0].isMInf():
             integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: 0.0 + 0.0*x))
         return integralPFun
+    def ccumint(self):
+        """TODO complementary cumint i.e int_x^Inf f(x) dx"""
+        integralPFun = CumulativePiecewiseFunction([]);
+        f0 = 0        
+        for seg in self.segments:
+            if seg.isPInf():
+                f0 = f0 + seg.integrate(seg.a)
+            segi = seg.cumint(f0);
+            if seg.isDirac():
+                f0 = f0 + seg.f
+            else:
+                integralPFun.addSegment(segi)
+            if not seg.isPInf():
+                f0 = segi.f(segi.b)
+        rightval = max(f0, segi.f(segi.b))
+        if not segi.isPInf():
+            integralPFun.addSegment(PInfSegment(segi.b, lambda x: rightval + 0.0*x))
+        if not integralPFun.segments[0].isMInf():
+            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: 0.0 + 0.0*x))
+        return integralPFun
     def __str__(self):   
         return ','.join(['({0})'.format(str(seg)) for seg in self.segments])
 
     def plot(self, 
              xmin = None,
              xmax = None,
+             cl = params.segments.plot.ciLevel,
              show_nodes = params.segments.plot.showNodes, 
              show_segments = params.segments.plot.showSegments, 
              numberOfPoints = params.segments.plot.numberOfPoints, **args):
-        
+        if cl is not None and xmin is None and xmax is None:
+            xmin, xmax = self.ci(cl)
         h0 = h1 = 0        
         for seg in self.segments:
             xi = seg.a
             try:
-                h1 = seg.f(xi+1e-10) 
+                h1 = float(seg.f(xi+1e-10)) 
             except Exception, e:           
-                h1= 0.0
-                h0= 0.0
+                h1 = 0.0
+                h0 = 0.0
             seg.plot(xmin = xmin,
                      xmax = xmax,
                      show_nodes = show_nodes,
@@ -1176,7 +1224,7 @@ class PiecewiseFunction(object):
             if (not seg.isMInf()) and (not seg.hasLeftPole()): 
                 plot([xi,xi], [h0, h1], 'k--')
             try:
-                h0= seg.f(seg.b-1e-10)
+                h0= float(seg.f(seg.b-1e-10))
             except Exception, e:           
                 h0= 0.0   
             if "label" in args:
