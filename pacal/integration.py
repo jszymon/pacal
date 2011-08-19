@@ -23,6 +23,7 @@ from numpy import ceil,log10, logspace
 from utils import cheb_nodes, incremental_cheb_nodes
 from utils import combine_interpolation_nodes_fast
 from utils import convergence_monitor
+from utils import debug_plot
 
 from vartransforms import VarTransformAlgebraic_PMInf
 from vartransforms import VarTransformAlgebraic_PInf
@@ -79,41 +80,6 @@ def fejer2_coefficients(n):
         _fejer2_cache[n] = coeffs
     return coeffs
 
-_debug_fig = None
-_debug_cancelled = False
-def _debug_plot(a, b, nodes, fs, coeffs):
-    global _debug_fig, _debug_cancelled
-    if _debug_cancelled:
-        return
-    if 'show' not in locals():
-        from pylab import axes, subplot, subplots_adjust, figure, draw, plot, axvline, xlim, title, waitforbuttonpress, gcf
-        from matplotlib.widgets import Button
-    if _debug_fig is None:
-        #curfig = gcf()
-        #print dir(curfig)
-        _debug_fig = figure()
-        ax = _debug_fig.add_subplot(111)
-        #subplots_adjust(bottom=0.15)
-        butax = axes([0.8, 0.015, 0.1, 0.04])
-        button = Button(butax, 'Debug', hovercolor='0.975')
-        def debug(event):
-            import pdb; pdb.set_trace()
-        button.on_clicked(debug)
-        _debug_fig.sca(ax)
-        draw()
-        #figure(curfig)
-    _debug_fig.gca().clear()
-    plot(nodes, fs, linewidth=5, figure = _debug_fig)
-    axvline(a, color="r", figure = _debug_fig)
-    axvline(b, color="r", figure = _debug_fig)
-    d = 0.05 * (b-a)
-    _debug_fig.gca().set_xlim(a-d, b+d)
-    title("press key in figure for next debugplot or close window to continue")
-    try:
-        while not _debug_cancelled and not _debug_fig.waitforbuttonpress(-1):
-            pass
-    except:
-        _debug_cancelled = True
 
 def integrate_clenshaw(f, a, b, maxn = 2**16, tol = 10e-16,
                        debug_info = True, debug_plot = True):
@@ -143,7 +109,7 @@ def integrate_clenshaw(f, a, b, maxn = 2**16, tol = 10e-16,
     if debug_info:
         print "===="
     if debug_plot and n >= maxn: # problems with integration
-        _debug_plot(a, b, nodes, fs, coeffs)
+        debug_plot(a, b, nodes, fs, coeffs)
     return I, err
 
 def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
@@ -183,7 +149,7 @@ def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
     if debug_info:
         print "===="
     if debug_plot and n >= maxn: # problems with integration
-        _debug_plot(a, b, nodes, fs, coeffs)
+        debug_plot(a, b, nodes, fs, coeffs)
     # return currently best result
     I, err, _extra = cm.get_best_result()
     return I, err

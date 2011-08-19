@@ -30,10 +30,10 @@ from utils import cheb_nodes_log, incremental_cheb_nodes_log
 from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
 from utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
 from utils import convergence_monitor, chebspace, estimateDegreeOfPole
+from utils import debug_plot
 
 from vartransforms import *
 
-from integration import _debug_plot
 
 # import faster Cython versions if possible
 try:
@@ -171,7 +171,7 @@ class AdaptiveInterpolator(object):
             n = new_n
             self.add_nodes(new_Xs, new_Ys)
         if par.debug_plot and n >= maxn:
-            _debug_plot(self.a, self.b, self.Xs, self.Ys, None)
+            debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
             print "interp. err = ", err, "nodes=", n
         self.err = err
@@ -290,7 +290,7 @@ class AdaptiveInterpolator1(object):
             n = new_n
             self.add_nodes(new_Xs, new_Ys)
         if par.debug_plot and n >= maxn:
-            _debug_plot(self.a, self.b, self.Xs, self.Ys, None)
+            debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
             print "interp. err1 = ", err, "nodes=", n
         self.err = err
@@ -496,23 +496,24 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
     def __init__(self, f, a, b, offset = 1e-50, *args, **kwargs):        
         self.orig_a = a
         self.orig_b = b
+        self.sign = squeeze(sign(f(b)))
         if a == 0:
             offset = 1e-50
         else:
             offset = abs(a) * finfo(double).eps
         self.offset = offset
-        super(PoleInterpolatorP, self).__init__(lambda x: log1p(f(self.xt(x))),
+        super(PoleInterpolatorP, self).__init__(lambda x: log1p(self.sign*f(self.xt(x))),
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
     def interp_at(self, x):
-        y = expm1(super(PoleInterpolatorP, self).interp_at(self.xtinv(x)))
+        y = self.sign*expm1(super(PoleInterpolatorP, self).interp_at(self.xtinv(x)))
         return y
     #def get_incremental_nodes1(self, new_n):
     #    return incremental_cheb_nodes1(new_n, self.a, self.b)
     #def get_nodes(self, n):
     #    return cheb_nodes1(n, self.a, self.b)
     def getNodes(self):
-        return self.xt(self.Xs), expm1(self.Ys) 
+        return self.xt(self.Xs), self.sign*expm1(self.Ys) 
     def test_accuracy_tmp(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
         given points."""

@@ -1166,8 +1166,8 @@ class PiecewiseFunction(object):
             try:
                 h1 = seg.f(xi+1e-10) 
             except Exception, e:           
-                h1= 0.0   
-                h0= 0.0                    
+                h1= 0.0
+                h0= 0.0
             seg.plot(xmin = xmin,
                      xmax = xmax,
                      show_nodes = show_nodes,

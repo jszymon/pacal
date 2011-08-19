@@ -60,11 +60,32 @@ class Distr(object):
         if self.piecewise_cdf_interp is None:
             self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
         return self.piecewise_cdf_interp
+    def get_piecewise_ccdf(self):
+        """return, CDF function, as CumulativePiecewiseFunction object"""
+        if self.piecewise_ccdf is None:
+            self.piecewise_ccdf = 1 - self.get_piecewise_cdf()
+            # integrals are computed directly - much slower
+            #self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
+        return self.piecewise_cdf
+    def get_piecewise_ccdf_interp(self):
+        """return, CDF function as CumulativePiecewiseFunction object
+        
+        This is interpolated version of piecewise_cdf, much faster
+        as specially for random number greneration"""
+        if self.piecewise_ccdf_interp is None:
+            self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
+        return self.piecewise_cdf_interp
+
     def init_piecewise_pdf(self):
         """Initialize the pdf represented as a piecewise function.
 
         This method should be overridden by subclasses."""
         raise NotImplemented()
+    def get_piecewise_invcdf(self):
+        """return, CDF function, as CumulativePiecewiseFunction object"""
+        invcdf  = self.get_piecewise_cdf().invfun()
+        return invcdf
+
     def pdf(self,x):
         return self.get_piecewise_pdf()(x)
     def cdf(self,x):
@@ -74,7 +95,9 @@ class Distr(object):
         """Complementary cumulative piecewise function.
         Not implemented yet. """
         pass
-        #return self.get_piecewise_ccdf()(x) #TODO 
+        # TODO temporary solution, to remove  
+        return self.get_piecewise_ccdf()(x) #TODO implement it
+
     def ccdf_value(self,x):
         """Complementary cumulative distribution function. 
         
@@ -104,24 +127,25 @@ class Distr(object):
     def median(self):
         """Median of the distribution."""
         return self.get_piecewise_pdf().median()
+    def entropy(self):
+        """Median of the distribution."""
+        return self.get_piecewise_pdf().entropy()
+    def KL_dist(self,other):
+        """Median of the distribution."""
+        return self.get_piecewise_pdf().KL_distance(other.get_piecewise_pdf())
+    def L2_dist(self,other):
+        """Median of the distribution."""
+        return self.get_piecewise_pdf().L2_distance(other.get_piecewise_pdf())
+    def range(self):
+        """Range of the distribution."""
+        return self.get_piecewise_pdf().range()
+        
     def iqrange(self, level=0.025):
         """Inter-quantile range of the distribution."""
         return self.quantile(1-level) - self.quantile(level)
         #clevel = 1 - level
         #return self.quantile(1-clevel/2.0) - self.quantile(clevel/2.0)
-    def rand_raw(self, n = None):
-        """Generates random numbers without tracking dependencies.
 
-        This method will be implemented in subclasses implementing
-        specific distributions.  Not intended to be used directly."""
-        return None
-    def rand_invcdf(self, n = None):
-        """Generates random numbers trough the inverse cumulative 
-        distribution function.
-        
-        This function is rather slowly. """
-        y = uniform(0, 1, n)
-        return self.get_piecewise_cdf_interp().inverse(y)
     def is_nonneg(self):
         """Check whether distribution is positive definite."""
         return self.get_piecewise_pdf().isNonneg()
@@ -166,6 +190,19 @@ class Distr(object):
                 print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
             
         
+    def rand_raw(self, n = None):
+        """Generates random numbers without tracking dependencies.
+
+        This method will be implemented in subclasses implementing
+        specific distributions.  Not intended to be used directly."""
+        return None
+    def rand_invcdf(self, n = None):
+        """Generates random numbers trough the inverse cumulative 
+        distribution function.
+        
+        Faster version, it uses interpolated inversion of cdf. """
+        y = uniform(0, 1, n)
+        return self.get_piecewise_invcdf()(y)
     def rand(self, n = None, cache = None):
         """Generates random numbers while tracking dependencies.
 
@@ -442,6 +479,12 @@ def log(d):
         return LogDistr(d)
     return numpy.log(d)
 
+def sign(d):
+    """Overload sign: distribution of sign(X)."""
+    if isinstance(d, Distr):
+        return SignDistr(d)
+    return numpy.sign(d)
+
 class AtanDistr(FuncDistr):
     """Arcus tangent of a random variable"""
     def __init__(self, d):
@@ -602,7 +645,30 @@ class AbsDistr(OpDistr):
         return "|#{0}|".format(id(self.d))
     def getName(self):
         return "|{0}|".format(self.d.getName())
-    
+
+class SignDistr(Distr):
+    def __init__(self, d):
+        self.d = d
+        super(SignDistr, self).__init__(d)
+    def init_piecewise_pdf(self):
+        prPlus = float(self.d.ccdf_value(0))
+        diracZero = self.d.get_piecewise_pdf().getDirac(0)
+        if diracZero is None:
+            prZero = 0
+        else:
+            prZero = diracZero.f
+        prMinus = float(self.d.cdf(0)) - prZero        
+        print "=======", [prMinus, prZero, prPlus] 
+        #Z.get_piecewise_pdf().segments.remove(diracB)
+        if prZero > 0:
+            self.piecewise_pdf = (DiscreteDistr(xi = [-1,0,1], pi=[prMinus, prZero, prPlus])).get_piecewise_pdf()
+        else:
+            self.piecewise_pdf = (DiscreteDistr(xi = [-1,1], pi=[prMinus, prPlus])).get_piecewise_pdf()
+    def __str__(self):
+        return "sign({0})".format(id(self.d))
+    def getName(self):
+        return "sign({0})".format(self.d.getName())
+
 class SquareDistr(OpDistr):
     """Injective function of random variable"""
     def __init__(self, d):
@@ -845,15 +911,8 @@ def demo_distr(d,
         if title is not None:
             pylab.suptitle(title)
     if summary and not theoretical:
-        #print "integral =", I
-        #print "pdf=", d.get_piecewise_pdf()
         d.summary()
     if summary and theoretical:
         print "max. abs. error", maxabserr
         print "max. rel. error", maxrelerr
     #show()
-    
-if __name__ == "__main__":
-    figure()
-    from standard_distr import *
-    demo_distr(NormalDistr(2,1) * NormalDistr(3,1))
