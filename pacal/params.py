@@ -2,17 +2,17 @@ from numpy import finfo, double
 from inspect import getmembers
 
 def _str_params_list(p, depth = 0):
-        """Recursively print parameters"""
-        slist = ["    " * depth + "==" + p.__name__ + "=="]
-        #for par, v in sorted(p.__dict__.iteritems()):
-        for par, v in getmembers(p):
-            if par[0] == '_' or par in ["str", "str_params", "finfo", "double", "params_class", "getmembers"]:
-                continue
-            if hasattr(v, "__dict__"):
-                slist += _str_params_list(v, depth + 1)
-            else:
-                slist.append("    " * (depth+1) + str(par) + ": " + str(v))
-        return slist
+    """Recursively print parameters"""
+    slist = ["    " * depth + "==" + p.__name__ + "=="]
+    #for par, v in sorted(p.__dict__.iteritems()):
+    for par, v in getmembers(p):
+        if par[0] == '_' or par in ["str", "str_params", "finfo", "double", "params_class", "getmembers"]:
+            continue
+        if hasattr(v, "__dict__"):
+            slist += _str_params_list(v, depth + 1)
+        else:
+           slist.append("    " * (depth+1) + str(par) + ": " + str(v))
+    return slist
 def str_params(p = None):
     if p is None:
         import params

@@ -503,8 +503,9 @@ class MInfSegment(Segment):
 class PInfSegment(Segment):
     """Segment = (a, inf] 
     """    
-    def __init__(self, a, f):
-        super(PInfSegment, self).__init__(a, Inf, f)        
+    def __init__(self, a, f, inf_val = 0):
+        super(PInfSegment, self).__init__(a, Inf, f)
+        self.inf_val = inf_val
     def toInterpolatedSegment(self):
         return PInfInterpolatedSegment(self.a, 
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
@@ -512,11 +513,16 @@ class PInfSegment(Segment):
     def findRightpoint(self):
         step = 1
         x = self.a + step
-        while (self.f(array([x]))>params.segments.plot.yminEpsilon):
+        yeps = params.segments.plot.yminEpsilon
+        fcur = self.f(array([x]))
+        fprev = fcur + 2 * yeps
+        while fcur > yeps and abs(fcur - fprev) > yeps:
             step *= 1.2
             x = self.a + step
-            if abs(x)>1e20:
+            if abs(x) > 1e20:
                 break
+            fprev = fcur
+            fcur = self.f(array([x]))
         return x
     def findRightEps(self):
         x = self.a+0.1;
@@ -623,21 +629,20 @@ class InterpolatedSegment(Segment):
                    show_nodes = show_nodes,
                    show_segments = show_segments,
                    numberOfPoints = numberOfPoints, **args)
-        #Xs, Ys = self.f.getNodes()
-        if (xmin == None):
-            xmin = self.findLeftpoint()
-        else:
-            xmin = max(xmin, self.a)
-        if (xmax == None):
-            xmax = self.findRightpoint() 
-        else:
-            xmax = min(xmax, self.b)
-        Xs, Ys = self.f.getNodes()
-        Ys=Ys[Xs>=xmin]
-        Xs=Xs[Xs>=xmin]
-        Ys=Ys[Xs<=xmax]
-        Xs=Xs[Xs<=xmax]
         if show_nodes:
+            if (xmin == None):
+                xmin = self.findLeftpoint()
+            else:
+                xmin = max(xmin, self.a)
+            if (xmax == None):
+                xmax = self.findRightpoint() 
+            else:
+                xmax = min(xmax, self.b)
+            Xs, Ys = self.f.getNodes()
+            Ys=Ys[Xs>=xmin]
+            Xs=Xs[Xs>=xmin]
+            Ys=Ys[Xs<=xmax]
+            Xs=Xs[Xs<=xmax]
             plot(Xs, Ys, 'o', markersize = params.segments.plot.nodeMarkerSize)        
     def semilogx(self, **args):
         numberOfPoints = params.segments.plot.numberOfPoints
@@ -793,25 +798,25 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
                    show_nodes = show_nodes,
                    show_segments = show_segments,
                    numberOfPoints = numberOfPoints, **args)
-        leftRightEpsilon = params.segments.plot.leftRightEpsilon
-        if (xmin == None):
-            xmin = self.findLeftpoint()
-        else:
-            xmin = max(xmin, self.a)
-        if (xmax == None):
-            xmax = self.findRightpoint() 
-        else:
-            xmax = min(xmax, self.b)
-        Xs, Ys = self.f.getNodes()
-        if self.hasLeftPole():
-            xmin = xmin+ leftRightEpsilon
-        if self.hasRightPole():
-            xmax = xmax - leftRightEpsilon
-        Ys=Ys[Xs>=xmin]
-        Xs=Xs[Xs>=xmin]
-        Ys=Ys[Xs<=xmax]
-        Xs=Xs[Xs<=xmax]
         if show_nodes:
+            leftRightEpsilon = params.segments.plot.leftRightEpsilon
+            if (xmin == None):
+                xmin = self.findLeftpoint()
+            else:
+                xmin = max(xmin, self.a)
+            if (xmax == None):
+                xmax = self.findRightpoint() 
+            else:
+                xmax = min(xmax, self.b)
+            Xs, Ys = self.f.getNodes()
+            if self.hasLeftPole():
+                xmin = xmin + leftRightEpsilon
+            if self.hasRightPole():
+                xmax = xmax - leftRightEpsilon
+            Ys=Ys[Xs>=xmin]
+            Xs=Xs[Xs>=xmin]
+            Ys=Ys[Xs<=xmax]
+            Xs=Xs[Xs<=xmax]
             plot(Xs, Ys, 'o', markersize = params.segments.plot.nodeMarkerSize)
 # TODO: to remove ???
 def nanToZero(f, x, residue = 0.0):
@@ -1224,9 +1229,9 @@ class PiecewiseFunction(object):
             if (not seg.isMInf()) and (not seg.hasLeftPole()): 
                 plot([xi,xi], [h0, h1], 'k--')
             try:
-                h0= float(seg.f(seg.b-1e-10))
+                h0 = float(seg.f(seg.b-1e-10))
             except Exception, e:           
-                h0= 0.0   
+                h0 = 0.0   
             if "label" in args:
                 # avoid a label in legend for every segment
                 del args["label"]

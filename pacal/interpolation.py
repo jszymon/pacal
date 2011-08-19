@@ -496,7 +496,9 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
     def __init__(self, f, a, b, offset = 1e-50, *args, **kwargs):        
         self.orig_a = a
         self.orig_b = b
-        self.sign = squeeze(sign(f(b)))
+        self.sign = int(sign(f(float(a + b) / 2)))
+        if self.sign == 0:
+            self.sign = 1
         if a == 0:
             offset = 1e-50
         else:
@@ -506,7 +508,7 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
     def interp_at(self, x):
-        y = self.sign*expm1(super(PoleInterpolatorP, self).interp_at(self.xtinv(x)))
+        y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
         return y
     #def get_incremental_nodes1(self, new_n):
     #    return incremental_cheb_nodes1(new_n, self.a, self.b)
