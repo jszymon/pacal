@@ -3,9 +3,7 @@ from pylab import *
 from scipy.integrate import quad, Inf
 from numpy import *
 from scipy.stats import *
-from distr import *
-from evaluator import *
-from plotfun import *
+from pacal import *
 import time
 
 import matplotlib.pyplot as plt
@@ -13,10 +11,10 @@ import matplotlib.pyplot as plt
 class TestPlot(unittest.TestCase):
     def setUp(self):
         print """====Test starting============================="""        
-        self.N1 = NormDistr(1,1)
-        self.N2 = NormDistr(2,1)
-        self.SumN1N2 = SumDistr(self.N1, self.N2)
-        self.Chi4 = Chi2Distr(3)
+        self.N1 = NormalDistr(1,1)
+        self.N2 = NormalDistr(2,1)
+        self.SumN1N2 = self.N1 + self.N2
+        self.Chi4 = ChiSquareDistr(3)
         self.U1 = UniformDistr(-4,-1)
         self. ts = time.time()
        
@@ -48,13 +46,11 @@ class TestPlot(unittest.TestCase):
     def testDispBayesNetwork(self):
         print """3. display Bayes net of calculus"""
         C1 = ConstDistr(1)
-        N1 = NormDistr(0,1)
-        N2 = NormDistr(1,1)
-        S1 = SumDistr(N1,N2)
-        M1 = DivDistr(N1,N1)
-        NegS1 = NegDistr(S1)    
-        out= dispNet(MulDistr(NegS1,SumDistr(NegS1,NegDistr(M1))))
-        print out
+        N1 = NormalDistr(0,1)
+        N2 = NormalDistr(1,1)
+        S1 = N1 + N2
+        M1 = N1 / N1
+        NegS1 = -S1
         self.assert_(True);
 
 def suite():

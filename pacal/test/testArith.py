@@ -7,7 +7,6 @@ from scipy.stats import *
 from pylab import *
 from pacal import * 
 
-from pacal.plotfun import dispNet
 import time
 import matplotlib.pyplot as plt
 
@@ -31,7 +30,6 @@ class TestArith(unittest.TestCase):
             S = S + NormalDistr(mu,sigma)
         S.plot()
         S.hist()
-        print 'S=',dispNet(S)
         m = S.mean()
         s = S.std()
         #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
@@ -51,7 +49,6 @@ class TestArith(unittest.TestCase):
             S = S + UniformDistr(a,b)
             S.plot()
         S.hist()
-        print 'S=',dispNet(S)
         m = S.mean()
         s = S.std()
         #Y = InterpolatedDistr(S)
@@ -73,7 +70,6 @@ class TestArith(unittest.TestCase):
             S = S + X
             S.hist()        
         print 'sum of {0} normal N({1}, {2}) variables:'.format(n, mu, sigma) 
-        print dispNet(S)
         
     def testSumDependent(self):
         print """sum of two the same normal variables X+X=2X, 
@@ -87,7 +83,6 @@ class TestArith(unittest.TestCase):
         Y.hist()
         m = Y.mean()
         s = Y.std()
-        print dispNet(Y)
         print 'mean(X)={0}, std={1}, abs(std-sqrt(2))={2}'.format(m,s, abs(s-sqrt(2)))        
         self.assert_(abs(s-2)<1e-10,'sum of dependent variables not working yet')
 
@@ -101,7 +96,6 @@ class TestArith(unittest.TestCase):
         """
         n = 2
         Y_0=ConstDistr(100)
-        print dispNet(Y_0)
         self.assert_(1<0, 'not work yet')
     
 def suite():

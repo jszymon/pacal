@@ -383,8 +383,6 @@ def set_plot__():
     doplot__ = True
 
 if __name__ == "__main__":
-    from plotfun import *
-
     N1 = NormDistr(0,1)
     N2 = NormDistr(1,1)
     N3 = SumDistr(N1, N2)
