@@ -1,7 +1,7 @@
 """Standard distributions."""
 
 from numpy import Inf
-from numpy import isscalar, zeros_like, asfarray, zeros
+from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
 from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel
 from numpy.random import f as f_rand
@@ -695,21 +695,26 @@ class DiscreteDistr(Distr):
     def __init__(self, xi=[0.0, 1.0], pi=[0.5, 0.5]):
         super(DiscreteDistr, self).__init__([])
         assert(len(xi) == len(pi))
-        self.xi = xi
-        self.pi = pi
-        self.px = {}
-        for i in range(len(xi)):
-            self.px[xi[i]]=pi[i]
+        px = zip(xi, pi)
+        px.sort()
+        self.px = px
+        self.xi = [p[0] for p in px]
+        self.pi = [p[1] for p in px]
+        self.cumP = cumsum(self.pi)
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])        
-        for i in range(len(self.xi)):
+        for i in xrange(len(self.xi)):
             self.piecewise_pdf.addSegment(DiracSegment(self.xi[i], self.pi[i]))
-        for i in range(len(self.xi)-1):
+        for i in xrange(len(self.xi)-1):
             self.piecewise_pdf.addSegment(ConstSegment(self.xi[i], self.xi[i+1], 0))
     def rand_raw(self, n):
-        return self.rand_invcdf(n)
+        u = uniform(0, 1, n)
+        i = searchsorted(self.cumP, u)
+        i[i > len(self.xi)] = len(self.xi)
+        return array(self.xi)[i]
     def __str__(self):
-        return "Discrete({0})#{1}".format(self.px, id(self))
+        pstr = ", ".join("{0}:{1}".format(x, p) for x, p in self.px)
+        return "Discrete({0})#{1}".format(pstr, id(self))
     def getName(self):
         return "Di({0})".format(len(self.xi))
     
