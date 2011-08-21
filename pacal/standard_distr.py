@@ -12,7 +12,7 @@ _MAX_EXP_ARG = log(finfo(double).max)
 import params
 from utils import lgamma
 from distr import Distr, MinDistr, MaxDistr, SumDistr, DivDistr
-from segments import PiecewiseDistribution, Segment
+from segments import PiecewiseFunction, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
 import distr
 
@@ -41,7 +41,7 @@ class PDistr(Distr):
         self.segs = segs
         
     def init_piecewise_pdf(self):
-        if isinstance(self.segs, PiecewiseDistribution):
+        if isinstance(self.segs, PiecewiseFunction):
             self.piecewise_pdf = self.segs
         else:
             self.piecewise_pdf = PiecewiseDistribution();
@@ -68,7 +68,7 @@ class MixDistr(Distr):
         mixdistr = ConstDistr(1, self.probs[0]) * self.distrs[0]
         for i in range(1,len(self.probs)):
             mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
-            mixdistr.piecewise_pdf =  mixdistr.get_piecewise_pdf() + mixi.get_piecewise_pdf()  
+            mixdistr.piecewise_pdf = mixdistr.get_piecewise_pdf() + mixi.get_piecewise_pdf()  
         self.piecewise_pdf = mixdistr.piecewise_pdf        
     def getName(self):
         return "MIX()".format()

@@ -16,7 +16,9 @@ U = UniformDistr(0,1)
 M = DiscreteDistr(xi=[0.0, 1.0, 2.0, 3.0], pi=[0.3, 0.4, 0.2, 0.1])
 S = M + U
 SM = min(S, S)
+
 #! 
+M.summary()
 S.summary()
 SM.summary()
 
@@ -25,6 +27,30 @@ subplot(121)
 S.plot()
 subplot(122)
 SM.plot()
+figure()
+
+M = DiscreteDistr(xi=[0.0, 1.0, 2.0, 3], pi=[0.42, 0.4, 0.13, 0.05])
+print M.rand_invcdf(100, use_interpolated=True)
+print M.rand_invcdf(100, use_interpolated=False)
+print M.get_piecewise_pdf()
+M.summary()
+N = M - 1 # TODO error here
+N.summary()
+print N.get_piecewise_pdf()
+M.plot()
+
+print "=========="
+AM = M ** 2
+AM.plot()
+figure()
+BM = abs(M)
+BM.plot()
+figure()
+CM = M * 4
+CM.plot()
+CM.summary()
+print CM.get_piecewise_pdf()
+print CM.__class__
 
 #! New plot
 #!----------
