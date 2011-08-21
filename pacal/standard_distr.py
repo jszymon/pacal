@@ -12,7 +12,7 @@ _MAX_EXP_ARG = log(finfo(double).max)
 import params
 from utils import lgamma
 from distr import Distr, MinDistr, MaxDistr, SumDistr, DivDistr
-from segments import PiecewiseFunction, Segment
+from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
 import distr
 
