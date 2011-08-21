@@ -34,12 +34,15 @@ class Distr(object):
                                   # function
         self.piecewise_cdf_interp = None    # CDF represented as  interpolated.
                                             # piecewise function
-        self.type = "Distr"
+        self.piecewise_ccdf = None # complementary CDF represented as piecewise
+                                   # function
+        self.piecewise_ccdf_interp = None   # complementary CDF represented 
+                                            # as interpolated piecewise function
     def __str__(self):
         return "Distr"
     def getName(self):
         """return a string representation of PDF."""
-        return self.type
+        return "D"
     
     def get_piecewise_pdf(self):
         """return PDF function as a PiecewiseDistribution object"""
@@ -73,17 +76,17 @@ class Distr(object):
         This is interpolated version of piecewise_cdf, much faster
         as specially for random number greneration"""
         if self.piecewise_ccdf_interp is None:
-            self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
-        return self.piecewise_cdf_interp
+            self.piecewise_ccdf_interp = self.get_piecewise_ccdf().toInterpolated()   # interpolated version - much faster
+        return self.piecewise_ccdf_interp
 
     def init_piecewise_pdf(self):
         """Initialize the pdf represented as a piecewise function.
 
         This method should be overridden by subclasses."""
         raise NotImplemented()
-    def get_piecewise_invcdf(self):
+    def get_piecewise_invcdf(self, use_interpolated=True):
         """return, CDF function, as CumulativePiecewiseFunction object"""
-        invcdf  = self.get_piecewise_cdf().invfun()
+        invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated)
         return invcdf
 
     def pdf(self,x):
@@ -167,6 +170,7 @@ class Distr(object):
         r['mean'] = self.mean()
         r['std'] = self.std()
         r['var'] = self.var()
+        r['entropy'] = self.entropy()
         r['range'] = self.get_piecewise_pdf().range()
         r['int_err'] = 1-self.get_piecewise_pdf().integrate()
         r['tailexp'] = self.tailexp()
@@ -185,24 +189,23 @@ class Distr(object):
         #print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'std', 'var', 'tailexp', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
+        for i in ['mean', 'std', 'var','entropy', 'tailexp', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
-            
-        
+
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
         This method will be implemented in subclasses implementing
         specific distributions.  Not intended to be used directly."""
         return None
-    def rand_invcdf(self, n = None):
-        """Generates random numbers trough the inverse cumulative 
+    def rand_invcdf(self, n = None, use_interpolated=True):
+        """Generates random numbers through the inverse cumulative
         distribution function.
-        
-        Faster version, it uses interpolated inversion of cdf. """
+
+        May use interpolated inverse of cdf for speed."""
         y = uniform(0, 1, n)
-        return self.get_piecewise_invcdf()(y)
+        return self.get_piecewise_invcdf(use_interpolated=use_interpolated)(y)
     def rand(self, n = None, cache = None):
         """Generates random numbers while tracking dependencies.
 

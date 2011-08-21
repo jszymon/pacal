@@ -30,14 +30,14 @@ SM.plot()
 figure()
 
 M = DiscreteDistr(xi=[0.0, 1.0, 2.0, 3], pi=[0.42, 0.4, 0.13, 0.05])
-print M.rand_invcdf(100, use_interpolated=True)
-print M.rand_invcdf(100, use_interpolated=False)
-print M.get_piecewise_pdf()
+print M.rand_invcdf(10, use_interpolated=True)
+print M.rand_invcdf(10, use_interpolated=False)
 M.summary()
-N = M - 1 # TODO error here
+N = M - 1
 N.summary()
-print N.get_piecewise_pdf()
 M.plot()
+figure()
+N.plot()
 
 print "=========="
 AM = M ** 2

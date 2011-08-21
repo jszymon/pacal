@@ -1,6 +1,7 @@
 """PiecewiseFunction for piecewise functions."""
 
 import bisect
+import numbers
 
 from integration import *
 from interpolation import *
@@ -13,11 +14,11 @@ from numpy import linspace, multiply, add, divide, size
 from numpy import unique, isnan, isscalar, diff, size
 from numpy import Inf, NaN, sign, isinf, isfinite, exp
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
-from numpy import append
+from numpy import append, nan_to_num
 from numpy.random import uniform
 
+import numpy
 from pylab import plot, semilogx, xlabel, ylabel, axis, loglog, figure, subplot
-from matplotlib.mlab import find
 
 try:
     from scipy.optimize.optimize import fminbound
@@ -45,7 +46,7 @@ class Segment(object):
         self.safe_b = float(safe_b)
         
     def __str__(self):
-        return "{0}, [{1}, {2}]".format(self.__class__.__name__, self.a, self.b); 
+        return "{0}, [{1}, {2}]".format(self.__class__.__name__, self.a, self.b)
        
     def __call__(self, x):
         if isscalar(x):
@@ -154,8 +155,8 @@ class Segment(object):
         plot(xi, yi,'-', **args)
         # show segment         
         if not self.isMorPInf() and show_segments:
-            plot([xmin, xmin], [0, yi[0]], 'c--', linewidth=1);
-            plot([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1);
+            plot([xmin, xmin], [0, yi[0]], 'c--', linewidth=1)
+            plot([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1)
         # show vertical asympthote         
         if self.hasLeftPole() and xmin == self.a:
             plot([xmin, xmin], [0, yi[0]], 'k-.', linewidth=1)
@@ -177,8 +178,8 @@ class Segment(object):
         yi = self.f(xi)  
         semilogx(xi, yi,'-', **args)
         if not self.isMorPInf():
-            semilogx([xmin, xmin], [0, yi[0]], 'c--', linewidth=1);
-            semilogx([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1);
+            semilogx([xmin, xmin], [0, yi[0]], 'c--', linewidth=1)
+            semilogx([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1)
     def shiftAndScale(self, shift, scale):
         """Scale and shift a segment: replace scale*f(x)+shift
         """
@@ -194,7 +195,7 @@ class Segment(object):
             b = self.a
         return Segment(a * scale + shift, b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
     def probComposition(self, g, ginv, ginvderiv, pole_at_zero = False):
-        """It produce probalilistic composition g o f for a given distribution f 
+        """It produce probalilistic composition g o f for a given distribution f
         """
         def fun(x):
             if isscalar(x):
@@ -388,32 +389,23 @@ class Segment(object):
         return False
     def isMorPInf(self):
         return self.isMInf() or self.isPInf()
-    #def testIfPole(self, x):
-    #    if self.hasPole():
-    #        if (self.hasLeftPole() and epseq(self.a, x)) or (self.hasRightPole() and epseq(self.b, x)):
-    #            return True
-    #        else:
-    #            return False                
-    #    else:
-    #        return False
         
 class ConstSegment(Segment): 
     """constant function over finite interval 
     """    
     def __init__(self, a, b, f):    
-        self.const = f;    
+        self.const = f
         super(ConstSegment, self).__init__(a, b, lambda x: 0.0*x + f)
     def __call__(self, x):
-        if size(x)==1:
-            x=asfarray(x)            
+        if size(x) == 1:
+            x=asfarray(x)
         y = zeros_like(x)
         ind = where((x>=self.a) & (x<=self.b))
         y[ind] = self.const
-        return y    
+        return y
      
 class MInfSegment(Segment):
-    """Segment = [-inf, b)
-    """    
+    """Segment on the range [-inf, b)."""    
     def __init__(self, b, f):
         super(MInfSegment, self).__init__(-Inf, b, f)   
     def toInterpolatedSegment(self):
@@ -421,16 +413,16 @@ class MInfSegment(Segment):
                                    #ChebyshevInterpolator_MInf(self.f, self.b))
                                    MInfInterpolator(self.f, self.b))
     def findLeftpoint(self):
-        x = self.b-1;
+        x = self.b - 1
         h0 = self.f(array([x]))
         while (self.f(array([x]))> h0*params.segments.plot.yminEpsilon):
-            x = x-1.2*abs(x-self.b)
-            if abs(x)>1e20:
+            x = x - 1.2*abs(x - self.b)
+            if abs(x) > 1e20:
                 break
         return x
     def findLeftEps(self):
-        x = self.b-1;
-        while (self.f(x)>1e-16):
+        x = self.b - 1
+        while (self.f(x) > 1e-16):
             x = x-1.2*abs(x-self.b)
         return x
     def integrate(self, a = None, b = None):
@@ -477,7 +469,7 @@ class PInfSegment(Segment):
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
                                    PInfInterpolator(self.f, self.a))
     def findRightpoint(self):
-        x = self.a+1;
+        x = self.a+1
         fx = self.f(array([x]))
         h0 = fx
         while not ((fx < h0 *params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([1.2*x]))) < h0 * params.segments.plot.yminEpsilon)):
@@ -487,15 +479,15 @@ class PInfSegment(Segment):
                 break
         return x
     def findRightEps(self):
-        x = self.a+0.1;
+        x = self.a + 0.1
         while (abs(self.f(x) - self.f(1.2*x))>1e-16):
             x = x+1.2*abs(x-self.a)
         return x
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
-        if a==None or a<self.a :
+        if a==None or a<self.a:
             a=self.a
-        if b==None or isinf(b) :
+        if b==None or isinf(b):
             i,e = integrate_fejer2_pinf(self.f, a, exponent = params.integration_infinite.exponent)
         elif b>a:
             i,e = integrate_fejer2_pinf(self.f, a, b, exponent = params.integration_infinite.exponent)
@@ -531,7 +523,7 @@ class DiracSegment(Segment):
     def __init__(self, a, ya):
         super(DiracSegment, self).__init__(a, a, ya)
     def __str__(self):
-        return "{0}, ({1}, {2})".format(self.__class__.__name__, self.a, self.f);    
+        return "{0}, ({1}, {2})".format(self.__class__.__name__, self.a, self.f)   
     def __call__(self,x):
         if isscalar(x):
             y = (x==self.a) * 1
@@ -579,7 +571,7 @@ class InterpolatedSegment(Segment):
     def __init__(self, a, b, interpolatorOfF):
         super(InterpolatedSegment, self).__init__(a, b, interpolatorOfF)    
     def __str__(self):
-        return "{0} ({3} pts.), [{1}, {2}]".format(self.__class__.__name__, self.a, self.b, len(self.f.getNodes()[0]));    
+        return "{0} ({3} pts.), [{1}, {2}]".format(self.__class__.__name__, self.a, self.b, len(self.f.getNodes()[0]))
     def plot(self, 
              xmin = None,
              xmax = None,
@@ -705,8 +697,8 @@ class SegmentWithPole(Segment):
         plot(xi, yi,'-', **args)
         # show segment         
         if not self.isMorPInf() and show_segments:
-            plot([xmin, xmin], [0, yi[0]], 'c--', linewidth=1);
-            plot([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1);
+            plot([xmin, xmin], [0, yi[0]], 'c--', linewidth=1)
+            plot([xmax, xmax], [0, yi[-1]], 'c--', linewidth=1)
         # show vertical asympthote         
         if self.left_pole:
             plot([xmin, xmin], [0, yi[0]], 'k-.', linewidth=1)
@@ -737,7 +729,7 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
     """Segment with pole on interval (a, b) using log(f(exp(x))
     """    
     def __str__(self):
-        return "{0} ({3} pts.), [{1}, {2}]".format(self.__class__.__name__, self.a, self.b, len(self.f.getNodes()[0]));    
+        return "{0} ({3} pts.), [{1}, {2}]".format(self.__class__.__name__, self.a, self.b, len(self.f.getNodes()[0]))
     def __init__(self, a, b, f, left_pole=True, exponent = 1.0, residue = 0.0):
         if left_pole:
             f = PoleInterpolatorP(f, a, b, par = params.interpolation_pole)
@@ -778,12 +770,6 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
             Ys=Ys[Xs<=xmax]
             Xs=Xs[Xs<=xmax]
             plot(Xs, Ys, 'o', markersize = params.segments.plot.nodeMarkerSize)
-# TODO: to remove ???
-def nanToZero(f, x, residue = 0.0):
-    y=f(x)
-    ind = where(isnan(y))
-    y[ind]=residue;
-    return y
 
 # TODO: to remove ???
 class InterpolatedSegmentWithPole2(InterpolatedSegmentWithPole):
@@ -791,9 +777,9 @@ class InterpolatedSegmentWithPole2(InterpolatedSegmentWithPole):
     """    
     def __init__(self, a, b, f, left_pole = True, exponent = 1.0, residue = 0.0):
         self.exponent = exponent
-        #self.f = ChebyshevInterpolator(lambda x : nanToZero(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b) # przywraca stan oryginalny
-        self.f = ChebyshevInterpolator1(lambda x : nanToZero(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b)
-        #self.f = ValTransformInterpolator(lambda x : nanToZero(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b)
+        #self.f = ChebyshevInterpolator(lambda x : nan_to_num(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b) # przywraca stan oryginalny
+        self.f = ChebyshevInterpolator1(lambda x : nan_to_num(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b)
+        #self.f = ValTransformInterpolator(lambda x : nan_to_num(lambda x : f(x) * abs(x-self.pole) ** exponent, x, residue), a, b)
         super(InterpolatedSegmentWithPole2, self).__init__(a, b, self.f, left_pole) # , xp, exponent
         
     def __call__(self, x):
@@ -856,46 +842,46 @@ class PiecewiseFunction(object):
             self.breaks = breakPoints
             self.segments = []
             if (isinf(self.breaks[0])):
-                self.addSegment(MInfSegment(self.breaks[1],fun));
+                self.addSegment(MInfSegment(self.breaks[1],fun))
             else:
                 if self.lpoles[0] == False and self.rpoles[1] == False:
-                    self.addSegment(Segment(self.breaks[0], self.breaks[1], fun));
+                    self.addSegment(Segment(self.breaks[0], self.breaks[1], fun))
                 elif self.lpoles[0] == True and self.rpoles[1] == False:
-                    self.addSegment(SegmentWithPole(self.breaks[0], self.breaks[1], fun, left_pole = True));
+                    self.addSegment(SegmentWithPole(self.breaks[0], self.breaks[1], fun, left_pole = True))
                 elif self.rpoles[0] == False and self.rpoles[1] == True:
-                    self.addSegment(SegmentWithPole(self.breaks[0], self.breaks[1], fun, left_pole = False));
+                    self.addSegment(SegmentWithPole(self.breaks[0], self.breaks[1], fun, left_pole = False))
                 else:
                     assert(False) #  no segment of such type 
             if len(breakPoints)==2:
                 return
             for i in range(1, len(breakPoints)-2):
-                #self.addSegment(Segment(self.breaks[i],self.breaks[i+1], fun));
+                #self.addSegment(Segment(self.breaks[i],self.breaks[i+1], fun))
                 if self.lpoles[i] == False and self.rpoles[i+1] == False:
-                    self.addSegment(Segment(self.breaks[i], self.breaks[i+1], fun));
+                    self.addSegment(Segment(self.breaks[i], self.breaks[i+1], fun))
                 elif self.lpoles[i] == True and self.rpoles[i+1] == False:
-                    self.addSegment(SegmentWithPole(self.breaks[i], self.breaks[i+1], fun, left_pole = True));
+                    self.addSegment(SegmentWithPole(self.breaks[i], self.breaks[i+1], fun, left_pole = True))
                 elif self.rpoles[i] == False and self.rpoles[i+1] == True:
-                    self.addSegment(SegmentWithPole(self.breaks[i], self.breaks[i+1], fun, left_pole = False));
+                    self.addSegment(SegmentWithPole(self.breaks[i], self.breaks[i+1], fun, left_pole = False))
                 else:
                     assert(False) # no segment of such type 
             if (isinf(self.breaks[-1])):
-                self.addSegment(PInfSegment(self.breaks[-2], fun));
+                self.addSegment(PInfSegment(self.breaks[-2], fun))
             else:
-                #self.addSegment(Segment(self.breaks[-2], self.breaks[-1], fun));
+                #self.addSegment(Segment(self.breaks[-2], self.breaks[-1], fun))
                 if self.lpoles[-2] == False and self.rpoles[-1] == False:
-                    self.addSegment(Segment(self.breaks[-2], self.breaks[-1], fun));
+                    self.addSegment(Segment(self.breaks[-2], self.breaks[-1], fun))
                 elif self.lpoles[-2] == True and self.rpoles[-1] == False:
-                    self.addSegment(SegmentWithPole(self.breaks[-2], self.breaks[-1], fun, left_pole = True));
+                    self.addSegment(SegmentWithPole(self.breaks[-2], self.breaks[-1], fun, left_pole = True))
                 elif self.rpoles[-2] == False and self.rpoles[-1] == True:
-                    self.addSegment(SegmentWithPole(self.breaks[-2], self.breaks[-1], fun, left_pole = False));
+                    self.addSegment(SegmentWithPole(self.breaks[-2], self.breaks[-1], fun, left_pole = False))
                 else:
-                    assert(False) # no segment of such type           
+                    assert(False) # no segment of such type
         else:
             # TODO to remove
-            self.segments = segments;
+            self.segments = segments
             if len(segments)>0 :
-                i=0;        
-                for seg in self.segments :
+                i=0
+                for seg in self.segments:
                     self.breaks[i]=seg.a
                     i=i+1;
                 self.breaks[i]=seg.b
@@ -926,14 +912,14 @@ class PiecewiseFunction(object):
         if len(self.segments)>bisect.bisect_left(self.segments, segment) :
             seg = self.segments[bisect.bisect_left(self.segments, segment)]
             assert seg>segment or segment>seg
-        bisect.insort(self.segments, segment);
+        bisect.insort(self.segments, segment)
         self.breaks = unique(append(self.breaks,[segment.a, segment.b]))
     def findSegment(self, x):
         """It return segment containing point x"""  
         xsegment = DiracSegment(x,0)
         ind = bisect.bisect_left(self.segments, xsegment)
         if  0 < ind < len(self.segments):
-            return self.segments[ind];
+            return self.segments[ind]
         elif ind == 0:
             if self.segments[ind].a <= x <= self.segments[ind].b :
                 return  self.segments[ind]
@@ -955,7 +941,7 @@ class PiecewiseFunction(object):
         return None
     
     def toInterpolated(self):
-        interpolatedPFun = self.__class__([]);        
+        interpolatedPFun = self.__class__([])
         for seg in self.segments:
             interpolatedPFun.addSegment(seg.toInterpolatedSegment())
         
@@ -990,145 +976,14 @@ class PiecewiseFunction(object):
                 if seg.a <= 0:
                     return False
         return True
-    def mean(self):
-        I = 0.0 
-        E = 0.0
-        for seg in self.segments:
-            i, e = _segint(lambda x: x * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
-            E += e
-            I = I + i
-        if E>1.0:
-            return NaN
-        else:
-            return I
-    def median(self):
-        cpf = self.cumint()
-        return cpf.inverse(0.5)
-    def var(self):
-        m = self.mean()
-        I = 0 
-        for seg in self.segments:
-            i,e = _segint(lambda x: (x - m) ** 2  * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
-            I = I + i             
-        return I
-    def std(self):
-        return sqrt(self.var())
-    def mode(self):
-        m = 0
-        x = None
-        for seg in self.segments:
-            if not seg.isDirac() :    
-                if seg.hasLeftPole():
-                    xi = fminbound(lambda x: -seg(x) + 1e-10, seg.a, seg.b, xtol = 1e-16)
-                elif seg.hasRightPole() :
-                    xi = fminbound(lambda x: -seg(x), seg.a + 1e-10, seg.b, xtol = 1e-16)
-                else:
-                    xi = fminbound(lambda x: -seg(x), seg.a, seg.b, xtol = 1e-16)
-                mi = float(seg.f(xi))
-            else:
-                xi, mi = seg.a, seg.f
-            if m < mi:
-                m = mi
-                x = xi   
-            #print xi , mi, x,m     
-        return x
-        
-    def meanad(self):
-        """mean absolute deviance"""
-        #TODO
-        return None
-    def medianad(self):
-        """median absolute deviance"""
-        median = self.median()
-        f1 = self.copyShiftedAndScaled(shift = -median, scale = 1.0)
-        f2 = f1.splitByPoints([0.0]);          
-        f3 = f2.copyAbsComposition();
-        return f3.median()
-
-    def entropy(self):
-        fun = self * self._log1()
-        return fun.integrate()
- 
-    def L2_distance(self, other):
-        tmpf = self - other
-        fun = tmpf * tmpf
-        return fun.integrate()**0.5
-        
-    def KL_distance(self, other):
-        fun = self * (self._log() - other._log())
-        return fun.integrate()
-
-    def range(self):
-        breaks = self.getBreaks()
-        return (breaks[0], breaks[-1]) 
-    def iqrange(self, level):
-        """Interquartile range for a given level."""
-        cpf = self.cumint()        
-        return cpf.inverse(1-level)-cpf.inverse(level) 
-    def ci(self, level):
-        """Interquartile range for a given level."""
-        cpf = self.cumint()        
-        return cpf.inverse(level), cpf.inverse(1-level)
-    def tailexp(self):        
-        segMInf  =self.segments[0]
-        segPInf  =self.segments[-1]
-        if segMInf.isMInf():
-            mexp= segMInf.tailexp()
-        else:
-            mexp = None
-        if segPInf.isPInf():
-            pexp= segPInf.tailexp()
-        else:
-            pexp = None
-        return (mexp, pexp)
-    def summary(self):
-        r = {}
-        if params.segments.summary.identify == True:
-            from mpmath import identify
-            r['mean'] = identify(self.mean())
-            r['std'] = identify(self.std())
-            r['var'] = identify(self.var())
-            r['range'] = self.range()
-            r['int_err'] = 1-self.integrate()
-            #r['interp_errs'] = self.getInterpErrors()
-            try:
-                #r['mode'] = identify(self.mmode())
-                pass
-            except Exception, e:           
-                traceback.print_exc()
-            try:
-                r['median'] = identify(self.median())
-                r['medianad'] = identify(self.medianad())     
-                r['iqrange(0.05)'] = self.iqrange(0.05)        
-            except Exception, e:           
-                traceback.print_exc()          
-        else:  
-            r['mean'] = self.mean()
-            r['std'] = self.std()
-            r['var'] = self.var()
-            r['range'] = self.range()
-            r['int_err'] = 1-self.integrate()
-            #r['interp_errs'] = self.getInterpErrors()
-            try:
-                #r['mode'] = self.mode()
-                pass
-            except Exception, e:           
-                traceback.print_exc()
-            try:
-                r['median'] = self.median()
-                r['iqrange(0.05)'] = self.iqrange(0.05)
-                r['medianad'] = self.medianad()        
-            except Exception, e:           
-                traceback.print_exc()  
-        return r
         
     def cumint(self):
-        integralPFun = CumulativePiecewiseFunction([]);
-        f0 = 0        
+        integralPFun = CumulativePiecewiseFunction([])
+        f0 = 0
         for seg in self.segments:
             if seg.isPInf():
                 f0 = f0 + seg.integrate(seg.a)
-            segi = seg.cumint(f0);
+            segi = seg.cumint(f0)
             if seg.isDirac():
                 f0 = f0 + seg.f
             else:
@@ -1143,12 +998,12 @@ class PiecewiseFunction(object):
         return integralPFun
     def ccumint(self):
         """TODO complementary cumint i.e int_x^Inf f(x) dx"""
-        integralPFun = CumulativePiecewiseFunction([]);
+        integralPFun = CumulativePiecewiseFunction([])
         f0 = 0        
         for seg in self.segments:
             if seg.isPInf():
                 f0 = f0 + seg.integrate(seg.a)
-            segi = seg.cumint(f0);
+            segi = seg.cumint(f0)
             if seg.isDirac():
                 f0 = f0 + seg.f
             else:
@@ -1220,7 +1075,6 @@ class PiecewiseFunction(object):
         if not (Y==0).all():
             if asympf is None:
                 loglog(X, Y)
-            #semilogx(X, Y)
             Xs, Ys = self.segments[-1].f.getNodes()
             Xs = Xs[1:-1]
             Ys = Ys[1:-1]
@@ -1235,7 +1089,6 @@ class PiecewiseFunction(object):
         if not (Y==0).all():
             if asympf is None:
                 loglog(X, Y)
-            #semilogx(X, Y)
             Xs, Ys = self.segments[0].f.getNodes()
             Xs = Xs[1:]
             Ys = Ys[1:]
@@ -1245,18 +1098,16 @@ class PiecewiseFunction(object):
                 semilogx(-Xs, Ys, "o")            
             else:
                 loglog(-Xs, Ys, "o")
-            #semilogx(Xs, Ys, "o")
         
     def copyShiftedAndScaled(self, shift = 0, scale = 1):
-        copyFunction = PiecewiseFunction([]);
+        copyFunction = self.__class__([])
         for seg in self.segments:
             copyFunction.addSegment(seg.shiftAndScale(shift, scale))
-        #sort(copyFunction.segments)
         return copyFunction
     def copyComposition(self, f, finv, finvDeriv, pole_at_zero = False):
         """Composition with injective function f"""
         self_with_zero = self.splitByPoints([0])
-        copyFunction = self.__class__([]);        
+        copyFunction = self.__class__([])
         for seg in self_with_zero.segments:
             segcomp = seg.probComposition(f, finv, finvDeriv, pole_at_zero = pole_at_zero)
             copyFunction.addSegment(segcomp)
@@ -1268,18 +1119,17 @@ class PiecewiseFunction(object):
     def copyProbInverse(self, pole_at_zero = False):
         """Composition with 1/x"""
         self_with_zero = self.splitByPoints([0])
-        copyFunction = self.__class__([]);        
+        copyFunction = self.__class__([])
         for seg in self_with_zero.segments:
             segcomp = seg.probInverse(pole_at_zero = pole_at_zero)
             copyFunction.addSegment(segcomp)
         return copyFunction
     def copySquareComposition(self):
-        # TODO
         """Composition with x^2"""
-        fun  = self.splitByPoints([0.0]);
-        copyFunction = self.__class__([]);        
-        leftFunction = self.__class__([]);        
-        rightFunction = self.__class__([]);        
+        fun  = self.splitByPoints([0.0])
+        copyFunction = self.__class__([])
+        leftFunction = self.__class__([])
+        rightFunction = self.__class__([])
         for seg in fun.segments:
             if seg.a >= 0: 
                 leftFunction.addSegment(seg.squareComposition())
@@ -1293,11 +1143,10 @@ class PiecewiseFunction(object):
             copyFunction = leftFunction + rightFunction
         return copyFunction
     def copyAbsComposition(self):
-        # TODO
         """Composition with x^2"""
-        fun  =self.splitByPoints([0.0]);
-        leftFunction = self.__class__([]);        
-        rightFunction = self.__class__([]);        
+        fun  =self.splitByPoints([0.0])
+        leftFunction = self.__class__([])
+        rightFunction = self.__class__([])
         for seg in fun.segments:
             if seg.a >= 0: 
                 leftFunction.addSegment(seg.absComposition())
@@ -1309,7 +1158,7 @@ class PiecewiseFunction(object):
         return copyFunction
     def copyLogComposition(self, f, finv, finvDeriv, pole_at_zero = False):
         """Composition with logarithm"""
-        fun  =self.splitByPoints([0.5, 1.0, 2.0]);
+        fun  =self.splitByPoints([0.5, 1.0, 2.0])
         return fun.copyComposition(f, finv, finvDeriv, pole_at_zero = False)
     def copyNonInjectiveComposition(self, fs, finvs, finvDerivs):
         """Composition with non-injective function f """
@@ -1349,19 +1198,31 @@ class PiecewiseFunction(object):
             return zeros(len(self.segments))
         else:
             breaks = unique([seg.a for seg in self.segments] + [seg.b for seg in self.segments])
-            #breaks = zeros(len(self.segments)+1)        
-            #i = 0
-            #for seg in self.segments:
-            #    breaks[i]=seg.a
-            #    i += 1
-            #breaks[i] = seg.b
             return breaks
+
     def getDiracs(self, xi = None):
         diracs = []
         for seg in self.segments:
             if seg.isDirac():
                 diracs.append(seg)
         return diracs
+
+    def getSegVals(self):
+        list = []
+        i = 0
+        for seg in self.segments:
+            if seg.isMInf():
+                list = list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
+            elif seg.isPInf():
+                list = list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
+            else:
+                left = seg.f(seg.a)
+                right= seg.f(seg.b)
+                if not isfinite(left):
+                    left  = list[-1][1]
+                list = list + [(left, right)]
+            i = i + 1
+        return list
 
     def getDirac(self, xi):        
         for seg in self.segments:
@@ -1399,99 +1260,178 @@ class PiecewiseFunction(object):
             else:
                 self_dirac.f += other_dirac.f
         
+
     def __add__(self, other):
-        """Pointwise sum of two piecewise functions """
-        breaks1 = self.getBreaks()
-        breaks2 = other.getBreaks()
-        breaks = unique(concatenate((breaks1, breaks2)))
-        fun = self.__class__([]);   
-        for i in range(size(breaks)-1):
-            if isinf(breaks[i]):
-                fun.addSegment(MInfSegment(breaks[i+1], lambda x: self(x) + other(x)))
-            elif isinf(breaks[i+1]):
-                fun.addSegment(PInfSegment(breaks[i],lambda x: self(x) + other(x)))
-            elif breaks[i]==0:
-                segi=self.findSegment((breaks[i] + breaks[i+1])*0.5)
-                segj=self.findSegment((breaks[i] + breaks[i+1])*0.5)
-                #(segi is not None) and (segj is not None) and
-                if not (segi.isDirac() or segj.isDirac()):                    
-                    if segi.hasPole() or segj.hasPole():
-                        fun.addSegment(SegmentWithPole(breaks[i], breaks[i+1], lambda x: self(x) + other(x)))
-                    else:
-                        fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) + other(x)))
-            elif breaks[i+1]==0:
-                segi=self.findSegment((breaks[i-1] + breaks[i])*0.5)
-                segj=self.findSegment((breaks[i-1] + breaks[i])*0.5)
-                if not (segi.isDirac() or segj.isDirac()):                    
-                    if segi.hasPole() or segj.hasPole():
-                        fun.addSegment(SegmentWithPole(breaks[i], breaks[i+1], lambda x: self(x) + other(x)))
-                    else:
-                        fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) + other(x)))
-            else:
-                fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) + other(x)))
-        #for dirac in self.getDiracs():
-        #    fun.addSegment(DiracSegment(dirac.a, dirac.f))
-        fun.add_diracs(other) 
-        fun.add_diracs(self) 
-        return fun
+        if isinstance(other, PiecewiseFunction):
+            return self._operation__(other, operation = lambda x,y : x+y)
+        elif isinstance(other, numbers.Real):
+            return self.__radd__(other)
+        raise NotImplemented()
     def __sub__(self, other):
-        """Pointwise subtraction of two piecewise functions """
+        if isinstance(other, PiecewiseFunction):
+            return self._operation__(other, operation = lambda x,y : x-y)
+        elif isinstance(other, numbers.Real):
+            return self.__rsub__(other)
+        raise NotImplemented()
+    def __mul__(self, other):
+        if isinstance(other, PiecewiseFunction):
+            return self._operation__(other, operation = lambda x,y : x*y)
+        elif isinstance(other, numbers.Real):
+            return self.__rmul__(other)
+        raise NotImplemented()
+    def __div__(self, other):
+        #TODO handle zeros o denominator, !!!currently unhandled!!!
+        if isinstance(other, PiecewiseFunction):
+            return self._operation__(other, operation = lambda x,y : x/y)
+        elif isinstance(other, numbers.Real):
+            return self.__rdiv__(other)
+        raise NotImplemented()
+    def __radd__(self, r, operation = lambda x,y : x+y):
+        """Overload sum with real number: distribution of X+r."""
+        if isinstance(r, numbers.Real):
+            return self._roperation__(r, operation)
+        raise NotImplemented()
+    def __rsub__(self, r, operation = lambda x,y : y-x):
+        """Overload sum with real number: distribution of X+r."""
+        if isinstance(r, numbers.Real):
+            return self._roperation__(r, operation)
+        raise NotImplemented()
+    def __rmul__(self, r, operation = lambda x,y : x*y):
+        """Overload sum with real number: distribution of X+r."""
+        if isinstance(r, numbers.Real):
+            return self._roperation__(r, operation = lambda x,y : x*y)
+        raise NotImplemented()
+    def __rdiv__(self, r, operation = lambda x,y : y/x):
+        """Overload sum with real number: distribution of X+r."""
+        if isinstance(r, numbers.Real):
+            return self._roperation__(r, operation )
+        raise NotImplemented()
+
+    def _roperation__(self, r, operation = lambda x,y : x+y):
+        """Pointwise sum piecewise functions with real number """
+        breaks = self.getBreaks()
+        segsList = self.segments
+        fun = self.__class__([])
+        def make_segfun(segment1):
+            return lambda x: operation(segment1.f(x), r)
+        for seg in segsList:
+            if seg.isMInf():
+                fun.addSegment(MInfSegment(seg.b, make_segfun(seg)))
+            elif seg.isPInf():
+                fun.addSegment(PInfSegment(seg.a, make_segfun(seg)))
+            elif seg.isSegment() and seg.hasLeftPole():
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(seg), left_pole = True))
+            elif seg.isSegment() and seg.hasRightPole():
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(seg), left_pole = False))
+            elif seg.isSegment():
+                si=Segment(seg.a, seg.b, make_segfun(seg))
+                fun.addSegment(si)
+            elif seg.isDirac():
+                si = DiracSegment(seg.a, operation(seg.f, r))
+                fun.addSegment(si)
+            else:
+                assert False
+        return fun
+
+    def op_diracs(self, other, op):
+        """Pointwise operation on discrete parts of two piecewise functions."""
+        ai = []
+        for tmp in self.getDiracs():
+            ai.append(tmp.a)
+        for tmp in other.getDiracs():
+            if not tmp.a in set(ai):
+                ai.append(tmp.a)
+        for dirac in ai:#other.getDiracs():
+            self_dirac = self.getDirac(dirac)
+            other_dirac = other.getDirac(dirac)
+            if self_dirac is None:
+                self.addSegment(DiracSegment(other_dirac.a, other_dirac.f))
+            elif other_dirac is not None:
+                self_dirac.f = op(self_dirac.f,  other_dirac.f)
+
+    def _operation__(self, other, operation = lambda x,y : x+y):
+        """Pointwise operation on two piecewise functions."""
         breaks1 = self.getBreaks()
         breaks2 = other.getBreaks()
-        breaks = unique(concatenate((breaks1, breaks2)))
-        fun = self.__class__([]);   
-        for i in range(size(breaks)-1):
-            if isinf(breaks[i]):
-                fun.addSegment(MInfSegment(breaks[i+1], lambda x: self(x) - other(x)))
-            elif isinf(breaks[i+1]):
-                fun.addSegment(PInfSegment(breaks[i],lambda x: self(x) - other(x)))
-            elif breaks[i]==0:
-                segi=self.findSegment((breaks[i] + breaks[i+1])*0.5)
-                segj=self.findSegment((breaks[i] + breaks[i+1])*0.5)
-                if segi.hasPole() or segj.hasPole():
-                    fun.addSegment(SegmentWithPole(breaks[i], breaks[i+1], lambda x: self(x) - other(x), left_pole = True))                
-                else:
-                    fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) - other(x)))
-            elif breaks[i+1]==0:
-                segi=self.findSegment((breaks[i-1] + breaks[i])*0.5)
-                segj=self.findSegment((breaks[i-1] + breaks[i])*0.5)
-                if segi.hasPole() or segj.hasPole():
-                    fun.addSegment(SegmentWithPole(breaks[i], breaks[i+1], lambda x: self(x) - other(x), left_pole = False))
-                else:
-                    fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) - other(x)))
-            else:
-                fun.addSegment(Segment(breaks[i], breaks[i+1], lambda x: self(x) - other(x)))
-        return fun
-    def __add_TODO__(self, other):
-        """Pointwise sum of two piecewise functions, not works yet """
-        breaks1 = self.getBreaks()
-        breaks2 = other.getBreaks()        
         breaks = unique(concatenate((breaks1, breaks2)))
         f = self.splitByPoints(breaks)
         g = other.splitByPoints(breaks)
-        segsf = f.getSegments()
-        segsg = g.getSegments()
-        fun = PiecewiseFunction([]);   
-        for i in range(len(segsf)):
-            seg = segsf[i]
-            segg = segsg[i]
-            if seg.isMInf():
-                fun.addSegment(MInfSegment(seg.b, lambda x: seg.f(x) + segg.f(x)))
-            elif seg.isPInf():
-                fun.addSegment(PInfSegment(seg.a, lambda x: seg.f(x) + segg.f(x)))
-            elif seg.isSegment() and seg.hasLeftPole():
-                fun.addSegment(SegmentWithPole(seg.a, seg.b, lambda x: seg.f(x) + segg.f(x), left_pole = True))
-            elif seg.isSegment() and seg.hasRightPole():
-                fun.addSegment(SegmentWithPole(seg.a, seg.b, lambda x: seg.f(x) + segg.f(x), left_pole = False))
-            elif seg.isSegment():
-                fun.addSegment(Segment(seg.a, seg.b, lambda x: seg.f(x) + segg.f(x)))
+        segsList = _makeCommonSegmentList(f, g)
+
+        fun = self.__class__([])
+        def make_segfun(segment1, segment2):
+            if segment1 is None:
+                return lambda x: segment2.f(x)
+            elif segment2 is None:
+                return lambda x: segment1.f(x)
             else:
-                pass
+                return lambda x: operation(segment1.f(x), segment2.f(x))
+        for segf, segg in segsList:
+            if segf is None:
+                seg = segg
+            elif segg is None:
+                seg = segf
+            else:
+                seg = segf
+            if seg is None: # only diracs
+                continue
+            if seg.isMInf():
+                fun.addSegment(MInfSegment(seg.b, make_segfun(segf, segg)))
+            elif seg.isPInf():
+                fun.addSegment(PInfSegment(seg.a, make_segfun(segf, segg)))
+            elif seg.isSegment() and seg.hasLeftPole():
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(segf, segg), left_pole = True))
+            elif seg.isSegment() and seg.hasRightPole():
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(segf, segg), left_pole = False))
+            elif seg.isSegment():
+                si=Segment(seg.a, seg.b, make_segfun(segf, segg))
+                fun.addSegment(si)
+            else:
+                assert False
+        fun.op_diracs(self, operation)
+        fun.op_diracs(other, operation)
         return fun
+
+    def __pow__(self, k):
+        return self._function__(fun = lambda x : x**k)
+    def _log(self):
+        #TODO handle zeros in arguments
+        return self._function__(fun = lambda x : numpy.log(x))
+    def exp(self):
+        return self._function__(fun = lambda x : numpy.exp(x))
+    def _log1(self):
+        #TODO handle zeros in arguments
+        return self._function__(fun = lambda x : -numpy.log(x))
+
+    def _function__(self, fun = lambda x: x):
+        """Pointwise sum of two piecewise functions."""
+        result = self.__class__([])
+        def make_fun(segment):
+            return lambda x: nan_to_num(fun(segment.f(x)))
+        for seg in self.segments:
+            if seg.isMInf():
+                result.addSegment(MInfSegment(seg.b, make_fun(seg)))
+            elif seg.isPInf():
+                result.addSegment(PInfSegment(seg.a, make_fun(seg)))
+            elif seg.isSegment() and seg.hasLeftPole():
+                result.addSegment(SegmentWithPole(seg.a, seg.b, make_fun(seg), left_pole = True))
+            elif seg.isSegment() and seg.hasRightPole():
+                result.addSegment(SegmentWithPole(seg.a, seg.b, make_fun(seg), left_pole = False))
+            elif seg.isSegment():
+                si=Segment(seg.a, seg.b, make_fun(seg))
+                result.addSegment(si)
+            elif seg.isDirac():
+                si=DiracSegment(seg.a, fun(seg.f))
+                result.addSegment(si)
+            else:
+                assert False
+        return result
+
+
     def splitByPoints(self, points):
         """Pointwise subtraction of two piecewise functions """
         points = array(points)
-        fun = self.__class__([]);   
+        fun = self.__class__([])
         for seg in self.segments:
             inds = points[(seg.a<points) & (points<seg.b)]
             a = seg.a
@@ -1525,7 +1465,8 @@ class PiecewiseFunction(object):
             else:
                 fun.addSegment(Segment(a, b, seg.f))
         return fun
-    def invfun(self, use_end_poles = True):
+
+    def invfun(self, use_end_poles = True, use_interpolated=True):
         """
         return inverse of cumulative distribution function as piecewise function
         """
@@ -1547,8 +1488,11 @@ class PiecewiseFunction(object):
             rpoles[-1]=True
             lpoles[0]=True 
         fun2 = PiecewiseFunction(fun = _tmp_inv, breakPoints=breakvals, 
-                             lpoles=lpoles, rpoles=rpoles).toInterpolated()
-        return fun2
+                             lpoles=lpoles, rpoles=rpoles)
+        if use_interpolated:
+            return fun2.toInterpolated()
+        else:
+            return fun2
 
 class PiecewiseDistribution(PiecewiseFunction):
     """
@@ -1558,16 +1502,15 @@ class PiecewiseDistribution(PiecewiseFunction):
         I = 0.0 
         E = 0.0
         for seg in self.segments:
-            i, e = _segint(lambda x: x * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
+            if seg.isDirac():
+                i, e = seg.f*seg.a, 0
+            else:
+                i, e = _segint(lambda x: x * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
             E += e
             I = I + i
         if E>1.0e-0:
             return NaN
-        else:
-            for seg in self.getDiracs():
-                i, e = seg.f*seg.a, 0
-                I += i
-            return I
+        return I
     def median(self):
         cpf = self.cumint()
         return cpf.inverse(0.5)
@@ -1597,8 +1540,8 @@ class PiecewiseDistribution(PiecewiseFunction):
         """median absolute deviance"""
         median = self.median()
         f1 = self.copyShiftedAndScaled(shift = -median, scale = 1.0)
-        f2 = f1.splitByPoints([0.0]);
-        f3 = f2.copyAbsComposition();            
+        f2 = f1.splitByPoints([0.0])
+        f3 = f2.copyAbsComposition()            
         return f3.median()
 
     def range(self):
@@ -1608,22 +1551,30 @@ class PiecewiseDistribution(PiecewiseFunction):
         """Interquartile range for a given level."""
         cpf = self.cumint()        
         return cpf.inverse(1-level)-cpf.inverse(level) 
-    
-    def summary_(self):
-        r = {};
-        r['mean'] = self.mean()
-        r['std'] = self.std()
-        r['var'] = self.var()
-        r['range'] = self.range()
-        r['int_err'] = 1-self.integrate()
-        #r['intrp_errs'] = self.getInterpErrors()
-        try:
-            r['median'] = self.median()
-            r['iqrange(0.05)'] = self.iqrange(0.05)
-            r['medianad'] = self.medianad()        
-        except Exception, e:           
-            traceback.print_exc()  
-        return r
+    def entropy(self):
+        fun = self * self._log1()
+        return fun.integrate()
+
+    def L2_distance(self, other):
+        fun = (self - other)*(self - other)
+        return fun.integrate()**0.5
+
+    def KL_distance(self, other):
+        fun = self * (self._log() - other._log())
+        return fun.integrate()
+
+    def tailexp(self):
+        segMInf = self.segments[0]
+        segPInf = self.segments[-1]
+        if segMInf.isMInf():
+            mexp = segMInf.tailexp()
+        else:
+            mexp = None
+        if segPInf.isPInf():
+            pexp = segPInf.tailexp()
+        else:
+            pexp = None
+        return (mexp, pexp)
         
 
 class CumulativePiecewiseFunction(PiecewiseFunction):
@@ -1635,7 +1586,7 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
         PiecewiseFunction.__init__(self, segments) 
     
     def toInterpolated(self):
-        interpolatedPFun = CumulativePiecewiseFunction([]);        
+        interpolatedPFun = CumulativePiecewiseFunction([])
         #for seg in self.segments:
         #    interpolatedPFun.addSegment(seg.toInterpolatedSegment())
         
@@ -1648,23 +1599,6 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
                 interpolatedPFun.addSegment(seg.toInterpolatedSegment())
         return interpolatedPFun
     
-    def getSegVals(self):
-        list = []
-        i = 0
-        for seg in self.segments:
-            if seg.isMInf():
-                list = list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
-            elif seg.isPInf():
-                list = list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
-            else:
-                left = seg.f(seg.a)
-                right= seg.f(seg.b)
-                if not isfinite(left):
-                    left  = list[-1][1]
-                list = list + [(left, right)]
-            i = i + 1
-        return list
-        #return [(seg.f(seg.a), seg.f(seg.b)) for seg in self.segments]
     def _inverse_(self, level):
         #TODO remove -1e-10
         return findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.reltol)
@@ -1715,7 +1649,7 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
         if n is None, return a scalar, otherwise, an array of given
         size."""
         y = uniform(0, 1, n)
-        return self.inverse(y);
+        return self.inverse(y)
     def getMaxValue(self, x):
         return self.segments[-1].find
 
@@ -1780,7 +1714,7 @@ def _segint(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fal
 def _conv_diracs(f, g, fun = lambda x,y : x+y ):
     """discrete convolution of f and g  
     """    
-    fg = PiecewiseFunction([]);
+    fg = PiecewiseFunction([])
     wyn = {}
     for fi in f.getDiracs():
         for gi in g.getDiracs():
@@ -1792,6 +1726,20 @@ def _conv_diracs(f, g, fun = lambda x,y : x+y ):
     for key in wyn.keys():
         fg.addSegment(DiracSegment(key, wyn.get(key)))
     return fg
+
+def _makeCommonSegmentList(f, g):
+    bf = set(f.getBreaks())
+    bg = set(g.getBreaks())
+    allbreaks = unique(bf | bg)
+    commonList = []
+    for i in range(len(allbreaks)-1):
+        a = allbreaks[i]
+        b = allbreaks[i+1]
+        seg1 = f.findSegmentByEnds(a, b)
+        seg2 = g.findSegmentByEnds(a, b)
+        commonList.append((seg1, seg2))
+    return commonList
+
 
 def _safe_call(x):
     if isscalar(x):
@@ -1861,7 +1809,7 @@ if __name__ == "__main__":
     #f.plot()
     #g = f.copyShiftedAndScaled(4,0.6)
     #g.plot(color = 'r')
-    #h= _conv_mean(f,g, p=0.5,q=0.5);
+    #h= _conv_mean(f,g, p=0.5,q=0.5)
     #h.plot(color = 'k')
     #print g.integrate(), g 
     #print h.integrate(), h 
