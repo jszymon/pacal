@@ -30,6 +30,9 @@ class params_class(object):
 #### global parameters ####
 ###########################
 
+class general(params_class):
+    warn_on_dependent = True
+
 class pole_detection(params_class):
     max_pole_exponent = -1e-2 # exponents above this value are treated as poles
     min_distance_from_pole = 1e-2 # integration bounds this close to a

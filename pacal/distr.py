@@ -17,6 +17,7 @@ from pylab import bar
 
 import traceback
 
+import params
 from indeparith import conv, convprod, convdiv, convmin, convmax
 
 class Distr(object):
@@ -38,12 +39,27 @@ class Distr(object):
                                    # function
         self.piecewise_ccdf_interp = None   # complementary CDF represented 
                                             # as interpolated piecewise function
+        # check dependencies in parents
+        if params.general.warn_on_dependent:
+            anc = set()
+            for p in self.parents:
+                panc = p.getAncestorIDs()
+                if panc & anc:
+                    print "Warning: arguments treated as independent"
+                    break
+                anc.update(panc)
     def __str__(self):
         return "Distr"
     def getName(self):
         """return a string representation of PDF."""
         return "D"
-    
+    def getAncestorIDs(self):
+        """Get ID's of all ancestors"""
+        anc = set()
+        for p in self.parents:
+            anc.update(p.getAncestorIDs())
+        anc.add(id(self))
+        return anc
     def get_piecewise_pdf(self):
         """return PDF function as a PiecewiseDistribution object"""
         if self.piecewise_pdf is None:
