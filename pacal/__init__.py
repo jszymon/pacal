@@ -31,6 +31,7 @@ from standard_distr import DiscreteDistr
 from standard_distr import ConstDistr
 from standard_distr import OneDistr
 from standard_distr import ZeroDistr
+from standard_distr import BinomialDistr
 from standard_distr import MixDistr
 from standard_distr import CondGtDistr
 from standard_distr import CondLtDistr

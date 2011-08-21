@@ -740,6 +740,26 @@ class ZeroDistr(ConstDistr):
     def __init__(self):
         super(ZeroDistr, self).__init__(c = 0.0)
 
+class BinomialDistr(DiscreteDistr):
+    def __init__(self, n, p):
+        self.n = n
+        self.p = p
+        self.q = 1-p
+        P = self.q ** n
+        xi = [0]
+        pi = [P]
+        pq = self.p / self.q
+        for i in xrange(n):
+            P *= n - i
+            P /= i + 1
+            P *= pq
+            xi.append(i+1)
+            pi.append(P)
+        super(BinomialDistr, self).__init__(xi, pi)
+    def __str__(self):
+        return "Binomial({0}.{1})#{2}".format(self.n, self.p, id(self))
+    def getName(self):
+        return "Binom({0},{1})".format(self.n, self.p)
 
 class CondGtDistr(Distr):
     def __init__(self, d, L=None):
