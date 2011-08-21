@@ -914,7 +914,7 @@ class PiecewiseFunction(object):
             y = zeros_like(x)
             for seg in self.getSegments():#segments:
                 ind = ((x>=seg.a) & (x<seg.b))
-                if any(ind):
+                if ind.any():
                     y[ind] = seg.f(x[ind])
             if len(self.getSegments())>0:
                 ind = (x==self.getSegments()[-1].b)  
@@ -955,7 +955,7 @@ class PiecewiseFunction(object):
         return None
     
     def toInterpolated(self):
-        interpolatedPFun = PiecewiseFunction([]);        
+        interpolatedPFun = self.__class__([]);        
         for seg in self.segments:
             interpolatedPFun.addSegment(seg.toInterpolatedSegment())
         
@@ -1256,7 +1256,7 @@ class PiecewiseFunction(object):
     def copyComposition(self, f, finv, finvDeriv, pole_at_zero = False):
         """Composition with injective function f"""
         self_with_zero = self.splitByPoints([0])
-        copyFunction = PiecewiseFunction([]);        
+        copyFunction = self.__class__([]);        
         for seg in self_with_zero.segments:
             segcomp = seg.probComposition(f, finv, finvDeriv, pole_at_zero = pole_at_zero)
             copyFunction.addSegment(segcomp)
@@ -1268,7 +1268,7 @@ class PiecewiseFunction(object):
     def copyProbInverse(self, pole_at_zero = False):
         """Composition with 1/x"""
         self_with_zero = self.splitByPoints([0])
-        copyFunction = PiecewiseFunction([]);        
+        copyFunction = self.__class__([]);        
         for seg in self_with_zero.segments:
             segcomp = seg.probInverse(pole_at_zero = pole_at_zero)
             copyFunction.addSegment(segcomp)
@@ -1277,9 +1277,9 @@ class PiecewiseFunction(object):
         # TODO
         """Composition with x^2"""
         fun  = self.splitByPoints([0.0]);
-        copyFunction = PiecewiseFunction([]);        
-        leftFunction = PiecewiseFunction([]);        
-        rightFunction = PiecewiseFunction([]);        
+        copyFunction = self.__class__([]);        
+        leftFunction = self.__class__([]);        
+        rightFunction = self.__class__([]);        
         for seg in fun.segments:
             if seg.a >= 0: 
                 leftFunction.addSegment(seg.squareComposition())
@@ -1296,15 +1296,15 @@ class PiecewiseFunction(object):
         # TODO
         """Composition with x^2"""
         fun  =self.splitByPoints([0.0]);
-        leftFunction = PiecewiseFunction([]);        
-        rightFunction = PiecewiseFunction([]);        
+        leftFunction = self.__class__([]);        
+        rightFunction = self.__class__([]);        
         for seg in fun.segments:
             if seg.a >= 0: 
                 leftFunction.addSegment(seg.absComposition())
             else:
                 rightFunction.addSegment(seg.absComposition())
         leftFunction = leftFunction.splitByPoints(rightFunction.getBreaks())
-        leftFunction.add_diracs(rightFunction)
+        #leftFunction.add_diracs(rightFunction)
         copyFunction = leftFunction + rightFunction
         return copyFunction
     def copyLogComposition(self, f, finv, finvDeriv, pole_at_zero = False):
@@ -1404,7 +1404,7 @@ class PiecewiseFunction(object):
         breaks1 = self.getBreaks()
         breaks2 = other.getBreaks()
         breaks = unique(concatenate((breaks1, breaks2)))
-        fun = PiecewiseFunction([]);   
+        fun = self.__class__([]);   
         for i in range(size(breaks)-1):
             if isinf(breaks[i]):
                 fun.addSegment(MInfSegment(breaks[i+1], lambda x: self(x) + other(x)))
@@ -1439,7 +1439,7 @@ class PiecewiseFunction(object):
         breaks1 = self.getBreaks()
         breaks2 = other.getBreaks()
         breaks = unique(concatenate((breaks1, breaks2)))
-        fun = PiecewiseFunction([]);   
+        fun = self.__class__([]);   
         for i in range(size(breaks)-1):
             if isinf(breaks[i]):
                 fun.addSegment(MInfSegment(breaks[i+1], lambda x: self(x) - other(x)))
@@ -1491,7 +1491,7 @@ class PiecewiseFunction(object):
     def splitByPoints(self, points):
         """Pointwise subtraction of two piecewise functions """
         points = array(points)
-        fun = PiecewiseFunction([]);   
+        fun = self.__class__([]);   
         for seg in self.segments:
             inds = points[(seg.a<points) & (points<seg.b)]
             a = seg.a
@@ -1752,19 +1752,14 @@ def _segint(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fal
         if force_poleL and force_poleU:
             i1, e1 = integrate_fejer2_Xn_transformP(fun, L, (L+U)*0.5, debug_info = debug_info, debug_plot = debug_plot) 
             i2, e2 = integrate_fejer2_Xn_transformN(fun, (L+U)*0.5, U, debug_info = debug_info, debug_plot = debug_plot) 
-            #print ">>>>",i1,i2
-            #print ">>--",L, (L+U)*0.5, (L+U)*0.5, U
             i, e = i1+i2, e1+e2
         elif force_poleL:
-            #print "forcePPPPP, L, U", L, U
             i, e = integrate_fejer2_Xn_transformP(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
         elif force_poleU:
-            #print "forceUUUUU, L, U", L, U
             i, e = integrate_fejer2_Xn_transformN(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
         else: 
             #i, e = integrate_fejer2(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
             i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
-        #print "inti=",i
     elif isinf(L) and isfinite(U) :
         #i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
         i, e = integrate_fejer2_minf(fun, U, debug_info = debug_info, debug_plot = debug_plot, exponent = params.integration_infinite.exponent,)
