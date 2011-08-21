@@ -421,11 +421,10 @@ class MInfSegment(Segment):
                                    #ChebyshevInterpolator_MInf(self.f, self.b))
                                    MInfInterpolator(self.f, self.b))
     def findLeftpoint(self):
-        step = 1
-        x = self.b - step
-        while (self.f(array([x])) > params.segments.plot.yminEpsilon):
-            step *= 1.2
-            x = self.b - step
+        x = self.b-1;
+        h0 = self.f(array([x]))
+        while (self.f(array([x]))> h0*params.segments.plot.yminEpsilon):
+            x = x-1.2*abs(x-self.b)
             if abs(x)>1e20:
                 break
         return x
@@ -478,18 +477,14 @@ class PInfSegment(Segment):
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
                                    PInfInterpolator(self.f, self.a))
     def findRightpoint(self):
-        step = 1
-        x = self.a + step
-        yeps = params.segments.plot.yminEpsilon
-        fcur = self.f(array([x]))
-        fprev = fcur + 2 * yeps
-        while fcur > yeps and abs(fcur - fprev) > yeps:
-            step *= 1.2
-            x = self.a + step
-            if abs(x) > 1e20:
+        x = self.a+1;
+        fx = self.f(array([x]))
+        h0 = fx
+        while not ((fx < h0 *params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([1.2*x]))) < h0 * params.segments.plot.yminEpsilon)):
+            x = x + 1.2 * abs(x-self.a)
+            fx = self.f(array([x]))
+            if abs(x)>1e20:
                 break
-            fprev = fcur
-            fcur = self.f(array([x]))
         return x
     def findRightEps(self):
         x = self.a+0.1;
@@ -644,8 +639,6 @@ class SegmentWithPole(Segment):
             else:
                 safe_b = b - abs(b) * finfo(float).eps
         super(SegmentWithPole, self).__init__(a, b, f, safe_a, safe_b)
-        #print repr(b), repr(safe_b)
-        #print repr(self.b), repr(self.safe_b)
         self.left_pole = left_pole
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
