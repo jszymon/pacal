@@ -8,6 +8,17 @@ from pylab import figure, show, subplot
 from pacal import *
 from pacal.distr import demo_distr
 
+#! Difference of binomial distributions
+#!--------------------------------------
+b1 = BinomialDistr(5, 0.4)
+b2 = BinomialDistr(3, 0.45)
+bd = b1 / 5 - b2 / 15
+bd.summary()
+bd.plot()
+bd.hist()
+figure()
+bd.get_piecewise_cdf().plot()
+
 #
 #! Constuctor
 #!------------
@@ -41,6 +52,7 @@ N.plot()
 
 print "=========="
 AM = M ** 2
+figure()
 AM.plot()
 figure()
 BM = abs(M)
@@ -49,8 +61,6 @@ figure()
 CM = M * 4
 CM.plot()
 CM.summary()
-print CM.get_piecewise_pdf()
-print CM.__class__
 
 #! New plot
 #!----------

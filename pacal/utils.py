@@ -106,7 +106,7 @@ def incremental_cheb_nodes1(n, a = -1, b = 1):
     ind = arange(0, n)  
     return apb - bma * cos((2*ind[((ind % 3) != 1)] + 1)* pi / (2*n))
 
-def epsunique(tab, eps =1e-14):
+def epsunique(tab, eps = params.segments.unique_eps):
     ub = unique(tab[isnan(tab)==False])
     return ub[~isfinite(ub) | hstack((True, (diff(ub)/maximum(1,abs(ub[1:])))>eps))]
 

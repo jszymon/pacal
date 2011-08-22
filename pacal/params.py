@@ -112,6 +112,7 @@ class segments(params_class):
     reltol = 1e-16
     debug_info = False
     debug_plot = False
+    unique_eps = 1e-14 # collapse segments shorter than this value
     class plot(params_class):
         numberOfPoints  = 1000
         leftRightEpsilon  = 1e-20

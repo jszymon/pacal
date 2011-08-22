@@ -558,9 +558,8 @@ class DiracSegment(Segment):
     def toInterpolatedSegment(self):
         return self
     def shiftAndScale(self, shift, scale):
-        """It produce f((x - shift)/scale) for given f(x)
-        """
-        return DiracSegment(self.a * scale + shift, self.f) # TODO it should be checked  
+        """Produce f((x - shift)/scale) for given f(x)."""
+        return DiracSegment(self.a * scale + shift, self.f)
     def isSegment(self):
         return False      
     def isDirac(self):
@@ -909,11 +908,19 @@ class PiecewiseFunction(object):
         
     def addSegment(self, segment):
         """It insert segment in proper order"""
-        if len(self.segments)>bisect.bisect_left(self.segments, segment) :
+        if segment.isDirac():
+            for seg in self.getDiracs():
+                if abs(segment.a - seg.a) <= params.segments.unique_eps:
+                    seg.f += segment.f
+                    return
+        if len(self.segments) > bisect.bisect_left(self.segments, segment):
             seg = self.segments[bisect.bisect_left(self.segments, segment)]
-            assert seg>segment or segment>seg
+            if not (seg>segment or segment>seg):
+                if segment.isDirac():
+                    segment = DiracSegment(seg.a, segment.f)
+                assert seg>segment or segment>seg, "{}".format(seg.a - segment.a)
         bisect.insort(self.segments, segment)
-        self.breaks = unique(append(self.breaks,[segment.a, segment.b]))
+        self.breaks = unique(append(self.breaks, [segment.a, segment.b]))
     def findSegment(self, x):
         """It return segment containing point x"""  
         xsegment = DiracSegment(x,0)
