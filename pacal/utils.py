@@ -166,12 +166,14 @@ def estimateAtInfExponent(f, x, pos = True, fromTo = None, N = 10, deriv = False
     else:
         return 0
     
-def testPole(f, x, pos = True, 
-             pole_eps = params.pole_detection.max_pole_exponent, 
-             deriv = params.pole_detection.derivative, debug_info = params.segments.debug_info, **kwargs):
-
+def testPole(f, x, pos = True, pole_eps = None, deriv = None, debug_info = None, **kwargs):
+    if pole_eps is None:
+        pole_eps = params.pole_detection.max_pole_exponent
+    if deriv is None:
+        deriv = params.pole_detection.derivative
+    if debug_info is None:
+        debug_info = params.segments.debug_info
     deg = estimateDegreeOfPole(f, x, pos, deriv = deriv, **kwargs)
-    #print "x={0}, deg={1}".format(x, deg)
     if deriv:
         if (abs(deg) >= abs(pole_eps) and deg <= 1 - abs(pole_eps)) or (deg >= 1 + abs(pole_eps) and deg <= 2 - abs(pole_eps)) or deg>2:
         #if (deg >= abs(pole_eps) and deg <= 1 - abs(pole_eps)) or (deg >= 1 + abs(pole_eps) and deg <= 2 - abs(pole_eps))or (deg >= 2 + abs(pole_eps) and deg <= 3 - abs(pole_eps)):
@@ -189,23 +191,15 @@ def testPole(f, x, pos = True,
 
 class convergence_monitor(object):
     """Monitor numerical convergence."""
-    def __init__(self, par = params.convergence,
-                 abstol = 1e-80,#finfo(double).eps,
-                 reltol = finfo(double).eps,
-                 min_quit_iter = 20):
+    def __init__(self, par = None):
         # convergence parameters
-        if par is not None:
-            self.abstol = par.abstol
-            self.reltol = par.reltol
-            self.min_quit_iter = par.min_quit_iter
-            self.min_quit_no_improvement = par.min_quit_no_improvement
-            self.min_improvement_ratio = par.min_improvement_ratio
-        else:
-            self.abstol = abstol
-            self.reltol = reltol
-            self.min_quit_iter = min_quit_iter # the earliest iteration to quit early
-            self.min_quit_no_improvement = 50 # quit early if no improvement for this # of steps
-            self.min_improvement_ratio = 0.5 # by what factor the error needs to improve
+        if par is None:
+            par = params.convergence
+        self.abstol = par.abstol
+        self.reltol = par.reltol
+        self.min_quit_iter = par.min_quit_iter # the earliest iteration to quit early
+        self.min_quit_no_improvement = par.min_quit_no_improvement # quit early if no improvement for this # of steps
+        self.min_improvement_ratio = par.min_improvement_ratio # by what factor the error needs to improve
         self.min_quit_iter = max(2, self.min_quit_iter)
 
         self.ae_list = []

@@ -24,7 +24,6 @@ from numpy import isnan, isinf
 from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 
 import params
-from params import str_params
 
 from utils import cheb_nodes_log, incremental_cheb_nodes_log
 from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
@@ -151,7 +150,9 @@ class AdaptiveInterpolator(object):
         Xs = self.get_nodes(self.n)
         Ys = self.f(Xs)
         interp_class.__init__(self, Xs, Ys)
-    def adaptive_interp(self, par = params.interpolation):
+    def adaptive_interp(self, par = None):
+        if par is None:
+            par = params.interpolation
         maxn = par.maxn
         n = self.n
         old_err = None
@@ -268,12 +269,13 @@ class AdaptiveInterpolator1(object):
         Xs = self.get_nodes(n)
         Ys = self.f(Xs)
         interp_class.__init__(self, Xs, Ys)
-    def adaptive_interp(self, par = params.interpolation):
+    def adaptive_interp(self, par = None):
+        if par is None:
+            par = params.interpolation
         # increase number of nodes until error is small
         maxn = par.maxn
         n = len(self.Xs)
         old_err = None
-        #cm = convergence_monitor(min_quit_step = 50, abstol = abstol, reltol = reltol)
         cm = convergence_monitor(par = par.convergence)
         while n <= maxn:
             new_n = 3 * n
@@ -378,15 +380,17 @@ class ValTransformInterpolator(ChebyshevInterpolator1):
         
 #class ChebyshevInterpolatorNoL2(ChebyshevInterpolatorNoL):
 class ChebyshevInterpolatorNoL2(ChebyshevInterpolator1):
-    def __init__(self, f, a, b = None, par = params.interpolation, *args, **kwargs):
+    def __init__(self, f, a, b = None, par = None, *args, **kwargs):
+        if par is None:
+            par = params.interpolation
         self.exponent = estimateDegreeOfPole(f, a)   
         self.a = a
         self.b = b
         if par.debug_info:
             print "exponent=", self.exponent         
         super(ChebyshevInterpolatorNoL2, self).__init__(lambda x: f(x)/x**self.exponent, a, b,
-                                                       par = params.interpolation,
-                                                       *args, **kwargs)
+                                                        par = params.interpolation,
+                                                        *args, **kwargs)
     def interp_at(self, x):
         return super(ChebyshevInterpolatorNoL2, self).interp_at(x)*x**self.exponent
     def getNodes(self):
@@ -394,7 +398,9 @@ class ChebyshevInterpolatorNoL2(ChebyshevInterpolator1):
     
 class ChebyshevInterpolatorNoR2(ChebyshevInterpolator1):
 #class LogTransformInterpolator(ChebyshevInterpolator1):
-    def __init__(self, f, a, b = None, par = params.interpolation, *args, **kwargs):
+    def __init__(self, f, a, b = None, par = None, *args, **kwargs):
+        if par is None:
+            par = params.interpolation
         self.exponent = estimateDegreeOfPole(f, a)
         self.a = a
         self.b = b
@@ -415,7 +421,9 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         return expm1(x)+self.offset
     def xtinv(self, x):
         return log1p(x-self.offset)
-    def __init__(self, f, a, b = None, offset = 1, par = params.interpolation_asymp, *args, **kwargs):
+    def __init__(self, f, a, b = None, offset = 1, par = None, *args, **kwargs):
+        if par is None:
+            par = params.interpolation_asymp
         if b is None:
             b = _find_zero(f, a)
             if par.debug_info:
@@ -641,11 +649,15 @@ class ChebyshevInterpolator_PMInf(VarTransformInterpolator):
         vt = VarTransformAlgebraic_PMInf()
         super(ChebyshevInterpolator_PMInf, self).__init__(f, vt)
 class ChebyshevInterpolator_PInf(VarTransformInterpolator):
-    def __init__(self, f, L, exponent = params.interpolation_infinite.exponent, U = None):
+    def __init__(self, f, L, exponent = None, U = None):
+        if exponent is None:
+            exponent = params.interpolation_infinite.exponent
         vt = VarTransformReciprocal_PInf(L, exponent = exponent, U = U)
         super(ChebyshevInterpolator_PInf, self).__init__(f, vt, par = params.interpolation_infinite)
 class ChebyshevInterpolator_MInf(VarTransformInterpolator):
-    def __init__(self, f, U, exponent = params.interpolation_infinite.exponent, L = None):
+    def __init__(self, f, U, exponent = None, L = None):
+        if exponent is None:
+            exponent = params.interpolation_infinite.exponent
         vt = VarTransformReciprocal_MInf(U, exponent = exponent, L = L)
         super(ChebyshevInterpolator_MInf, self).__init__(f, vt, par = params.interpolation_infinite)
 
@@ -681,7 +693,7 @@ class PInfInterpolator(object):
         # A) x is very close x_j and x-x_j ~= x_j; also x_j <= 1
         # B) if y is << than max(y_j)
         ys = self.vb.Ys[1:] # first Y is always 0
-        xs = self.vb.Xs[1:]               
+        xs = self.vb.Xs[1:]
         max_y = max(ys)
         if max_y <= min_nonzero_y:
             # don't need an asymptotic interpolator

@@ -743,7 +743,9 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
              xmax = None,
              show_nodes = True, 
              show_segments = True, 
-             numberOfPoints = params.segments.plot.numberOfPoints, **args):
+             numberOfPoints = None, **args):
+        if numberOfPoints is None:
+            numberOfPoints = params.segments.plot.numberOfPoints
         super(InterpolatedSegmentWithPole, self).plot(xmin = xmin,
                    xmax = xmax,
                    show_nodes = show_nodes,

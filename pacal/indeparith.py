@@ -21,7 +21,9 @@ from segments import PiecewiseDistribution, _segint
 from utils import epsunique, testPole
 
 
-def _testConvPole(seg, L, U, pole_eps = params.pole_detection.min_distance_from_pole):
+def _testConvPole(seg, L, U, pole_eps = None):
+    if pole_eps is None:
+        pole_eps = params.pole_detection.min_distance_from_pole
     poleL = False
     if seg.hasLeftPole() and abs(seg.a - L) <= pole_eps:
         poleL = True

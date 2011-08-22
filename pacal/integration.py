@@ -183,31 +183,32 @@ def integrate_fejer2_pminf(f, *args, **kwargs):
     """Fejer2 integration from -oo to +oo."""
     vt = VarTransformReciprocal_PMInf()
     return _integrate_with_vartransform(f, vt, integrate_fejer2, *args, **kwargs)
-def integrate_fejer2_pinf(f, a, b = None, exponent = params.integration_infinite.exponent, *args, **kwargs):
+def integrate_fejer2_pinf(f, a, b = None, exponent = None, *args, **kwargs):
     """Fejer2 integration from a to +oo."""
+    if exponent is None:
+        exponent = params.integration_infinite.exponent
     vt = VarTransformReciprocal_PInf(a, U = b, exponent = exponent)
     return _integrate_with_vartransform(f, vt, integrate_fejer2, *args, **kwargs)
-def integrate_fejer2_minf(f, b, a = None, exponent = params.integration_infinite.exponent, *args, **kwargs):
+def integrate_fejer2_minf(f, b, a = None, exponent = None, *args, **kwargs):
     """Fejer2 integration from -oo to b."""
+    if exponent is None:
+        exponent = params.integration_infinite.exponent
     vt = VarTransformReciprocal_MInf(b, L = a, exponent = exponent)
     return _integrate_with_vartransform(f, vt, integrate_fejer2, *args, **kwargs)
 
 
 def integrate_fejer2_Xn_transform(f, a, b, N = 2.0, *args, **kwargs):
     return integrate_fejer2(lambda t: N * (b-a) * f(t**N*(b-a)+a) * t**(N-1), 0.0, 1.0, *args, **kwargs)
-def integrate_fejer2_Xn_transformP(f, a, b, N = params.integration_pole.exponent, *args, **kwargs):
+def integrate_fejer2_Xn_transformP(f, a, b, N = None, *args, **kwargs):
+    if N is None:
+        N = params.integration_pole.exponent
     a = a + abs(a) * finfo(double).eps # don't touch the edge
     return integrate_fejer2(lambda t: N * (b-a) * f(t**N*(b-a)+a) * t**(N-1), 0.0, 1.0, *args, **kwargs)
-def integrate_fejer2_Xn_transformN(f, a, b, N = params.integration_pole.exponent, *args, **kwargs):
+def integrate_fejer2_Xn_transformN(f, a, b, N = None, *args, **kwargs):
+    if N is None:
+        N = params.integration_pole.exponent
     b = b - abs(b) * finfo(double).eps # don't touch the edge
     return integrate_fejer2(lambda t: N * (b-a) * f(b-t**N*(b-a)) * t**(N-1), 0.0, 1.0, *args, **kwargs)
-    # another approach to fixing the 'edge' problem:
-    #def _ftrans(t):
-    #    y = zeros_like(t)
-    #    mask = b-t**N*(b-a) != b
-    #    y[mask] = N * (b-a) * f(b-t[mask]**N*(b-a)) * t[mask]**(N-1)
-    #    return y
-    #return integrate_fejer2(_ftrans, 0.0, 1.0, *args, **kwargs ) 
 def integrate_wide_interval(f, a, b, *args, **kwargs):
     wide_cond = params.integration.wide_condition
     if isinf(b):
@@ -216,7 +217,6 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
         a=-1e100
     if a!=0 and b!=0:
         if (b/a)>wide_cond and 0 < a < b: # positive innterwal
-            #print "wide [a,b]=",a,b,number_of_intervals, nodes
             exp_wide = b/a
             number_of_intervals = ceil(log10(exp_wide)/log10(wide_cond))
             nodes = logspace(log10(a), log10(b), number_of_intervals + 1)
@@ -227,7 +227,6 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
                 integ,err = integrate_fejer2(f, nodes[i], nodes[i+1], *args, **kwargs)
                 I+=integ
                 E+=err
-            #print "wide interval ", a, b, number_of_intervals, nodes, I, E
             return I, E
         elif (b/a)<1/wide_cond and a < b < 0: # negative interval
             exp_wide = a/b
