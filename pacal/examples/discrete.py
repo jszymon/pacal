@@ -8,16 +8,6 @@ from pylab import figure, show, subplot
 from pacal import *
 from pacal.distr import demo_distr
 
-#! Difference of binomial distributions
-#!--------------------------------------
-b1 = BinomialDistr(5, 0.4)
-b2 = BinomialDistr(3, 0.45)
-bd = b1 / 5 - b2 / 15
-bd.summary()
-bd.plot()
-bd.hist()
-figure()
-bd.get_piecewise_cdf().plot()
 
 #
 #! Constuctor
@@ -38,29 +28,7 @@ subplot(121)
 S.plot()
 subplot(122)
 SM.plot()
-figure()
 
-M = DiscreteDistr(xi=[0.0, 1.0, 2.0, 3], pi=[0.42, 0.4, 0.13, 0.05])
-print M.rand_invcdf(10, use_interpolated=True)
-print M.rand_invcdf(10, use_interpolated=False)
-M.summary()
-N = M - 1
-N.summary()
-M.plot()
-figure()
-N.plot()
-
-print "=========="
-AM = M ** 2
-figure()
-AM.plot()
-figure()
-BM = abs(M)
-BM.plot()
-figure()
-CM = M * 4
-CM.plot()
-CM.summary()
 
 #! New plot
 #!----------
@@ -68,18 +36,9 @@ figure()
 S.get_piecewise_cdf().plot()
 SM.get_piecewise_cdf().plot()
 
-#! New plot
-#!----------
-figure()
-I = OneDistr()
-Two = I + I
-Two.plot()
-Two.get_piecewise_cdf().plot()
-Two.hist()
-I.hist()
 
-#! Bernoulli distribution $B(k,5,0.8)$
-#! -----------------------------------
+#! Binomial and Bernoulli distributions
+#! -------------------------------------
 b5 = ZeroDistr()
 for i in range(5):
     b5 += DiscreteDistr(xi = [0, 1], pi = [0.2, 0.8])
@@ -92,6 +51,23 @@ b5.summary()
 subplot(133)
 b5.hist()
 
+#! Difference of binomial distributions
+#!-----------------------------------------
+#!
+#! A test for equality of two proportions
+b1 = BinomialDistr(5, 0.4)
+b2 = BinomialDistr(3, 0.45)
+bd = b1 / 5 - b2 / 3
+bd.summary()
+subplot(311)
+bd.plot()
+subplot(312)
+bd.hist()
+subplot(313)
+bd.get_piecewise_cdf().plot()
+
+#! Mixing continuous and discrete distributions
+#!----------------------------------------------
 d = DiscreteDistr(xi = [1, 2], pi = [0.2, 0.8])
 U = UniformDistr(0,2)
 A1 = d + U
