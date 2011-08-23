@@ -7,7 +7,9 @@ import sys
 
 from pylab import *
 from pacal import *
+from pacal import params
 
+params.general.warn_on_dependent = False
 
 colors = "kbgrcmy"
 def central_limit_demo(X, N = 5, xmin = None, xmax = None, ymax = None, **args):

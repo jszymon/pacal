@@ -6,6 +6,8 @@ import pacal.distr
 from pacal.utils import binomial_coeff
 from pacal.standard_distr import PDistr
 
+from pacal import params
+
 def _int_exp(x, n, op = operator.mul):
     """Right to left exponentiation by squaring."""
     res = None
@@ -27,10 +29,13 @@ def _int_exp_all(x, n, op = operator.mul):
     return res[1:]
 
 def iid_op(X, n, op, all = False):
+    old_warn = params.general.warn_on_dependent
+    params.general.warn_on_dependent = False
     if all:
         y = _int_exp_all(X, n, op)
     else:
         y = _int_exp(X, n, op)
+    params.general.warn_on_dependent = old_warn
     return y
 def iid_sum(X, n, all = False):
     return iid_op(X, n, op = operator.add, all = all)
@@ -45,7 +50,7 @@ def iid_order_stat(X, n, k):
     pdf = X.get_piecewise_pdf()
     cdf = X.get_piecewise_cdf()
     ccdf = 1 - X.get_piecewise_cdf()
-    fun = k * binomial_coeff(n, k) * pow(cdf, k-1) * pow(ccdf, n-k) * pdf
+    fun = k * binomial_coeff(n, k) * pdf * pow(cdf, k-1) * pow(ccdf, n-k)
     return PDistr(fun.toInterpolated())
 def iid_median(X, n):
     return iid_order_stat(X, n, n // 2)
@@ -77,10 +82,13 @@ def _int_exp_all2(x, n, op = operator.mul):
         res[i] = op(i1, res[i1], i2, res[i2])
     return res[1:]
 def iid_op2(X, n, op, all = False):
+    old_warn = params.general.warn_on_dependent
+    params.general.warn_on_dependent = False
     if all:
         y = _int_exp_all2(X, n, op)
     else:
         y = _int_exp2(X, n, op)
+    params.general.warn_on_dependent = old_warn
     return y
 def _lambda_average(n1, x1, n2, x2):
     n = float(n1 + n2)
@@ -90,12 +98,6 @@ def iid_average(X, n, all = False):
 
 
 if __name__ == "__main__":
-    #print iid_sum(3, 10)
-    #print iid_sum(3, 10, all = True)
-    #print iid_max(3, 10, all = True)
-    #print iid_average(3, 10)
-    #print iid_average(3, 10, all = True)
-
     from pacal import *
     from pylab import *
     figure()
