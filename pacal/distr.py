@@ -11,7 +11,7 @@ from numpy import minimum, maximum
 from numpy import hstack, cumsum, searchsorted
 from numpy import histogram
 
-from utils import Inf
+from pacal.utils import Inf
 
 from pylab import bar
 
@@ -19,7 +19,7 @@ import traceback
 
 import params
 from indeparith import conv, convprod, convdiv, convmin, convmax
-from pacal.segments import PiecewiseDistribution, DiracSegment, ConstSegment
+from segments import PiecewiseDistribution, DiracSegment, ConstSegment
 
 class Distr(object):
     def __init__(self, parents = [], indep = True):
@@ -697,7 +697,7 @@ class DiscreteDistr(Distr):
 class SignDistr(Distr):
     def __init__(self, d):
         self.d = d
-        super(SignDistr, self).__init__(d)
+        super(SignDistr, self).__init__([d])
     def init_piecewise_pdf(self):
         prPlus = float(self.d.ccdf_value(0))
         diracZero = self.d.get_piecewise_pdf().getDirac(0)
@@ -720,7 +720,7 @@ class SignDistr(Distr):
 class SquareDistr(OpDistr):
     """Injective function of random variable"""
     def __init__(self, d):
-        super(SquareDistr, self).__init__()
+        super(SquareDistr, self).__init__([d])
         self.d = d
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copySquareComposition()
