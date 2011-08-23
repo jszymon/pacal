@@ -67,7 +67,7 @@ demo_distr(invC, C)
 
 figure()
 N2=min(I, N)
- 
+demo_distr(N2) 
 
 figure()
 demo_distr(abs(C + 2), xmax = 10)

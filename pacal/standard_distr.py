@@ -11,11 +11,9 @@ _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
 from utils import lgamma
-from distr import Distr, MinDistr, MaxDistr, SumDistr, DivDistr
+from distr import Distr, DiscreteDistr, MinDistr, MaxDistr, SumDistr, DivDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
-from pacal.distr import DiscreteDistr
-import pacal
 import distr
 
 
@@ -740,7 +738,7 @@ class CondGtDistr(Distr):
     def __init__(self, d, L=None):
         self.L = L
         self.d = d
-        super(CondGtDistr, self).__init__(d)
+        super(CondGtDistr, self).__init__([d])
     def init_piecewise_pdf(self):
         Z = MaxDistr(ConstDistr(self.L), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(0)
@@ -756,7 +754,7 @@ class CondLtDistr(Distr):
     def __init__(self, d, U=None):
         self.U = U
         self.d = d
-        super(CondLtDistr, self).__init__(d)
+        super(CondLtDistr, self).__init__([d])
     def init_piecewise_pdf(self):
         Z = MinDistr(ConstDistr(self.U), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(-1)

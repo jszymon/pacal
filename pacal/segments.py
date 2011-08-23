@@ -414,9 +414,11 @@ class MInfSegment(Segment):
                                    MInfInterpolator(self.f, self.b))
     def findLeftpoint(self):
         x = self.b - 1
-        h0 = self.f(array([x]))
-        while (self.f(array([x]))> h0*params.segments.plot.yminEpsilon):
-            x = x - 1.2*abs(x - self.b)
+        fx = self.f(array([x]))
+        h0 = fx
+        while not ((fx <= h0 * params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([x - 1.2 * abs(x-self.b)]))) <= h0 * params.segments.plot.yminEpsilon)):
+            x = x - 1.2 * abs(x - self.b)
+            fx = self.f(array([x]))
             if abs(x) > 1e20:
                 break
         return x
@@ -472,7 +474,7 @@ class PInfSegment(Segment):
         x = self.a+1
         fx = self.f(array([x]))
         h0 = fx
-        while not ((fx < h0 *params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([1.2*x]))) < h0 * params.segments.plot.yminEpsilon)):
+        while not ((fx <= h0 * params.segments.plot.yminEpsilon) or (abs(fx - self.f(array([x + 1.2 * abs(x-self.a)]))) <= h0 * params.segments.plot.yminEpsilon)):
             x = x + 1.2 * abs(x-self.a)
             fx = self.f(array([x]))
             if abs(x)>1e20:
@@ -1028,13 +1030,15 @@ class PiecewiseFunction(object):
     def __str__(self):   
         return ','.join(['({0})'.format(str(seg)) for seg in self.segments])
 
-    def plot(self, 
+    def plot(self,
              xmin = None,
              xmax = None,
              cl = params.segments.plot.ciLevel,
              show_nodes = params.segments.plot.showNodes, 
              show_segments = params.segments.plot.showSegments, 
              numberOfPoints = params.segments.plot.numberOfPoints, **args):
+        if not params.segments.plot.showSegments and "color" not in args:
+            args["color"] = "k"
         if cl is not None and xmin is None and xmax is None:
             xmin, xmax = self.ci(cl)
         h0 = h1 = 0        

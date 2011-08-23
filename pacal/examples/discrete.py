@@ -9,7 +9,7 @@ from pacal import *
 from pacal.distr import demo_distr, sign
 from matplotlib.pyplot import legend
 
-#
+
 #! Constuctor
 #!------------
 #!
@@ -35,7 +35,6 @@ SM.plot()
 figure()
 S.get_piecewise_cdf().plot()
 SM.get_piecewise_cdf().plot()
-
 
 #! Binomial and Bernoulli distributions
 #! -------------------------------------
@@ -111,7 +110,7 @@ A4.get_piecewise_cdf().plot()
 d = DiscreteDistr(xi=[-1, 2, 6], pi=[0.2, 0.4, 0.4])
 N = NormalDistr()
 GM = d + N
-
+figure()
 GM.summary()
 GM.plot()
 
@@ -128,7 +127,7 @@ A.plot(color='g', linewidth=2.0, label="abs(N)")
 N.plot(color='b', linewidth=2.0, label="N")
 legend()
 figure()
-demo_distr(S * A, theoretical=N)
+demo_distr(S * A)#, theoretical=N)
 
 #! min, max, Conditional distributions
 #! ------------------------------------

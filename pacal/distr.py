@@ -235,7 +235,7 @@ class Distr(object):
         if id(self) not in cache:
             cache[id(self)] = self.rand_raw(n)
         return cache[id(self)]
-    def plot(self, color='k', *args, **kvargs):
+    def plot(self, *args, **kwargs):
         """Plot of PDF.
         
         Keyword arguments:
@@ -243,7 +243,7 @@ class Distr(object):
         xmax -- maximum x range        
         other of pylab/plot **kvargs  
         """
-        self.get_piecewise_pdf().plot(color=color, *args, **kvargs)      
+        self.get_piecewise_pdf().plot(*args, **kwargs)
     def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, max_samp = None, **kwargs):
         """Histogram of PDF.
         
@@ -694,11 +694,9 @@ class DiscreteDistr(Distr):
     def getName(self):
         return "Di({0})".format(len(self.xi))
 
-class SignDistr(Distr):
+class SignDistr(DiscreteDistr):
     def __init__(self, d):
         self.d = d
-        super(SignDistr, self).__init__([d])
-    def init_piecewise_pdf(self):
         prPlus = float(self.d.ccdf_value(0))
         diracZero = self.d.get_piecewise_pdf().getDirac(0)
         if diracZero is None:
@@ -706,12 +704,12 @@ class SignDistr(Distr):
         else:
             prZero = diracZero.f
         prMinus = float(self.d.cdf(0)) - prZero        
-        print "=======", [prMinus, prZero, prPlus] 
-        #Z.get_piecewise_pdf().segments.remove(diracB)
         if prZero > 0:
-            self.piecewise_pdf = (DiscreteDistr(xi = [-1,0,1], pi=[prMinus, prZero, prPlus])).get_piecewise_pdf()
+            xi = [-1,0,1]; pi=[prMinus, prZero, prPlus]
         else:
-            self.piecewise_pdf = (DiscreteDistr(xi = [-1,1], pi=[prMinus, prPlus])).get_piecewise_pdf()
+            xi = [-1,1]; pi=[prMinus, prPlus]
+        super(SignDistr, self).__init__(xi, pi)
+        self.parents = [d]
     def __str__(self):
         return "sign({0})".format(id(self.d))
     def getName(self):
