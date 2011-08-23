@@ -50,7 +50,7 @@ def iid_order_stat(X, n, k):
     pdf = X.get_piecewise_pdf()
     cdf = X.get_piecewise_cdf()
     ccdf = 1 - X.get_piecewise_cdf()
-    fun = k * binomial_coeff(n, k) * pdf * pow(cdf, k-1) * pow(ccdf, n-k)
+    fun = (k * binomial_coeff(n, k)) * pdf * (pow(cdf, k-1) * pow(ccdf, n-k))
     return PDistr(fun.toInterpolated())
 def iid_median(X, n):
     return iid_order_stat(X, n, n // 2)
@@ -101,8 +101,12 @@ if __name__ == "__main__":
     from pacal import *
     from pylab import *
     figure()
-    for i in [1,51]:
-        fun = iid_order_stat(BetaDistr(0.5,1.5), 51, i)
+    for i in xrange(1, 51, 5):
+        fun = iid_order_stat(BetaDistr(3, 2), 51, i)
         fun.plot(xmin=0,xmax=1)
         fun.summary()
+    figure()
+    med = iid_median(BetaDistr(3, 2), 51)
+    med.summary()
+    med.plot()
     show()

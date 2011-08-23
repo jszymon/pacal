@@ -47,7 +47,8 @@ class Segment(object):
         
     def __str__(self):
         return "{0}, [{1}, {2}]".format(self.__class__.__name__, self.a, self.b)
-       
+    def __repr__(self):
+        return self.__str__()
     def __call__(self, x):
         if isscalar(x):
             if self.a <= x <= self.b:
@@ -145,9 +146,9 @@ class Segment(object):
             xmin = xmin + leftRightEpsilon
         if xmax==0:
             xmax = xmax - leftRightEpsilon
-        if xmin == 0.0 or xmax/xmin>1e2:
+        if (xmin == 0.0 or xmax/xmin>1e2) and self.hasLeftPole():
             xi = logspace(log10(abs(xmin)), log10(abs(xmax)), numberOfPoints)
-        elif xmax == 0.0 or xmin/xmax>1e2:
+        elif (xmax == 0.0 or xmin/xmax>1e2) and self.hasRightPole():
             xi = -logspace( log10(abs(xmin)), log10(abs(xmax)), numberOfPoints)
         else:
             xi = linspace(xmin, xmax, numberOfPoints)
@@ -922,7 +923,7 @@ class PiecewiseFunction(object):
             if not (seg>segment or segment>seg):
                 if segment.isDirac():
                     segment = DiracSegment(seg.a, segment.f)
-                assert seg>segment or segment>seg, "{}".format(seg.a - segment.a)
+                assert seg>segment or segment>seg, "{} {} {} {}".format(self.segments, seg, segment, seg.a - segment.a)
         bisect.insort(self.segments, segment)
         self.breaks = unique(append(self.breaks, [segment.a, segment.b]))
     def findSegment(self, x):
@@ -1003,9 +1004,9 @@ class PiecewiseFunction(object):
                 f0 = segi.f(segi.b)
         rightval = max(f0, segi.f(segi.b))
         if not segi.isPInf():
-            integralPFun.addSegment(PInfSegment(segi.b, lambda x: rightval + 0.0*x))
+            integralPFun.addSegment(PInfSegment(segi.b, lambda x: x * 0.0 + rightval))
         if not integralPFun.segments[0].isMInf():
-            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: 0.0 + 0.0*x))
+            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: x * 0.0))
         return integralPFun
     def ccumint(self):
         """TODO complementary cumint i.e int_x^Inf f(x) dx"""
@@ -1374,9 +1375,9 @@ class PiecewiseFunction(object):
         fun = self.__class__([])
         def make_segfun(segment1, segment2):
             if segment1 is None:
-                return lambda x: segment2.f(x)
+                return lambda x: operation(0, segment2.f(x))
             elif segment2 is None:
-                return lambda x: segment1.f(x)
+                return lambda x: operation(segment1.f(x), 0)
             else:
                 return lambda x: operation(segment1.f(x), segment2.f(x))
         for segf, segg in segsList:
