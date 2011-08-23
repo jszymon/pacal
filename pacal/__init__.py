@@ -5,7 +5,7 @@ _np.seterr(all="ignore")
 
 from utils import Inf
 
-from distr import DiscreteDistr, exp, log, atan, min, max, sqrt, sign, abs
+from distr import DiscreteDistr, exp, log, atan, min, max, sqrt, sign
 
 from standard_distr import FunDistr
 from standard_distr import NormalDistr
