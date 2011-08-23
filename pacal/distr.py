@@ -54,11 +54,13 @@ class Distr(object):
     def getName(self):
         """return a string representation of PDF."""
         return "D"
-    def getAncestorIDs(self):
+    def getAncestorIDs(self, anc = None):
         """Get ID's of all ancestors"""
-        anc = set()
+        if anc is None:
+            anc = set()
         for p in self.parents:
-            anc.update(p.getAncestorIDs())
+            if id(p) not in anc:
+                anc.update(p.getAncestorIDs(anc))
         anc.add(id(self))
         return anc
     def get_piecewise_pdf(self):
