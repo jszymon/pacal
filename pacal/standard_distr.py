@@ -14,6 +14,8 @@ from utils import lgamma
 from distr import Distr, MinDistr, MaxDistr, SumDistr, DivDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
+from pacal.distr import DiscreteDistr
+import pacal
 import distr
 
 
@@ -690,34 +692,6 @@ class NoncentralChiSquareDistr(SumDistr):
 
 ### Discrete distributions
 
-class DiscreteDistr(Distr):
-    """Discrete distribution"""
-    def __init__(self, xi=[0.0, 1.0], pi=[0.5, 0.5]):
-        super(DiscreteDistr, self).__init__([])
-        assert(len(xi) == len(pi))
-        px = zip(xi, pi)
-        px.sort()
-        self.px = px
-        self.xi = [p[0] for p in px]
-        self.pi = [p[1] for p in px]
-        self.cumP = cumsum(self.pi)
-    def init_piecewise_pdf(self):
-        self.piecewise_pdf = PiecewiseDistribution([])        
-        for i in xrange(len(self.xi)):
-            self.piecewise_pdf.addSegment(DiracSegment(self.xi[i], self.pi[i]))
-        for i in xrange(len(self.xi)-1):
-            self.piecewise_pdf.addSegment(ConstSegment(self.xi[i], self.xi[i+1], 0))
-    def rand_raw(self, n):
-        u = uniform(0, 1, n)
-        i = searchsorted(self.cumP, u)
-        i[i > len(self.xi)] = len(self.xi)
-        return array(self.xi)[i]
-    def __str__(self):
-        pstr = ", ".join("{0}:{1}".format(x, p) for x, p in self.px)
-        return "Discrete({0})#{1}".format(pstr, id(self))
-    def getName(self):
-        return "Di({0})".format(len(self.xi))
-    
 class ConstDistr(DiscreteDistr):
     def __init__(self, c = 0.0, p = 1.0):
         super(ConstDistr, self).__init__([c], [p])
@@ -731,14 +705,15 @@ class ConstDistr(DiscreteDistr):
     def getName(self):
         return str(self.c)
 
-class OneDistr(ConstDistr):
-    """One point distribution at point one"""
-    def __init__(self):
-        super(OneDistr, self).__init__(c = 1.0)
 class ZeroDistr(ConstDistr):
     """One point distribution at point zero"""
     def __init__(self):
         super(ZeroDistr, self).__init__(c = 0.0)
+
+class OneDistr(ConstDistr):
+    """One point distribution at point one"""
+    def __init__(self):
+        super(OneDistr, self).__init__(c = 1.0)
 
 class BinomialDistr(DiscreteDistr):
     def __init__(self, n, p):
@@ -792,8 +767,6 @@ class CondLtDistr(Distr):
         return "{0} | x<{1}".format(self.d.getName(), self.U)
     def rand_raw(self, n):
         return self.rand_invcdf(n)
-
-
 
 if __name__ == "__main__":
     from pylab import figure, show

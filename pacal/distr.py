@@ -8,7 +8,7 @@ from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
 from numpy import sqrt, pi, arctan, tan, asfarray
 from numpy.random import uniform
 from numpy import minimum, maximum
-from numpy import hstack
+from numpy import hstack, cumsum, searchsorted
 from numpy import histogram
 
 from utils import Inf
@@ -19,6 +19,7 @@ import traceback
 
 import params
 from indeparith import conv, convprod, convdiv, convmin, convmax
+from pacal.segments import PiecewiseDistribution, DiracSegment, ConstSegment
 
 class Distr(object):
     def __init__(self, parents = [], indep = True):
@@ -664,6 +665,34 @@ class AbsDistr(OpDistr):
         return "|#{0}|".format(id(self.d))
     def getName(self):
         return "|{0}|".format(self.d.getName())
+
+class DiscreteDistr(Distr):
+    """Discrete distribution"""
+    def __init__(self, xi=[0.0, 1.0], pi=[0.5, 0.5]):
+        super(DiscreteDistr, self).__init__([])
+        assert(len(xi) == len(pi))
+        px = zip(xi, pi)
+        px.sort()
+        self.px = px
+        self.xi = [p[0] for p in px]
+        self.pi = [p[1] for p in px]
+        self.cumP = cumsum(self.pi)
+    def init_piecewise_pdf(self):
+        self.piecewise_pdf = PiecewiseDistribution([])        
+        for i in xrange(len(self.xi)):
+            self.piecewise_pdf.addSegment(DiracSegment(self.xi[i], self.pi[i]))
+        for i in xrange(len(self.xi)-1):
+            self.piecewise_pdf.addSegment(ConstSegment(self.xi[i], self.xi[i+1], 0))
+    def rand_raw(self, n):
+        u = uniform(0, 1, n)
+        i = searchsorted(self.cumP, u)
+        i[i > len(self.xi)] = len(self.xi)
+        return array(self.xi)[i]
+    def __str__(self):
+        pstr = ", ".join("{0}:{1}".format(x, p) for x, p in self.px)
+        return "Discrete({0})#{1}".format(pstr, id(self))
+    def getName(self):
+        return "Di({0})".format(len(self.xi))
 
 class SignDistr(Distr):
     def __init__(self, d):
