@@ -27,15 +27,21 @@ from standard_distr import FrechetDistr
 from standard_distr import NoncentralTDistr
 from standard_distr import NoncentralChiSquareDistr
 
-from standard_distr import ConstDistr
+
 from standard_distr import OneDistr
 from standard_distr import ZeroDistr
 from standard_distr import BinomialDistr
 from standard_distr import MixDistr
-from standard_distr import CondGtDistr
-from standard_distr import CondLtDistr
+#from distr import CondGtDistr
+#from distr import CondLtDistr
+from distr import ConstDistr
+from distr import Gt
+from distr import Lt
+from distr import Between
 
 from stats.iid_ops import iid_sum, iid_prod, iid_max, iid_min, iid_average
 from stats.iid_ops import iid_order_stat, iid_median
+
+from stats.distr_est import LoglikelihoodEstimator
 
 from pylab import show
