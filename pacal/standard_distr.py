@@ -11,9 +11,9 @@ _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
 from utils import lgamma
-from distr import Distr, DiscreteDistr, MinDistr, MaxDistr, SumDistr, DivDistr
+from distr import Distr, DiscreteDistr, SumDistr, DivDistr, ConstDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
-from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole, DiracSegment
+from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
 import distr
 
 
@@ -690,19 +690,6 @@ class NoncentralChiSquareDistr(SumDistr):
 
 ### Discrete distributions
 
-class ConstDistr(DiscreteDistr):
-    def __init__(self, c = 0.0, p = 1.0):
-        super(ConstDistr, self).__init__([c], [p])
-        self.c = c
-    def rand_raw(self, n = None):
-        r = zeros(n)
-        r.fill(self.c)
-        return r
-    def __str__(self):
-        return str(self.c)
-    def getName(self):
-        return str(self.c)
-
 class ZeroDistr(ConstDistr):
     """One point distribution at point zero"""
     def __init__(self):
@@ -734,37 +721,6 @@ class BinomialDistr(DiscreteDistr):
     def getName(self):
         return "Binom({0},{1})".format(self.n, self.p)
 
-class CondGtDistr(Distr):
-    def __init__(self, d, L=None):
-        self.L = L
-        self.d = d
-        super(CondGtDistr, self).__init__([d])
-    def init_piecewise_pdf(self):
-        Z = MaxDistr(ConstDistr(self.L), self.d)    
-        diracB = Z.get_piecewise_pdf().segments.pop(0)
-        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
-    def __str__(self):
-        return "{0} | x>{1}".format(self.d, self.L)
-    def getName(self):
-        return "{0} | x>{1}".format(self.d.getName(), self.L)
-    def rand_raw(self, n):
-        return self.rand_invcdf(n)
-
-class CondLtDistr(Distr):
-    def __init__(self, d, U=None):
-        self.U = U
-        self.d = d
-        super(CondLtDistr, self).__init__([d])
-    def init_piecewise_pdf(self):
-        Z = MinDistr(ConstDistr(self.U), self.d)    
-        diracB = Z.get_piecewise_pdf().segments.pop(-1)
-        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
-    def __str__(self):
-        return "{0} | x<{1}".format(self.d, self.U)
-    def getName(self):
-        return "{0} | x<{1}".format(self.d.getName(), self.U)
-    def rand_raw(self, n):
-        return self.rand_invcdf(n)
 
 if __name__ == "__main__":
     from pylab import figure, show

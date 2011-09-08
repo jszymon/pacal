@@ -5,7 +5,7 @@ from functools import partial
 
 import numpy
 from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
-from numpy import sqrt, pi, arctan, tan, asfarray
+from numpy import sqrt, pi, arctan, tan, asfarray, zeros
 from numpy.random import uniform
 from numpy import minimum, maximum
 from numpy import hstack, cumsum, searchsorted
@@ -22,14 +22,17 @@ from indeparith import conv, convprod, convdiv, convmin, convmax
 from segments import PiecewiseDistribution, DiracSegment, ConstSegment
 
 class Distr(object):
-    def __init__(self, parents = [], indep = True):
+    def __init__(self, parents = [], indep = None):
         # indep = True means the distribution is treated as
         # independent from all others.  For examples this results in
         # X+X != 2X.  This currently only affects random number
         # generation and histograms.  This default will likely change
         # in the future.
         self.parents = parents
-        self.indep = indep
+        if indep is not None:            
+            self.indep = indep
+        else:
+            self.indep = params.general.distr.independent
         self.piecewise_pdf = None # PDF represented as piecewise
                                   # function, usually interpolated.
         self.piecewise_cdf = None # CDF represented as piecewise
@@ -104,7 +107,7 @@ class Distr(object):
         This method should be overridden by subclasses."""
         raise NotImplemented()
     def get_piecewise_invcdf(self, use_interpolated=True):
-        """return, CDF function, as CumulativePiecewiseFunction object"""
+        """return, inverse CDF function, as PiecewiseFunction object"""
         invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated)
         return invcdf
 
@@ -182,8 +185,16 @@ class Distr(object):
         p : significance level"""    
         return (self.quantile(p/2), self.quantile(1-p/2.0))
     def tailexp(self):
-        """Check whether distribution is positive definite."""
+        """Left and right tail exponent estimates"""
         return self.get_piecewise_pdf().tailexp()
+    
+    def mode(self):
+        """Mode of distribution."""
+        return self.get_piecewise_pdf().mode()
+    
+    def int_error(self):
+        """L_1 error for testing of accuracy"""
+        return 1-self.get_piecewise_pdf().integrate()
     def summary_map(self):
         r = {}
         r['mean'] = self.mean()
@@ -191,8 +202,9 @@ class Distr(object):
         r['var'] = self.var()
         r['entropy'] = self.entropy()
         r['range'] = self.get_piecewise_pdf().range()
-        r['int_err'] = 1-self.get_piecewise_pdf().integrate()
+        r['int_err'] = self.int_error()
         r['tailexp'] = self.tailexp()
+        r['mode'] = self.mode()
         #r['interp_errs'] = self.getInterpErrors()
         try:
             r['median'] = self.median()
@@ -208,9 +220,9 @@ class Distr(object):
         #print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'std', 'var','entropy', 'tailexp', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
+        for i in ['mean', 'var','entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
             if summ.has_key(i): 
-                print '{0:{align}20}'.format(i, align = '>'), " = ", summ[i]       
+                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
 
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
@@ -250,7 +262,7 @@ class Distr(object):
         """Histogram of PDF.
         
         Keyword arguments:
-        n -- number of pints
+        n -- number of points
         bins -- number of bins
         xmin -- minimum x range 
         xmax -- maximum x range    
@@ -382,6 +394,16 @@ class Distr(object):
             if x < 0:
                 raise ValueError()
             return ExpDistr(ShiftedScaledDistr(self, scale = numpy.log(x)))
+        raise NotImplemented()
+    def __or__(self, restriction):
+        """Overload or: Conditional distribution """        
+        if isinstance(restriction, Restriction):
+            if isinstance(restriction, Lt):
+                return CondLtDistr(self, restriction.U)
+            if isinstance(restriction, Gt):
+                return CondGtDistr(self, restriction.L)
+            if isinstance(restriction, Between):
+                return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
         raise NotImplemented()
 
 def _wrapped_name(d, incl_classes = None):
@@ -857,6 +879,10 @@ def min(*args):
     d2 = args[1]
     if isinstance(d1, Distr) and isinstance(d2, Distr):
         return MinDistr(d1, d2)
+    elif isinstance(d1, Distr) and isinstance(d2, numbers.Real):
+        return MinDistr(d1, ConstDistr(d2))
+    elif isinstance(d1, numbers.Real) and isinstance(d2, Distr):
+        return MinDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
         raise NotImplemented()
     else:
@@ -869,10 +895,77 @@ def max(*args):
     d2 = args[1]
     if isinstance(d1, Distr) and isinstance(d2, Distr):
         return MaxDistr(d1, d2)
+    elif isinstance(d1, Distr) and isinstance(d2, numbers.Real):
+        return MaxDistr(d1, ConstDistr(d2))
+    elif isinstance(d1, numbers.Real) and isinstance(d2, Distr):
+        return MaxDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
         raise NotImplemented()
     else:
         return _builtin_max(*args)
+    
+class ConstDistr(DiscreteDistr):
+    def __init__(self, c = 0.0):
+        super(ConstDistr, self).__init__([c], [1.0])
+        self.c = c
+    def rand_raw(self, n = None):
+        r = zeros(n)
+        r.fill(self.c)
+        return r
+    def __str__(self):
+        return str(self.c)
+    def getName(self):
+        return str(self.c)
+    
+class CondGtDistr(Distr):
+    def __init__(self, d, L=None):
+        self.L = L
+        self.d = d
+        super(CondGtDistr, self).__init__([d])
+    def init_piecewise_pdf(self):
+        Z = MaxDistr(ConstDistr(self.L), self.d)    
+        diracB = Z.get_piecewise_pdf().segments.pop(0)
+        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
+    def __str__(self):
+        return "{0} | {1}<x".format(self.d, self.L)
+    def getName(self):
+        return "{0} | {1}<x".format(self.d.getName(), self.L)
+    def rand_raw(self, n):
+        return self.rand_invcdf(n)
+
+class CondLtDistr(Distr):
+    def __init__(self, d, U=None):
+        self.U = U
+        self.d = d
+        super(CondLtDistr, self).__init__([d])
+    def init_piecewise_pdf(self):
+        Z = MinDistr(ConstDistr(self.U), self.d)    
+        diracB = Z.get_piecewise_pdf().segments.pop(-1)
+        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
+    def __str__(self):
+        return "{0} | x<{1}".format(self.d, self.U)
+    def getName(self):
+        return "{0} | x<{1}".format(self.d.getName(), self.U)
+    def rand_raw(self, n):
+        return self.rand_invcdf(n)
+    
+class Restriction(object):
+    pass
+class Gt(Restriction):
+    def __init__(self, L):
+        super(Gt, self).__init__()
+        self.L = L                
+class Lt(Restriction):
+    def __init__(self, U):
+        super(Gt, self).__init__()
+        self.U = U   
+class Between(Restriction):
+    def __init__(self, L, U):
+        super(Between, self).__init__()
+        self.L = L              
+        self.U = U              
+
+
 
 import pylab
 from pylab import plot, subplot, xlim, ylim, show, figure
