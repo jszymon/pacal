@@ -404,7 +404,15 @@ class ConstSegment(Segment):
         ind = where((x>=self.a) & (x<=self.b))
         y[ind] = self.const
         return y
-     
+    def integrate(self, a = None, b = None):
+        """definite integral over interval (c, d) \cub (a, b) """
+        if a==None or a<self.a :
+            a=self.a
+        if b==None or b>self.b:
+            b=self.b
+        return self.const*(b-a)
+    def f(self, x):
+        return self.const
 class MInfSegment(Segment):
     """Segment on the range [-inf, b)."""    
     def __init__(self, b, f):
@@ -897,7 +905,10 @@ class PiecewiseFunction(object):
             if segment is None :
                 return 0
             else:
-                return segment.f(x)
+                if segment.isDirac():
+                    return segment(x)
+                else:                              
+                    return segment.f(x)                
             return None
         else:
             # iterate over segments
@@ -1028,6 +1039,57 @@ class PiecewiseFunction(object):
         if not integralPFun.segments[0].isMInf():
             integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: 0.0 + 0.0*x))
         return integralPFun
+    def max_abs(self):
+        x1, m1 = self.maximum()
+        x2, m2 = self.minimum()
+        if abs(m1)<abs(m2):
+            return x2, m2
+        else:
+            return x1, m1
+    def maximum(self):
+        """Mode, using scipy's function fminbound, may be inaccurate """
+        if not have_Scipy_optimize:
+            print "Warning: scipy's fminbound not found"      
+            return None
+        m = 0
+        x = None
+        for seg in self.segments:
+            if not seg.isDirac() :    
+                if seg.hasLeftPole():
+                    xi = fminbound(lambda x: -seg(x) + 1e-14, seg.a, seg.b, xtol = 1e-16)
+                elif seg.hasRightPole() :
+                    xi = fminbound(lambda x: -seg(x), seg.a + 1e-14, seg.b, xtol = 1e-16)
+                else:
+                    xi = fminbound(lambda x: -seg(x), seg.a, seg.b, xtol = 1e-16)
+                mi = float(seg.f(xi))
+            else:
+                xi, mi = seg.a, seg.f
+            if m < mi:
+                m = mi
+                x = xi        
+        return x, m
+    def minimum(self):
+        """Mode, using scipy's function fminbound, may be inaccurate """
+        if not have_Scipy_optimize:
+            print "Warning: scipy's fminbound not found"      
+            return None
+        m = 0
+        x = None
+        for seg in self.segments:
+            if not seg.isDirac() :    
+                if seg.hasLeftPole():
+                    xi = fminbound(seg, seg.a, seg.b, xtol = 1e-16)
+                elif seg.hasRightPole() :
+                    xi = fminbound(seg, seg.a + 1e-14, seg.b, xtol = 1e-16)
+                else:
+                    xi = fminbound(seg, seg.a, seg.b, xtol = 1e-16)
+                mi = float(seg.f(xi))
+            else:
+                xi, mi = seg.a, seg.f
+            if m > mi:
+                m = mi
+                x = xi        
+        return x, m
     def __str__(self):   
         return ','.join(['({0})'.format(str(seg)) for seg in self.segments])
 
@@ -1046,7 +1108,10 @@ class PiecewiseFunction(object):
         for seg in self.segments:
             xi = seg.a
             try:
-                h1 = float(seg.f(xi+1e-10)) 
+                if seg.isDirac():
+                    h1 = seg.f
+                else:
+                    h1 = float(seg.f(xi+1e-10)) 
             except Exception, e:           
                 h1 = 0.0
                 h0 = 0.0
@@ -1055,7 +1120,7 @@ class PiecewiseFunction(object):
                      show_nodes = show_nodes,
                      show_segments = show_segments,
                      numberOfPoints = numberOfPoints, **args)
-            if (not seg.isMInf()) and (not seg.hasLeftPole()): 
+            if (not seg.isMInf()) and (not seg.hasLeftPole()) and (xmin is None or xmin<=xi) and (xmax is None or xi<=xmax): 
                 plot([xi,xi], [h0, h1], 'k--')
             try:
                 h0 = float(seg.f(seg.b-1e-10))
@@ -1066,7 +1131,7 @@ class PiecewiseFunction(object):
                 del args["label"]
         seg = self.segments[-1]
         xi = seg.b
-        if (not seg.isPInf()): 
+        if (not seg.isPInf()) and (xmin is None or xmin<=xi) and (xmax is None or xi<=xmax): 
             plot([xi,xi], [h0, 0], 'k--')
     def getPiecewiseSpace(self, 
              xmin = None,
@@ -1522,7 +1587,7 @@ class PiecewiseDistribution(PiecewiseFunction):
                 i, e = _segint(lambda x: x * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
             E += e
             I = I + i
-        if E>1.0e-0:
+        if E>1.0e-1:
             return NaN
         return I
     def median(self):
@@ -1557,7 +1622,28 @@ class PiecewiseDistribution(PiecewiseFunction):
         f2 = f1.splitByPoints([0.0])
         f3 = f2.copyAbsComposition()            
         return f3.median()
-
+    def mode(self):
+        """Mode, using scipy's function fminbound, may be inaccurate """
+        if not have_Scipy_optimize:
+            print "Warning: scipy's fminbound not found"      
+            return None
+        m = 0
+        x = None
+        for seg in self.segments:
+            if not seg.isDirac() :    
+                if seg.hasLeftPole():
+                    xi = fminbound(lambda x: -seg(x) + 1e-14, seg.a, seg.b, xtol = 1e-16)
+                elif seg.hasRightPole() :
+                    xi = fminbound(lambda x: -seg(x), seg.a + 1e-14, seg.b, xtol = 1e-16)
+                else:
+                    xi = fminbound(lambda x: -seg(x), seg.a, seg.b, xtol = 1e-16)
+                mi = float(seg.f(xi))
+            else:
+                xi, mi = seg.a, seg.f
+            if m < mi:
+                m = mi
+                x = xi        
+        return x
     def range(self):
         breaks = self.getBreaks()
         return (breaks[0], breaks[-1]) 
