@@ -8,7 +8,8 @@ from pylab import figure, title, show
 def Hill_estim_distr(d, n, xmin):
     """The distribution of Hill's estimator for given distribution d
     >= xmin and sample size n."""
-    d = CondGtDistr(d, xmin)
+    #d = CondGtDistr(d, xmin)
+    d = d | Gt(xmin)
     s = log(d / xmin)
     for i in xrange(n - 1):
         s += log(d / xmin)
