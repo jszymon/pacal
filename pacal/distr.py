@@ -20,9 +20,13 @@ import traceback
 import params
 from indeparith import conv, convprod, convdiv, convmin, convmax
 from segments import PiecewiseDistribution, DiracSegment, ConstSegment
+from pacal.depvars.rv import *
 
-class Distr(object):
-    def __init__(self, parents = [], indep = None):
+#class Distr(object):
+#    def __init__(self, parents = [], indep = None):
+class Distr(RV):
+    def __init__(self, parents = [], indep = False, sym = None):
+        super(Distr, self).__init__(parents, sym)
         # indep = True means the distribution is treated as
         # independent from all others.  For examples this results in
         # X+X != 2X.  This currently only affects random number
@@ -108,7 +112,10 @@ class Distr(object):
         raise NotImplemented()
     def get_piecewise_invcdf(self, use_interpolated=True):
         """return, inverse CDF function, as PiecewiseFunction object"""
-        invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated)
+        if use_interpolated:
+            invcdf  = self.get_piecewise_cdf_interp().invfun(use_interpolated=use_interpolated)
+        else:            
+            invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated)
         return invcdf
 
     def pdf(self,x):
@@ -397,7 +404,7 @@ class Distr(object):
         raise NotImplemented()
     def __or__(self, restriction):
         """Overload or: Conditional distribution """        
-        if isinstance(restriction, Restriction):
+        if isinstance(restriction, Condition):
             if isinstance(restriction, Lt):
                 return CondLtDistr(self, restriction.U)
             if isinstance(restriction, Gt):
@@ -767,10 +774,10 @@ def sqrt(d):
         return d ** 0.5
     return numpy.sqrt(d)
 
-class SumDistr(OpDistr):
+class SumDistr(SumRV, OpDistr):
     """Sum of distributions."""
     def __init__(self, d1, d2):
-        super(SumDistr, self).__init__([d1, d2])
+        super(SumDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -783,10 +790,10 @@ class SumDistr(OpDistr):
         return r1 + r2
     def init_piecewise_pdf(self):
         self.piecewise_pdf = conv(self.d1.get_piecewise_pdf(), self.d2.get_piecewise_pdf())
-class SubDistr(OpDistr):
+class SubDistr(SubRV, OpDistr):
     """Difference of distributions."""
     def __init__(self, d1, d2):
-        super(SubDistr, self).__init__([d1, d2])
+        super(SubDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -802,9 +809,9 @@ class SubDistr(OpDistr):
         self.piecewise_pdf = conv(self.d1.get_piecewise_pdf(),
                                   self.d2.get_piecewise_pdf().copyShiftedAndScaled(scale = -1))
 
-class MulDistr(OpDistr):
+class MulDistr(MulRV, OpDistr):
     def __init__(self, d1, d2):
-        super(MulDistr, self).__init__([d1, d2])
+        super(MulDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -821,9 +828,9 @@ class MulDistr(OpDistr):
         self.piecewise_pdf = convprod(self.d1.get_piecewise_pdf(),
                                       self.d2.get_piecewise_pdf())
     
-class DivDistr(OpDistr):
+class DivDistr(DivRV, OpDistr):
     def __init__(self, d1, d2):
-        super(DivDistr, self).__init__([d1, d2])
+        super(DivDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -905,8 +912,8 @@ def max(*args):
         return _builtin_max(*args)
     
 class ConstDistr(DiscreteDistr):
-    def __init__(self, c = 0.0):
-        super(ConstDistr, self).__init__([c], [1.0])
+    def __init__(self, c = 0.0, **kwargs):
+        super(ConstDistr, self).__init__([c], [1.0], **kwargs)
         self.c = c
     def rand_raw(self, n = None):
         r = zeros(n)
@@ -918,10 +925,10 @@ class ConstDistr(DiscreteDistr):
         return str(self.c)
     
 class CondGtDistr(Distr):
-    def __init__(self, d, L=None):
+    def __init__(self, d, L=None, **kwargs):
         self.L = L
         self.d = d
-        super(CondGtDistr, self).__init__([d])
+        super(CondGtDistr, self).__init__([d], **kwargs)
     def init_piecewise_pdf(self):
         Z = MaxDistr(ConstDistr(self.L), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(0)
@@ -934,10 +941,10 @@ class CondGtDistr(Distr):
         return self.rand_invcdf(n)
 
 class CondLtDistr(Distr):
-    def __init__(self, d, U=None):
+    def __init__(self, d, U=None, **kwargs):
         self.U = U
         self.d = d
-        super(CondLtDistr, self).__init__([d])
+        super(CondLtDistr, self).__init__([d], **kwargs)
     def init_piecewise_pdf(self):
         Z = MinDistr(ConstDistr(self.U), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(-1)
@@ -949,17 +956,17 @@ class CondLtDistr(Distr):
     def rand_raw(self, n):
         return self.rand_invcdf(n)
     
-class Restriction(object):
+class Condition(object):
     pass
-class Gt(Restriction):
+class Gt(Condition):
     def __init__(self, L):
         super(Gt, self).__init__()
         self.L = L                
-class Lt(Restriction):
+class Lt(Condition):
     def __init__(self, U):
         super(Gt, self).__init__()
         self.U = U   
-class Between(Restriction):
+class Between(Condition):
     def __init__(self, L, U):
         super(Between, self).__init__()
         self.L = L              
