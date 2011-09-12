@@ -96,15 +96,34 @@ def _lambda_average(n1, x1, n2, x2):
 def iid_average(X, n, all = False):
     return iid_op2(X, n, op = _lambda_average, all = all)
 
+def _lambda_average_geom(n1, x1, n2, x2):
+    n = float(n1 + n2)
+    return ((x1**n1) * (x2**n2))**(1.0/n)
+def iid_average_geom(X, n, all = False):
+    #return iid_op2(X, n, op = _lambda_average_geom, all = all)
+    return iid_prod(X, n)**(1.0/n)
+
+
 
 if __name__ == "__main__":
     from pacal import *
     from pylab import *
-    figure()
-    for i in xrange(1, 51, 5):
-        fun = iid_order_stat(BetaDistr(3, 2), 51, i)
-        fun.plot(xmin=0,xmax=1)
+#    X = UniformDistr(0.5, 1.5)
+#    Y = iid_average_geom(X, 10)
+#    Y.summary()
+#    Y.plot()
+#    show()
+#    0/0
+#    figure()
+    T = UniformDistr()+UniformDistr()
+    T.plot(linewidth=2.0)
+    n = 11
+    for k in xrange(0, n):
+        print k
+        fun = iid_order_stat(T, n, k+1)
+        fun.plot(xmin=0,xmax=2)
         fun.summary()
+    axis((0,2,0,3))
     figure()
     med = iid_median(BetaDistr(3, 2), 51)
     med.summary()
