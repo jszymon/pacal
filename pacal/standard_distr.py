@@ -21,9 +21,10 @@ class FunDistr(Distr):
     """General distribution defined as function with
     singularities at given breakPoints."""
     def __init__(self, fun, breakPoints = None, **kvargs):
-        super(FunDistr, self).__init__()
+        super(FunDistr, self).__init__(**kvargs)
         self.fun = fun
         self.breakPoints = breakPoints
+        kvargs.pop("sym")
         self.kvargs = kvargs
     def pdf(self, x):
         return self.fun(x)
@@ -37,7 +38,7 @@ class FunDistr(Distr):
 class PDistr(Distr):
     """General distribution defined as piecewise function."""
     def __init__(self, segs = None, **kvargs):
-        super(PDistr, self).__init__()
+        super(PDistr, self).__init__(**kvargs)
         self.segs = segs
         
     def init_piecewise_pdf(self):
@@ -79,8 +80,8 @@ class MixDistr(Distr):
     #    self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints)
 
 class NormalDistr(Distr):
-    def __init__(self, mu=0.0, sigma=1.0):
-        super(NormalDistr, self).__init__()
+    def __init__(self, mu=0.0, sigma=1.0, **kwargs):
+        super(NormalDistr, self).__init__(**kwargs)
         self.mu = mu
         self.sigma = sigma
         self.one_over_twosigma2 = 0.5 / (sigma * sigma)
@@ -105,8 +106,8 @@ class NormalDistr(Distr):
         return "N({0},{1})".format(self.mu, self.sigma)
     
 class UniformDistr(Distr):
-    def __init__(self, a = 0.0, b = 1.0):
-        super(UniformDistr, self).__init__()
+    def __init__(self, a = 0.0, b = 1.0, **kwargs):
+        super(UniformDistr, self).__init__(**kwargs)
         self.a = a
         self.b = b
         self.p = 1.0 / float(b-a)
@@ -121,8 +122,8 @@ class UniformDistr(Distr):
         return "U({0},{1})".format(self.a, self.b)
 
 class CauchyDistr(Distr):
-    def __init__(self, gamma = 1.0, center = 0.0):
-        super(CauchyDistr, self).__init__()
+    def __init__(self, gamma = 1.0, center = 0.0, **kwargs):
+        super(CauchyDistr, self).__init__(**kwargs)
         self.gamma = gamma
         self.center = center
     def pdf(self, x):
@@ -146,9 +147,9 @@ class CauchyDistr(Distr):
         return "Cauchy({0},{1})".format(self.center, self.gamma)    
 
 class ChiSquareDistr(Distr):
-    def __init__(self, df = 1):
+    def __init__(self, df = 1, **kwargs):
         assert df > 0
-        super(ChiSquareDistr, self).__init__()
+        super(ChiSquareDistr, self).__init__(**kwargs)
         self.df = df
         self.df2 = df / 2.0
         self.lg_norm = lgamma(self.df2) + self.df2 * log(2)
@@ -218,8 +219,8 @@ class ChiSquareDistr(Distr):
         return "Chi2({0})".format(self.df)
 
 class ExponentialDistr(Distr):
-    def __init__(self, lmbda = 1):
-        super(ExponentialDistr, self).__init__()
+    def __init__(self, lmbda = 1, **kwargs):
+        super(ExponentialDistr, self).__init__(**kwargs)
         self.lmbda = lmbda
     def pdf(self, x):
         if isscalar(x):
@@ -244,8 +245,8 @@ class ExponentialDistr(Distr):
         return "ExpD({0})".format(self.lmbda)
 
 class GammaDistr(Distr):
-    def __init__(self, k = 2, theta = 2):
-        super(GammaDistr, self).__init__()
+    def __init__(self, k = 2, theta = 2, **kwargs):
+        super(GammaDistr, self).__init__(**kwargs)
         assert k > 0
         assert theta > 0
         self.k = k
@@ -300,8 +301,8 @@ class GammaDistr(Distr):
         return "Gamma({0},{1})".format(self.k, self.theta)
 
 class BetaDistr(Distr):
-    def __init__(self, alpha = 1, beta = 1):
-        super(BetaDistr, self).__init__()
+    def __init__(self, alpha = 1, beta = 1, **kwargs):
+        super(BetaDistr, self).__init__(**kwargs)
         self.alpha = alpha
         self.beta = beta
         self.lg_norm = lgamma(self.alpha + self.beta) - lgamma(self.alpha) - lgamma(self.beta)
@@ -345,10 +346,10 @@ class BetaDistr(Distr):
         return "Beta({0},{1})".format(self.alpha, self.beta)
 
 class ParetoDistr(Distr):
-    def __init__(self, alpha = 1, xmin = 1):
+    def __init__(self, alpha = 1, xmin = 1, **kwargs):
         assert alpha > 0
         assert xmin > 0
-        super(ParetoDistr, self).__init__()
+        super(ParetoDistr, self).__init__(**kwargs)
         self.alpha = alpha
         self.xmin = xmin
         self.nrm = float(alpha * xmin ** alpha)
@@ -375,9 +376,9 @@ class ParetoDistr(Distr):
         return "Pareto({0},{1})".format(self.alpha, self.xmin)
 
 class LevyDistr(Distr):
-    def __init__(self, c = 1.0, xmin = 0.0):
+    def __init__(self, c = 1.0, xmin = 0.0, **kwargs):
         assert c > 0
-        super(LevyDistr, self).__init__()
+        super(LevyDistr, self).__init__(**kwargs)
         self.c = c
         self.xmin = xmin
         self.nrm = sqrt(c/(2*pi))
@@ -405,9 +406,9 @@ class LevyDistr(Distr):
         return "Levy({0},{1})".format(self.c, self.xmin)
 
 class LaplaceDistr(Distr):
-    def __init__(self, lmbda = 1.0, mu = 0.0):
+    def __init__(self, lmbda = 1.0, mu = 0.0, **kwargs):
         assert lmbda > 0
-        super(LaplaceDistr, self).__init__()
+        super(LaplaceDistr, self).__init__(**kwargs)
         self.lmbda = lmbda
         self.mu = mu
         self.nrm = 0.5 / self.lmbda
@@ -428,9 +429,9 @@ class LaplaceDistr(Distr):
         return "Laplace({0},{1})".format(self.lmbda, self.mu)
 
 class StudentTDistr(Distr):
-    def __init__(self, df = 2):
+    def __init__(self, df = 2, **kwargs):
         assert df > 0
-        super(StudentTDistr, self).__init__()
+        super(StudentTDistr, self).__init__(**kwargs)
         self.df = df
         self.lg_norm = lgamma(float(self.df + 1) / 2) - lgamma(float(self.df) / 2) - 0.5 * (log(self.df) + log(pi))
     def pdf(self, x):
@@ -451,9 +452,9 @@ class StudentTDistr(Distr):
         return "StudentT({0})".format(self.df)
 
 class SemicircleDistr(Distr):
-    def __init__(self, R = 1.0):
+    def __init__(self, R = 1.0, **kwargs):
         assert R > 0
-        super(SemicircleDistr, self).__init__()
+        super(SemicircleDistr, self).__init__(**kwargs)
         self.R = R
         self.norm = 2.0 / (pi * R * R)
     def pdf(self, x):
@@ -479,8 +480,8 @@ class SemicircleDistr(Distr):
         return "Semicircle({0})".format(self.R)
 
 class FDistr(Distr):
-    def __init__(self, df1 = 1, df2 = 1):
-        super(FDistr, self).__init__()
+    def __init__(self, df1 = 1, df2 = 1, **kwargs):
+        super(FDistr, self).__init__(**kwargs)
         self.df1 = float(df1)
         self.df2 = float(df2)
         self.lg_norm = self.df2 / 2 * log(self.df2) + lgamma((self.df1 + self.df2) / 2) - lgamma(self.df1 / 2) - lgamma(self.df2 / 2)
@@ -527,8 +528,8 @@ class FDistr(Distr):
         return "F({0},{1})".format(self.df1, self.df2)
 
 class WeibullDistr(Distr):
-    def __init__(self, k = 3, lmbda = 1):
-        super(WeibullDistr, self).__init__()
+    def __init__(self, k = 3, lmbda = 1, **kwargs):
+        super(WeibullDistr, self).__init__(**kwargs)
         assert k > 0
         assert lmbda > 0
         self.k = k
@@ -579,9 +580,9 @@ class WeibullDistr(Distr):
 
 
 class GumbelDistr(Distr):
-    def __init__(self, mu = 0, sigma = 1):
+    def __init__(self, mu = 0, sigma = 1, **kwargs):
         assert sigma > 0
-        super(GumbelDistr, self).__init__()
+        super(GumbelDistr, self).__init__(**kwargs)
         self.mu = mu
         self.sigma = sigma
         self.one_over_sigma = 1.0 / sigma
@@ -614,10 +615,10 @@ class GumbelDistr(Distr):
 
 
 class FrechetDistr(Distr):
-    def __init__(self, alpha = 2, s = 1, m = 0):
+    def __init__(self, alpha = 2, s = 1, m = 0, **kwargs):
         assert alpha > 0
         assert s > 0
-        super(FrechetDistr, self).__init__()
+        super(FrechetDistr, self).__init__(**kwargs)
         self.alpha = alpha
         self.s = float(s)
         self.m = m
@@ -653,6 +654,7 @@ class FrechetDistr(Distr):
     def getName(self):
         return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
 
+# ==============================================================
 class NoncentralTDistr(DivDistr):
     def __new__(cls, df = 2, mu = 0):
         d1 = NormalDistr(mu, 1)
@@ -692,16 +694,16 @@ class NoncentralChiSquareDistr(SumDistr):
 
 class ZeroDistr(ConstDistr):
     """One point distribution at point zero"""
-    def __init__(self):
-        super(ZeroDistr, self).__init__(c = 0.0)
+    def __init__(self, **kwargs):
+        super(ZeroDistr, self).__init__(c = 0.0, **kwargs)
 
 class OneDistr(ConstDistr):
     """One point distribution at point one"""
-    def __init__(self):
-        super(OneDistr, self).__init__(c = 1.0)
+    def __init__(self, **kwargs):
+        super(OneDistr, self).__init__(c = 1.0, **kwargs)
 
 class BinomialDistr(DiscreteDistr):
-    def __init__(self, n, p):
+    def __init__(self, n, p, **kwargs):
         self.n = n
         self.p = p
         self.q = 1-p
@@ -715,7 +717,7 @@ class BinomialDistr(DiscreteDistr):
             P *= pq
             xi.append(i+1)
             pi.append(P)
-        super(BinomialDistr, self).__init__(xi, pi)
+        super(BinomialDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
         return "Binomial({0}.{1})#{2}".format(self.n, self.p, id(self))
     def getName(self):

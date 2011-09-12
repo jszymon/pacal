@@ -347,6 +347,20 @@ def binomial_coeff(n, k):
         c = c / (i + 1)
     return c
 
+def multinomial_coeff(n, ki=[]):
+    assert sum(ki)==n, "incorrect values n, k {0}, {1}".format(n, ki)
+#    if k > n - k: # take advantage of symmetry
+#        k = n - k
+    ki = array(ki)
+    c = 1
+    j=0
+    for k in ki:
+        for i in xrange(k):
+            c = c * (n - j)
+            c = c / (i + 1)
+            j += 1
+    return c
+
 
 
 _debug_fig = None
@@ -390,6 +404,10 @@ def debug_plot(a, b, nodes, fs, coeffs):
 if __name__ == "__main__":
     from standard_distr import *
     from pylab import *
+    
+    print binomial_coeff(10, 7) 
+    print multinomial_coeff(10, [3, 3, 4]) 
+    0/0
     print estimateTailExponent(LevyDistr(), pos = True)
     L = LevyDistr()
     L.summary()
