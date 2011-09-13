@@ -4,7 +4,7 @@ import operator
 
 import pacal.distr
 from pacal.utils import binomial_coeff
-from pacal.standard_distr import PDistr
+from pacal.standard_distr import PDistr, FunDistr
 
 from pacal import params
 
@@ -46,12 +46,14 @@ def iid_min(X, n, all = False):
 def iid_max(X, n, all = False):
     return iid_op(X, n, op = pacal.distr.max, all = all)
 
-def iid_order_stat(X, n, k):
+def iid_order_stat(X, n, k, **kwargs):
     pdf = X.get_piecewise_pdf()
     cdf = X.get_piecewise_cdf()
     ccdf = 1 - X.get_piecewise_cdf()
     fun = (k * binomial_coeff(n, k)) * pdf * (pow(cdf, k-1) * pow(ccdf, n-k))
-    return PDistr(fun.toInterpolated())
+    #return PDistr(fun.toInterpolated())
+    return FunDistr(fun=fun.toInterpolated(), breakPoints=X.get_piecewise_pdf().getBreaks(), **kwargs)
+
 def iid_median(X, n):
     return iid_order_stat(X, n, n // 2)
 
