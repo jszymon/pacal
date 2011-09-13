@@ -24,7 +24,8 @@ class FunDistr(Distr):
         super(FunDistr, self).__init__(**kvargs)
         self.fun = fun
         self.breakPoints = breakPoints
-        kvargs.pop("sym")
+        if kvargs.has_key("sym"):
+            kvargs.pop("sym")
         self.kvargs = kvargs
     def pdf(self, x):
         return self.fun(x)
