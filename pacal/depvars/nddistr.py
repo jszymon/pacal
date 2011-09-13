@@ -107,7 +107,8 @@ class IJthOrderStatsNDDistr(NDDistr):
         #print  self.F(x)**(i-1.0) 
         #print  (self.F(y) - self.F(x))**(j-i-1)
         #print  (1.0-self.F(y))**(n-j)
-        return mask * multinomial_coeff(n, [i-1,1, j-i-1,1, n-j]) * self.F(x)**(i-1.0) * (self.F(y) - self.F(x))**(j-i-1) * (1.0-self.F(y))**(n-j)
+        return mask * multinomial_coeff(n, [i-1,1, j-i-1,1, n-j]) * self.F(x)**(i-1.0) * (self.F(y) - self.F(x))**(j-i-1) * (1.0-self.F(y))**(n-j) * self.f(x) *self.f(y)
+        
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -206,7 +207,7 @@ if __name__ == "__main__":
     #from pacal.depvars.copulas import *
     #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
     
-    d = IJthOrderStatsNDDistr(UniformDistr(), 10, 3, 7)
+    d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
     print d.symVars
     plot_2d_distr(d)
     show()
