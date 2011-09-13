@@ -571,7 +571,7 @@ if __name__ == "__main__":
 #        funi.get_piecewise_cdf().plot(color="r")
 #        funi.summary()
     print "==============="
-    cij = IJthOrderStatsNDDistr(X, 20, 1, 20)
+    cij = IJthOrderStatsNDDistr(X, 3, 1, 3)
     X1, X2 = cij.Vars
     
     V=X2-X1
@@ -583,7 +583,9 @@ if __name__ == "__main__":
     X1.summary()
     X2.plot(color="g")
     X2.summary()
-    funR.plot()
+    V.plot(color="b")
+    funR.plot(color="k")
+    V.summary()
     show()
     0/0
         

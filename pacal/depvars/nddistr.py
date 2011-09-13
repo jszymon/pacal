@@ -8,7 +8,7 @@ import numbers
 from pylab import *
 from pacal.segments import PiecewiseFunction
 from pacal.stats.iid_ops import iid_order_stat 
-from trunk.pacal.utils import multinomial_coeff
+from pacal.utils import multinomial_coeff
 from pacal.integration import *
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
