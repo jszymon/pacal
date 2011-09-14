@@ -522,7 +522,6 @@ class SubRV(OpRV):
     def __init__(self, d1, d2):
         super(SubRV, self).__init__([d1, d2], sym = d1.getSymname() - d2.getSymname())
         breaks = unique(subtract.outer(d1.range(), d2.range()))
-        print breaks
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
