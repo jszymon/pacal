@@ -228,7 +228,7 @@ class TwoVarsModel(Model):
         self.d = d
         self.vars = []
         self.symvars = []
-        for var in self.free_rvs:
+        for var in nddistr.Vars: #self.free_rvs:
             self.vars.append(var)
             self.symvars.append(var.getSymname()) 
         print "=====", self.vars
@@ -242,7 +242,6 @@ class TwoVarsModel(Model):
         x = self.symvars[0]
         y = self.symvars[1]
         z = sympy.Symbol("z")
-        print self.symop
         self.fun_alongx = sympy.solve(self.symop - z, y)[0]
         self.fun_alongy = sympy.solve(self.symop - z, x)[0]
         
@@ -250,7 +249,7 @@ class TwoVarsModel(Model):
         self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy)
         self.Jx = 1 * sympy.diff(self.fun_alongx, z)
         print "Jx=", self.Jx
-        print self.fun_alongx
+        print "fun_alongx=",self.fun_alongx
         self.Jy = 1 * sympy.diff(self.fun_alongy, z)
         self.lJx = sympy.lambdify([x, z], self.Jx)
         self.lJy = sympy.lambdify([y, z], self.Jy)
@@ -521,8 +520,8 @@ if __name__ == "__main__":
     Y = BetaDistr(2, 3, sym="Y")
     Z = BetaDistr(2, 3, sym="Z")
     
-    X = UniformDistr(0, 1, sym="x1")
-    Y = UniformDistr(0, 2, sym="x2")
+    #X = UniformDistr(0, 1, sym="x1")
+    #Y = UniformDistr(0, 2, sym="x2")
     
 #    # ==== probability boxex ===============================
 #    cw = WCopula(marginals=[X, Y])
@@ -573,19 +572,33 @@ if __name__ == "__main__":
     print "==============="
     cij = IJthOrderStatsNDDistr(X, 3, 1, 3)
     X1, X2 = cij.Vars
-    
-    V=X2-X1
-    print "p=", V.parents[1].getSym()
-    mR = TwoVarsModel(cij ,V)
-    funR = mR.varchange_and_eliminate()
-    funR.summary()
+    cc = ClaytonCopula(marginals=[X1, X2], theta=1.0/10.0)
+    cc.plot()
+    plot_2d_distr(cij)
+    figure()
+
     X1.plot(color="r")
     X1.summary()
     X2.plot(color="g")
     X2.summary()
-    V.plot(color="b")
+    
+    V=X2-X1
+    
+    print "p=", V.parents[1].getSym()
+    mR = TwoVarsModel(cij, V)
+    funR = mR.varchange_and_eliminate()
+    funR.summary()
     funR.plot(color="k")
-    V.summary()
+    
+    mC = TwoVarsModel(cc,V)
+    funC = mC.varchange_and_eliminate()
+    funC.summary()
+    funC.plot(color="m")
+    
+    K = abs(V)
+    K.plot(color="b")
+    K.summary()
+    
     show()
     0/0
         
@@ -595,6 +608,4 @@ if __name__ == "__main__":
     0/0 
     
     # ====================================================
-
-
 
