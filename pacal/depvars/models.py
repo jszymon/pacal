@@ -7,7 +7,7 @@ import sys
 import time
 import sympy
 import traceback
-from numpy import size
+from numpy import size, isnan
 from pylab import *
 import pacal
 
@@ -374,26 +374,31 @@ class TwoVarsModel(Model):
         k = 0;
         for xi in bf:
             for yi in bg:
-                bi[k] = lop(xi, yi)
+                if not isnan(lop(xi, yi)):
+                    bi[k] = lop(xi, yi)
+                else:
+                    print "not a number, xi=", xi, "yi=", yi, "result=", lop(xi,yi)
                 k += 1
         ub = array(unique(bi))
+        
         fun = lambda x : self.convmodelx(segList, x)            
         fg = PiecewiseDistribution([]);
         
-        #if isinf(ub[0]):
-        #    segList = _findSegList(f, g, ub[1] -1, lop)
-        #    seg = MInfSegment(ub[1], fun)
-        #    segint = seg.toInterpolatedSegment()
-        #    fg.addSegment(segint)
-        #    ub=ub[1:]
-        #if isinf(ub[-1]):
-        #    segList = _findSegList(f, g, ub[-2] + 1, lop)
-        #    seg = PInfSegment(ub[-2], fun)
-        #    segint = seg.toInterpolatedSegment()
-        #    fg.addSegment(segint)
-        #    ub=ub[0:-1]
-        #print "f=", f
-        #print "g=", g
+        if isinf(ub[0]):
+            segList = _findSegList(f, g, ub[1] -1, lop)
+            seg = MInfSegment(ub[1], fun)
+            segint = seg.toInterpolatedSegment()
+            fg.addSegment(segint)
+            ub=ub[1:]
+        if isinf(ub[-1]):
+            segList = _findSegList(f, g, ub[-2] + 1, lop)
+            seg = PInfSegment(ub[-2], fun)
+            segint = seg.toInterpolatedSegment()
+            fg.addSegment(segint)
+            ub=ub[0:-1]
+        print "f=", f
+        print "g=", g
+        print "=======", ub
         for i in range(len(ub) - 1) :
             segList = _findSegList(f, g, (ub[i] + ub[i + 1]) / 2, lop)
             seg = Segment(ub[i], ub[i + 1], partial(self.convmodelx, segList))
@@ -447,7 +452,9 @@ class TwoVarsModel(Model):
             for segi, segj in segList:
                 if segi.isSegment() and segj.isSegment():
                     L, U = self.getUL(segi.a, segi.b, segj.a, segj.b, zj)
-                    #tt = linspace(L, U, 100) 
+                    L, U  = sort([U, L])
+                    X = NormalDistr(0,1, sym="X")
+    #tt = linspace(L, U, 100) 
                     ##print self.fun_alongx
                     #y =  self.lfun_alongx(tt,zj)
                     #plot(tt, y, "k", linewidth=2.0)
@@ -516,9 +523,12 @@ if __name__ == "__main__":
     #Y = UniformDistr(1.5, 2.5, sym=sympy.Symbol("Y"))
     #X = UniformDistr(0.5, 1.5, sym=sympy.Symbol("X"))
     #Z = BetaDistr(1.5,1.5, sym = sympy.Symbol("Z"))
-    X = BetaDistr(2, 2, sym="X")
-    Y = BetaDistr(2, 3, sym="Y")
+    X = NormalDistr(0,1, sym="X")
+    Y = NormalDistr(2, 3, sym="Y")
     Z = BetaDistr(2, 3, sym="Z")
+    
+    X = NormalDistr(sym="X")
+    Y = ExponentialDistr(sym="Y")
     
     #X = UniformDistr(0, 1, sym="x1")
     #Y = UniformDistr(0, 2, sym="x2")
@@ -569,11 +579,19 @@ if __name__ == "__main__":
 #        funi = Mi.varchange_and_eliminate()
 #        funi.get_piecewise_cdf().plot(color="r")
 #        funi.summary()
-    print "==============="
-    cij = IJthOrderStatsNDDistr(X, 3, 1, 3)
+#    print "==============="
+#    V= X-Y
+#    cp = PiCopula(marginals=[X, Y])
+#    m = TwoVarsModel(cp, V)
+#    fun = m.varchange_and_eliminate()
+#    fun.summary()
+#    fun.plot()
+#    show()
+#    0/0
+    
+    
+    cij = IJthOrderStatsNDDistr(X, 8, 2, 7)
     X1, X2 = cij.Vars
-    cc = ClaytonCopula(marginals=[X1, X2], theta=1.0/10.0)
-    cc.plot()
     plot_2d_distr(cij)
     figure()
 
@@ -590,12 +608,14 @@ if __name__ == "__main__":
     funR.summary()
     funR.plot(color="k")
     
-    mC = TwoVarsModel(cc,V)
-    funC = mC.varchange_and_eliminate()
-    funC.summary()
-    funC.plot(color="m")
+#    cc = ClaytonCopula(marginals=[X1, X2], theta=1.0/10.0)
+#    cc.plot()
+#    mC = TwoVarsModel(cc,V)
+#    funC = mC.varchange_and_eliminate()
+#    funC.summary()
+#    funC.plot(color="m")
     
-    K = abs(V)
+    K = V
     K.plot(color="b")
     K.summary()
     

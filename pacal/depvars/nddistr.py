@@ -12,11 +12,14 @@ from pacal.utils import multinomial_coeff
 from pacal.integration import *
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-def getRanges(vars):
+def getRanges(vars, ci=None):
     a = zeros_like(vars)
     b = zeros_like(vars)
     for i in range(len(vars)):
-        a[i], b[i] = vars[i].range()
+        if ci is None:
+            a[i], b[i] = vars[i].range()
+        else:
+            a[i], b[i] = vars[i].ci(ci)
     return a, b
 
 class NDFun(object):
@@ -164,7 +167,8 @@ def plot_2d_distr(f, theoretical=None):
     #    ax = fig.add_subplot(111)
     #    have_3d = False
     have_3d = True
-    a, b = f.a, f.b
+    #a, b = f.a, f.b
+    a, b = getRanges(f.Vars, ci=0.01)
     print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
