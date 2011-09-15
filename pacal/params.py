@@ -32,6 +32,9 @@ class params_class(object):
 
 class general(params_class):
     warn_on_dependent = True
+    class distr(params_class):
+        independent = True
+        
 
 class pole_detection(params_class):
     max_pole_exponent = -1e-2 # exponents above this value are treated as poles
@@ -62,6 +65,9 @@ class interpolation(params_class):
     maxn = 100
     debug_info = False
     debug_plot = False
+    use_cheb_2nd = True     # always use interpolator based on  
+                            # chebyshev nodes of 2st kind (faster and accurate on ends of intervals)
+                            # instead use interpolator based on nodes of 1st kind (without ends of intervals)   
     class convergence(convergence):
         abstol = 4 * finfo(double).eps
         reltol = 4 * finfo(double).eps
@@ -102,7 +108,7 @@ class integration_infinite(integration):
 class integration_asymp(integration):
     maxn = 1000
 class integration_pole(integration):
-    exponent = 8
+    exponent = 6
     maxn = 1000
 
 

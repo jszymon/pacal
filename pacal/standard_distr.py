@@ -30,7 +30,7 @@ class FunDistr(Distr):
     def pdf(self, x):
         return self.fun(x)
     def getName(self):
-        return "USER_FUN({0},{1})".format(self.breakPoints[0], self.breakPoints[-1])
+        return "FUN({0},{1})".format(self.breakPoints[0], self.breakPoints[-1])
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints, **self.kvargs)
     def rand_raw(self, n = 1):
@@ -40,8 +40,7 @@ class PDistr(Distr):
     """General distribution defined as piecewise function."""
     def __init__(self, segs = None, **kvargs):
         super(PDistr, self).__init__(**kvargs)
-        self.segs = segs
-        
+        self.segs = segs      
     def init_piecewise_pdf(self):
         if isinstance(self.segs, PiecewiseFunction):
             self.piecewise_pdf = self.segs
@@ -50,7 +49,7 @@ class PDistr(Distr):
             for seg in self.segs:
                 self.piecewise_pdf.addSegment(seg)
     def getName(self):
-        return "USER_PDISTR({0})".format(self.get_piecewise_pdf())
+        return "PDISTR({0})".format(self.get_piecewise_pdf())
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
 

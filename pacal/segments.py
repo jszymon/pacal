@@ -90,8 +90,10 @@ class Segment(object):
             iseg = InterpolatedSegment(self.a, self.b, ChebyshevInterpolatorNoL(self.f, self.a, self.b, par = params.interpolation_finite))
         elif NoR:
             iseg = InterpolatedSegment(self.a, self.b, ChebyshevInterpolatorNoR(self.f, self.a, self.b, par = params.interpolation_finite))
-        else:
+        elif params.interpolation.use_cheb_2nd:
             iseg = InterpolatedSegment(self.a, self.b, ChebyshevInterpolator(self.f, self.a, self.b, par = params.interpolation_finite))
+        else:
+            iseg = InterpolatedSegment(self.a, self.b, ChebyshevInterpolator1(self.f, self.a, self.b, par = params.interpolation_finite))
         return iseg
 
     def findLeftpoint(self):
@@ -934,7 +936,7 @@ class PiecewiseFunction(object):
             if not (seg>segment or segment>seg):
                 if segment.isDirac():
                     segment = DiracSegment(seg.a, segment.f)
-                assert seg>segment or segment>seg, "{} {} {} {}".format(self.segments, seg, segment, seg.a - segment.a)
+                assert seg>segment or segment>seg, "{}=={}=={}=={}=={}".format(self.segments, seg, segment, seg.a, segment.a)
         bisect.insort(self.segments, segment)
         self.breaks = unique(append(self.breaks, [segment.a, segment.b]))
     def findSegment(self, x):
@@ -1868,7 +1870,6 @@ if __name__ == "__main__":
     segf7 = ConstSegment(-2.0, -0.0, 1.0/3.0)
     segf8 = ConstSegment(0.0, 1.0, 3.0/3.0)
     segf9 = ConstSegment(2.0, 3.0, 1.0/2.0)
-    from testPiecewise import chisqr
     #seglog = SegmentWithPole(0, 0.5, lambda x: log(x)**4, pole = 0.0)
     #seglog2 = Segment(0.5, 1, lambda x: log(x)**4)
     seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.5/x**0.5) 
