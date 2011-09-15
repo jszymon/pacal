@@ -83,8 +83,8 @@ class IJthOrderStatsNDDistr(NDDistr):
     for sample size of n, 1<=i<j<=n, see springer's book p. 347 
     """
     def __init__(self, f, n, i, j):
-        print n,i,j,(1<=i and i<j and j<=n)
-        assert (1<=i and i<j and j<=n), "incorrect values 1<=i<j<=n" 
+        print n, i, j, (1 <= i and i < j and j <= n)
+        assert (1 <= i and i < j and j <= n), "incorrect values 1<=i<j<=n" 
         self.f = f.get_piecewise_pdf()
         self.F = f.get_piecewise_cdf().toInterpolated()
         self.S = (1.0 - self.F).toInterpolated()
@@ -95,22 +95,15 @@ class IJthOrderStatsNDDistr(NDDistr):
         self.i = i
         self.j = j 
         self.n = n
-        
-        a, b = getRanges([f ,f])
+        a, b = getRanges([f, f])
         self.a = a
         self.b = b
     def pdf(self, *X):
-        assert len(X)==2, "this is 2d distribution"
+        assert len(X) == 2, "this is 2d distribution"
         x, y = X
         i, j, n = self.i, self.j, self.n
-        mask  = x<y
-        #print "===========", n, i, j
-        #print mask  
-        #print multinomial_coeff(n, [i-1,1, j-i-1,1, n-j]) 
-        #print  self.F(x)**(i-1.0) 
-        #print  (self.F(y) - self.F(x))**(j-i-1)
-        #print  (1.0-self.F(y))**(n-j)
-        return mask * multinomial_coeff(n, [i-1,1, j-i-1,1, n-j]) * self.F(x)**(i-1.0) * (self.F(y) - self.F(x))**(j-i-1) * (1.0-self.F(y))**(n-j) * self.f(x) *self.f(y)
+        mask = x < y
+        return mask * multinomial_coeff(n, [i - 1, 1, j - i - 1, 1, n - j]) * self.F(x) ** (i - 1.0) * (self.F(y) - self.F(x)) ** (j - i - 1) * (1.0 - self.F(y)) ** (n - j) * self.f(x) * self.f(y)
         
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
