@@ -4,7 +4,8 @@ import operator
 
 import pacal.distr
 from pacal.utils import binomial_coeff
-from pacal.standard_distr import PDistr, FunDistr
+from pacal.standard_distr import PDistr, FunDistr, ZeroDistr
+from pacal.segments import PiecewiseFunction
 
 from pacal import params
 
@@ -47,12 +48,21 @@ def iid_max(X, n, all = False):
     return iid_op(X, n, op = pacal.distr.max, all = all)
 
 def iid_order_stat(X, n, k, **kwargs):
+    """It gives distribution of $k$-th observation in ordered sample size of n"""
     pdf = X.get_piecewise_pdf()
     cdf = X.get_piecewise_cdf()
     ccdf = 1 - X.get_piecewise_cdf()
     fun = (k * binomial_coeff(n, k)) * pdf * (pow(cdf, k-1) * pow(ccdf, n-k))
     #return PDistr(fun.toInterpolated())
     return FunDistr(fun=fun.toInterpolated(), breakPoints=X.get_piecewise_pdf().getBreaks(), **kwargs)
+def iid_unknown(X, n, k, **kwargs):
+    """It gives distribution of sample _unknown on level k based on sample size of n"""
+    fun = PiecewiseFunction([])
+    for i in xrange(k,n+1):#range(k):
+        fun += iid_order_stat(X, n , i).get_piecewise_pdf()
+    fun2=(1.0/(1.0+n-k))* fun 
+    return FunDistr(fun=fun2.toInterpolated(), breakPoints=X.get_piecewise_pdf().getBreaks(), **kwargs)
+
 
 def iid_median(X, n):
     return iid_order_stat(X, n, n // 2)
@@ -121,11 +131,17 @@ if __name__ == "__main__":
     T.plot(linewidth=2.0)
     n = 11
     for k in xrange(0, n):
-        print k
-        fun = iid_order_stat(T, n, k+1)
-        fun.plot(xmin=0,xmax=2)
+        T = UniformDistr()+UniformDistr()
+        print "k=", k+1, "n=", n
+        fun2 = iid_order_stat(T, n, k+1)
+        fun = iid_quantile(T, n, k+1)
+        fun2.plot(xmin=0,xmax=2,color="c", linewidth=4.0)
+        fun.plot(xmin=0,xmax=2,color="k", linewidth=2.0, linestyle="-")
         fun.summary()
+    T.plot(linewidth=2.0)
+    
     axis((0,2,0,3))
+    
     figure()
     med = iid_median(BetaDistr(3, 2), 51)
     med.summary()
