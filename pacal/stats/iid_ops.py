@@ -48,20 +48,20 @@ def iid_max(X, n, all = False):
     return iid_op(X, n, op = pacal.distr.max, all = all)
 
 def iid_order_stat(X, n, k, **kwargs):
-    """It gives distribution of $k$-th observation in ordered sample size of n"""
+    """It gives distribution of $k$-th observation in ordered sample size of n."""
     pdf = X.get_piecewise_pdf()
     cdf = X.get_piecewise_cdf()
     ccdf = 1 - X.get_piecewise_cdf()
     fun = (k * binomial_coeff(n, k)) * pdf * (pow(cdf, k-1) * pow(ccdf, n-k))
     #return PDistr(fun.toInterpolated())
-    return FunDistr(fun=fun.toInterpolated(), breakPoints=X.get_piecewise_pdf().getBreaks(), **kwargs)
+    return FunDistr(fun = fun.toInterpolated(), breakPoints = X.get_piecewise_pdf().getBreaks(), **kwargs)
 def iid_unknown(X, n, k, **kwargs):
-    """It gives distribution of sample _unknown on level k based on sample size of n"""
+    """It gives distribution of sample _unknown on level k based on sample size of n."""
     fun = PiecewiseFunction([])
-    for i in xrange(k,n+1):#range(k):
-        fun += iid_order_stat(X, n , i).get_piecewise_pdf()
-    fun2=(1.0/(1.0+n-k))* fun 
-    return FunDistr(fun=fun2.toInterpolated(), breakPoints=X.get_piecewise_pdf().getBreaks(), **kwargs)
+    for i in xrange(k, n+1):
+        fun += iid_order_stat(X, n, i).get_piecewise_pdf()
+    fun2 = (1.0 / (1+n-k)) * fun
+    return FunDistr(fun = fun2.toInterpolated(), breakPoints = X.get_piecewise_pdf().getBreaks(), **kwargs)
 
 
 def iid_median(X, n):
@@ -108,11 +108,13 @@ def _lambda_average(n1, x1, n2, x2):
 def iid_average(X, n, all = False):
     return iid_op2(X, n, op = _lambda_average, all = all)
 
-def _lambda_average_geom(n1, x1, n2, x2):
-    n = float(n1 + n2)
-    return ((x1**n1) * (x2**n2))**(1.0/n)
+#def _lambda_average_geom(n1, x1, n2, x2):
+#    n = float(n1 + n2)
+#    return ((x1**n1) * (x2**n2))**(1.0/n)
 def iid_average_geom(X, n, all = False):
     #return iid_op2(X, n, op = _lambda_average_geom, all = all)
+    if all:
+        return [x**(1.0/n) for x in iid_prod(X, n, all=True)]
     return iid_prod(X, n)**(1.0/n)
 
 

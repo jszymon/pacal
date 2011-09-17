@@ -39,7 +39,7 @@ from distr import Gt
 from distr import Lt
 from distr import Between
 
-from stats.iid_ops import iid_sum, iid_prod, iid_max, iid_min, iid_average
+from stats.iid_ops import iid_sum, iid_prod, iid_max, iid_min, iid_average, iid_average_geom
 from stats.iid_ops import iid_order_stat, iid_median
 
 from stats.distr_est import LoglikelihoodEstimator
