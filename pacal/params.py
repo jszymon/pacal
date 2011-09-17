@@ -66,8 +66,9 @@ class interpolation(params_class):
     debug_info = False
     debug_plot = False
     use_cheb_2nd = True     # always use interpolator based on  
-                            # chebyshev nodes of 2st kind (faster and accurate on ends of intervals)
-                            # instead use interpolator based on nodes of 1st kind (without ends of intervals)   
+                            # chebyshev nodes of 2nd kind (faster and accurate at ends of intervals)
+                            # if False use interpolator based on nodes
+                            # of 1st kind (no nodes at ends of intervals)
     class convergence(convergence):
         abstol = 4 * finfo(double).eps
         reltol = 4 * finfo(double).eps
@@ -108,7 +109,7 @@ class integration_infinite(integration):
 class integration_asymp(integration):
     maxn = 1000
 class integration_pole(integration):
-    exponent = 6
+    exponent = 8
     maxn = 1000
 
 
