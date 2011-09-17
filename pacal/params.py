@@ -99,6 +99,9 @@ class interpolation_asymp(interpolation):
 class interpolation_pole(interpolation):
     maxn = 200
 
+class interpolation_nd(interpolation):
+    maxn = 6
+
 # integration in arithmetic operations for target value in
 # finite/infinite/asymptotic/pole segments
 class integration_finite(integration):
