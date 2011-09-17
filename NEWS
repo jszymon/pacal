@@ -1,0 +1,7 @@
+New in version 1.0
+
+* order statistics
+* noncentral Chi^2 and T distributions
+* better accuracy of Beta distribution
+* special routines for opeartions on i.i.d. random variables
+* warning on dependent arguments

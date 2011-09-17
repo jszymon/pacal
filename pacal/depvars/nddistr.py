@@ -159,7 +159,7 @@ def plot_2d_distr(f, theoretical=None):
     #except:
     #    ax = fig.add_subplot(111)
     #    have_3d = False
-    have_3d = True
+    have_3d = False
     #a, b = f.a, f.b
     a, b = getRanges(f.Vars, ci=0.01)
     print "a, b = ", a, b
