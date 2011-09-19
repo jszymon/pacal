@@ -73,12 +73,15 @@ def _int_exp2(x, n, op = operator.mul):
 
     Extended operator arguments."""
     res = None
-    for i, b in enumerate(bin(n)[2:]):
+    i = 1
+    for b in bin(n)[2:]:
         if res is not None:
             res = op(i, res, i, res)
+            i = i + i
         if b == "1":
             if res is not None:
                 res = op(i, res, 1, x)
+                i = i + 1
             else:
                 res = x
     return res
@@ -102,11 +105,19 @@ def iid_op2(X, n, op, all = False):
         y = _int_exp2(X, n, op)
     params.general.warn_on_dependent = old_warn
     return y
-def _lambda_average(n1, x1, n2, x2):
-    n = float(n1 + n2)
-    return (n1 * x1 + n2 * x2) / n
+#def _lambda_average(n1, x1, n2, x2):
+#    n = float(n1 + n2)
+#    return float(n1)/n * x1 + float(n2)/n * x2
+#def iid_average(X, n, all = False):
+#    return iid_op2(X, n, op = _lambda_average, all = all)
 def iid_average(X, n, all = False):
-    return iid_op2(X, n, op = _lambda_average, all = all)
+    A = iid_sum(X, n, all = all)
+    if all:
+        for i, a in enumerate(A):
+            A[i] = a / (i + 1)
+    else:
+        A /= n
+    return A
 
 #def _lambda_average_geom(n1, x1, n2, x2):
 #    n = float(n1 + n2)
