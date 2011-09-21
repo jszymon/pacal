@@ -17,7 +17,7 @@ from pacal.segments import PiecewiseDistribution#, _segint
 from pacal.depvars.copulas import GumbelCopula, GumbelCopula2d, ClaytonCopula, FrankCopula2d, FrankCopula
 from pacal.depvars.copulas import PiCopula, WCopula, MCopula
 
-from pacal.depvars.nddistr import NDFun
+from pacal.depvars.nddistr import NDFun, NDConstFactor
 from pacal.depvars.nddistr import plot_2d_distr
 
 class Model(object):
@@ -53,6 +53,8 @@ class Model(object):
         if isinstance(var, basestring):
             var = self.sym_to_rv[sympy.Symbol(var)]
         elif isinstance(var, sympy.Symbol):
+            print ">>>>", var
+            print self.sym_to_rv
             var = self.sym_to_rv[var]
         return var
     def varschange(self, free_var, dep_var):

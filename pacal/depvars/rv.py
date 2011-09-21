@@ -7,7 +7,7 @@ import numpy
 from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
 from numpy import sqrt, pi, arctan, tan, asfarray
 from numpy.random import uniform
-from numpy import minimum, maximum, add, subtract, divide, prod
+from numpy import minimum, maximum, add, subtract, divide, prod, multiply
 
 from numpy.lib.function_base import histogram
 from numpy import hstack

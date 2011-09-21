@@ -16,7 +16,7 @@ from pacal.standard_distr import *
 from pacal.utils import epsunique, bisect
 
 from pacal.indeparith import _findSegList, convdiracs
-from pacal.integration import integrate_fejer2
+from pacal.integration import integrate_fejer2, integrate_iter
 
 from pacal.depvars.nddistr import NDDistr, NDFun
 #import pylab
