@@ -269,6 +269,19 @@ def integrate_wide_interval2(f, a, b, *args, **kwargs):
     i = i1 + i2
     e = e1 + e2
     return i, e
+
+def integrate_iter(f, a1, b1, a2, b2):
+    def fun1(y):
+        if isscalar(y):
+            z = integrate_fejer2(lambda x : f(x, y), a1, b1)
+        else:
+            z = zeros_like(y)
+            for i in range(len(y)):
+                z[i], err = integrate_fejer2(lambda x : f(x, y[i]), a1, b1)
+        return z
+    cheb  = ChebyshevInterpolator1(fun1, a2,b2) 
+    return integrate_fejer2(cheb, a2, b2)
+
 def integrate_with_pminf_guess(f, a, b, *args, **kwargs):
     """Automatically guess if pinf or minf transformation should be used."""
     ya = f(array([a]))
