@@ -260,7 +260,10 @@ class Segment(object):
             return y
         def ginvderiv(x):
             if isscalar(x):
-                y = 1/x**2
+                if x != 0:
+                    y = 1 / x**2
+                else:
+                    y = Inf # TODO: put nan here          
             else:
                 mask = (x != 0.0)
                 y = zeros_like(asfarray(x))
@@ -1592,6 +1595,27 @@ class PiecewiseDistribution(PiecewiseFunction):
         if E>1.0e-1:
             return NaN
         return I
+    def meanf(self, f=None):
+        """it gives mean value of f(X) (i.e. E(f(X))) 
+        """
+        if f is None:
+            def f(x):
+                return x
+        I = 0.0 
+        E = 0.0
+        for seg in self.segments:
+            if seg.isDirac():
+                i, e = seg.f*seg.a, 0
+            else:
+                i, e = _segint(lambda x: nan_to_num(f(x)) * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
+            E += e
+
+            I = I + i
+            #print "ie=", i, e, f(seg.a), seg(seg.a)
+        if E>1.0e-1:
+            return NaN
+        return I
+    
     def median(self):
         cpf = self.cumint()
         return cpf.inverse(0.5)

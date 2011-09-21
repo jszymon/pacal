@@ -18,8 +18,8 @@ from pylab import bar
 import traceback
 
 import params
-from indeparith import conv, convprod, convdiv, convmin, convmax
-from segments import PiecewiseDistribution, DiracSegment, ConstSegment
+from pacal.indeparith import conv, convprod, convdiv, convmin, convmax
+from pacal.segments import PiecewiseFunction, PiecewiseDistribution, DiracSegment, ConstSegment
 from pacal.depvars.rv import *
 
 #class Distr(object):
@@ -147,6 +147,32 @@ class Distr(RV):
     def mean(self):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().mean()
+    def meanf(self, f):
+        """Mean value of f(X)"""
+        return self.get_piecewise_pdf().meanf(f=f)
+    def moment(self, k, c=None):
+        """Moment about c of k-th order of distribution. """
+        if c == None:
+            c=self.mean()
+        def f(x, c=c, k=k):
+            return (x-c)**k
+        return self.get_piecewise_pdf().meanf(f=f)
+    def skewness(self):
+        return self.moment(3,self.mean())/self.var()**3
+    def kurtosis(self):
+        return self.moment(4,self.mean())/self.var()**4
+ 
+    def mgf(self):      
+        def fun(t):
+            if isscalar(t):
+                return self.meanf(f=lambda x: exp(t*x)) 
+            else:
+                y =  zeros_like(t)
+                for i in range(len(t)):
+                    y[i] = fun(t[i])
+                return y 
+        print fun(0.0), fun(1.0), fun(2.0), fun(array([0.0,1.0,2]))    
+        return PiecewiseFunction(fun=fun, breakPoints=self.get_piecewise_pdf().getBreaks()) 
     def std(self):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().std()
@@ -207,6 +233,8 @@ class Distr(RV):
         r['mean'] = self.mean()
         r['std'] = self.std()
         r['var'] = self.var()
+        r['skewness'] = self.skewness()
+        r['kurtosis'] = self.kurtosis()
         r['entropy'] = self.entropy()
         r['range'] = self.get_piecewise_pdf().range()
         r['int_err'] = self.int_error()
@@ -227,10 +255,12 @@ class Distr(RV):
         #print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'var','entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
+        print summ
+        for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
-
+            else:
+                print "---", i
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
@@ -464,10 +494,10 @@ class FuncDistr(OpDistr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyComposition(self.f, self.f_inv, self.f_inv_deriv, pole_at_zero = self.pole_at_zero)
 
-class ShiftedScaledDistr(OpDistr):
+class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
     def __init__(self, d, shift = 0, scale = 1):
         assert(scale != 0)
-        super(ShiftedScaledDistr, self).__init__([d])
+        super(ShiftedScaledDistr, self).__init__(d)
         self.d = d
         self.shift = shift
         self.scale = scale
@@ -1036,7 +1066,7 @@ def demo_distr(d,
                 sd = theoretical.summary_map()
                 print "============= summary ============="
                 print " ", d.getName()
-                for i in ['mean', 'std', 'var', 'median', 'medianad', 'iqrange(0.025)',  'ci(0.05)', 'range', 'int_err']:
+                for i in ['mean', 'std', 'var', 'median', 'entropy', 'medianad', 'iqrange(0.025)',  'ci(0.05)', 'range', 'int_err']:
                     if ss.has_key(i): 
                         try:
                             if i=='int_err':
@@ -1063,4 +1093,4 @@ def demo_distr(d,
     if summary and theoretical:
         print "max. abs. error", maxabserr
         print "max. rel. error", maxrelerr
-    #show()
+    show()

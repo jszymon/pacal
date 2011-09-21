@@ -20,6 +20,9 @@ from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar, asfarray
 from pylab import plot, loglog, show, semilogx, sqrt
+from pylab import real
+
+from scipy.fftpack.basic import fft
 
 import params
 
@@ -358,8 +361,12 @@ def multinomial_coeff(n, ki=[]):
             j += 1
     return c
 
-
-
+def taylor_coeff(fun, N):
+    """From L. Trefethen, Ten digits algorithms """
+    zz = exp(2j*pi*(array(range(N)))/N)
+    c = fft(fun(zz))/N
+    return real(c)
+    
 _debug_fig = None
 _debug_cancelled = False
 def debug_plot(a, b, nodes, fs, coeffs):
@@ -399,6 +406,31 @@ def debug_plot(a, b, nodes, fs, coeffs):
 
 
 if __name__ == "__main__":
+    from pacal import *
+    import time
+    #print taylor_coeff(lambda x:exp(x), 30) 
+    N = NormalDistr()
+    fun  = N.mgf()
+    #fun.plot()
+    t0  = time.time()    
+    t_i =  taylor_coeff(fun, 100)
+    print time.time()-t0
+    sil=1
+    
+    t0  = time.time()    
+    for i in range(50):
+        if i==0:
+            sil=1
+        else:
+            sil *= i 
+        mi = N.moment(i, 0.0)
+        print i, repr(mi),  repr(t_i[i]),  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]); 
+    print time.time()-t0
+    
+    
+    print N.summary()
+    show()
+    0/0
     print binomial_coeff(10, 7) 
     print multinomial_coeff(10, [3, 3, 4])
     print multinomial_coeff(13, [7, 2, 4])
