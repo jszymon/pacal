@@ -151,7 +151,7 @@ class NDFun(object):
         else:
             # TODO: eliminate all vars at once using sparse grid integration
             return m.eliminate(var[:-1])      
-         
+          
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
         super(NDDistr, self).__init__(d, Vars, self.pdf)  
@@ -186,6 +186,7 @@ class NDDistr(NDFun):
                 nrm = nrm.as_constant().c
             unnormalized.f.Ys /= nrm
         return unnormalized
+
     def regfun(self, var, type=0):
         """It gives reggersion function E(var | I) """
         var, c_var = self.prepare_var(var)
@@ -203,7 +204,7 @@ class NDDistr(NDFun):
                 elif type==1:
                     return distr.median()
                 elif type==2:
-                    return distr.mode()[0]
+                    return distr.mode()
                 else:
                     assert 1==0    
                 #return distr.median()
@@ -285,6 +286,7 @@ class NDDistr(NDFun):
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
         #    print i,e
         return i,e  
+    
 class NDDistrWithVarSubst(NDDistr):
     def __init__(self, f, substvar, substfun, substfunvars):
         self.orig_f = f
@@ -580,62 +582,12 @@ class _NDProductDistr(NDProductDistr):
     def eliminate(self, var, a=None, b=None):
         return NDDistr.eliminate(self, var, a, b)
 
-
-#def plot_2d_distr(f, theoretical=None):
-#    # plot distr in 3d
-#    from mpl_toolkits.mplot3d import axes3d
-#    import matplotlib.pyplot as plt
-#    import numpy as np
-#    fig = plt.figure()
-#    #try:
-#    #    have_3d = True
-#    #    ax = fig.add_subplot(111, projection='3d')
-#    #except:
-#    #    ax = fig.add_subplot(111)
-#    #    have_3d = False
-#    have_3d = False
-#    a, b = f.a, f.b
-#    #print "a, b = ", a, b
-#    X = np.linspace(a[0], b[0], 100)
-#    Y = np.linspace(a[1], b[1], 100)
-#    X, Y = np.meshgrid(X, Y)
-#    #XY = np.column_stack([X.ravel(), Y.ravel()])
-#    #Z = asfarray([f(xy) for xy in XY])
-#    #Z.shape = (X.shape[0], Y.shape[0])
-#    Z = f(X, Y)
-#    if theoretical is not None:
-#        Zt = theoretical(X, Y)
-#    if theoretical is not None:
-#        fig = plt.figure()
-#        
-#    if have_3d:
-#        ax = fig.add_subplot(111, projection='3d')
-#        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)
-#        #ax.plot_surface(X, Y, Z, rstride=1, cstride=1)
-#        ax.set_xlabel(f.Vars[0].getSymname())
-#        ax.set_ylabel(f.Vars[1].getSymname())
-#        if theoretical is not None:
-#            fig = plt.figure()
-#            ax = fig.add_subplot(111)
-#            ax.plot_surface(X, Y, Z - Zt, rstride=1, cstride=1)
-#    else:
-#        ax = fig.add_subplot(111)
-#        C = ax.contour(X, Y, Z, 100)
-#        fig.colorbar(C)
-#        ax.set_xlabel(f.Vars[0].getSymname())
-#        ax.set_ylabel(f.Vars[1].getSymname())
-#        if theoretical is not None:
-#            fig = plt.figure()
-#            ax = fig.add_subplot(111)
-#            C = ax.contour(X, Y, Z + Zt)
-#            fig.colorbar(C)
-
 class IJthOrderStatsNDDistr(NDDistr):
     """return joint p.d.f. of the i-th and j-th order statistics
     for sample size of n, 1<=i<j<=n, see springer's book p. 347 
     """
     def __init__(self, f, n, i, j):
-        print n, i, j, (1 <= i and i < j and j <= n)
+        #print n, i, j, (1 <= i and i < j and j <= n)
         assert (1 <= i and i < j and j <= n), "incorrect values 1<=i<j<=n" 
         self.f = f.get_piecewise_pdf()
         self.F = f.get_piecewise_cdf().toInterpolated()
@@ -716,7 +668,7 @@ def plot_2d_distr(f, theoretical=None):
     #a, b = f.a, f.b
     a, b = getRanges(f.Vars)
     #a, b = getRanges(f.Vars, ci=0.01)
-    print "a, b = ", a, b
+    #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
     X, Y = np.meshgrid(X, Y)
@@ -724,7 +676,7 @@ def plot_2d_distr(f, theoretical=None):
     #Z = asfarray([f(xy) for xy in XY])
     #Z.shape = (X.shape[0], Y.shape[0])
     Z = f(X, Y)
-    print Z* (X<Y)
+    #print "==", f,Z, (X<Y)
     if theoretical is not None:
         Zt = theoretical(X, Y)
     if theoretical is not None:
@@ -753,30 +705,29 @@ def plot_2d_distr(f, theoretical=None):
             fig.colorbar(C)
 
 
-#if __name__ == "__main__":
-#    from pylab import *
-#    from pacal import *
-#    #from pacal.depvars.copulas import *
-#    #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
-#    
-#    d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
-#    print d.symVars
-#    plot_2d_distr(d)
-#    show()
 if __name__ == "__main__":
 
 
     from pylab import *
     from pacal import *
     from pacal.depvars.copulas import *
-    X, Y = UniformDistr(), UniformDistr()
-    c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+    X, Y = BetaDistr(2,3), BetaDistr(6,1)
+    #c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+    c = FrankCopula(theta = 2, marginals=[X, Y])
     plot_2d_distr(c)
-    fun = c.regfun(Y)
-    print fun(0.2)
-    fun.plot()
+    fun0 = c.regfun(Y, type=0)
+    fun0.plot(linewidth=2.0, color='r', label="mean")
+    fun1 = c.regfun(Y, type=1)
+    fun1.plot(linewidth=2.0, color='g', label="median")
+    fun2 = c.regfun(Y, type=2)
+    fun2.plot(linewidth=2.0, color='b', label="mode")
+    legend()
     show()
     0/0
+    
+    #from pacal.depvars.copulas import *
+    #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
+    
     d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
     print d.symVars
     plot_2d_distr(d)
@@ -883,3 +834,4 @@ if __name__ == "__main__":
     plot_2d_distr(gmrfc3)
     
     show()
+ 

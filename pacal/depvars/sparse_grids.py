@@ -2,11 +2,11 @@
 
 import itertools
 
-from utils import cheb_nodes, binomial_coeff
-from utils import convergence_monitor
-import params
+from pacal.utils import cheb_nodes, binomial_coeff
+from pacal.utils import convergence_monitor
+import pacal.params as params
 
-from numpy import array, ones, atleast_1d, squeeze, exp, subtract, where, zeros_like, sum
+from numpy import array, ones, atleast_1d, squeeze, exp, subtract, where, zeros_like, sum, dot
 
 # import faster Cython versions if possible
 try:

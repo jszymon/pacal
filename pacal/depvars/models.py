@@ -53,8 +53,6 @@ class Model(object):
         if isinstance(var, basestring):
             var = self.sym_to_rv[sympy.Symbol(var)]
         elif isinstance(var, sympy.Symbol):
-            print ">>>>", var
-            print self.sym_to_rv
             var = self.sym_to_rv[var]
         return var
     def varschange(self, free_var, dep_var):
