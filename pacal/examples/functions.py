@@ -20,9 +20,21 @@ from pacal.distr import demo_distr
 #! Inverse of r.v. 
 #! ---------------
 
-U = UniformDistr(0.0,1.0)
-N = NormalDistr(0,1)
+U = UniformDistr(-pi/2,3*pi/2)#2 *pi)
+U2 = UniformDistr(0.0,2.0*pi)
+U.summary()
+S = sin(U)
+C = cos(U2)
+S.summary()
+S.plot(color="k")
+S.hist()
+C.summary()
+C.plot(color="r")
+        
 
+show()
+0/0
+N = NormalDistr(0,1)
 d = 1/(N**2)**0.5
 #d.summary()
 C = CauchyDistr()
