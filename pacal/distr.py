@@ -5,7 +5,8 @@ from functools import partial
 
 import numpy
 from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
-from numpy import sqrt, pi, arctan, tan, asfarray, zeros
+from numpy import sqrt, pi, arctan, tan, asfarray, zeros, Inf, NaN
+from numpy import sin, cos, tan, arcsin, arccos
 from numpy.random import uniform
 from numpy import minimum, maximum
 from numpy import hstack, cumsum, searchsorted
@@ -158,9 +159,15 @@ class Distr(RV):
             return (x-c)**k
         return self.get_piecewise_pdf().meanf(f=f)
     def skewness(self):
-        return self.moment(3,self.mean())/self.var()**3
+        if not self.var()==0.0:               
+            return self.moment(3,self.mean())/self.var()**3
+        else:
+            return NaN
     def kurtosis(self):
-        return self.moment(4,self.mean())/self.var()**4
+        if not self.var()==0.0:               
+            return self.moment(4,self.mean())/self.var()**4
+        else:
+            return NaN
  
     def mgf(self):      
         def fun(t):
@@ -249,18 +256,22 @@ class Distr(RV):
         except Exception, e:           
             traceback.print_exc() 
         return r
-    def summary(self):
+    def summary(self, show_moments=True):
         """Summary statistics for a given distribution."""
         print "============= summary ============="
-        #print self.get_piecewise_pdf()
+        print self.get_piecewise_pdf()
         summ = self.summary_map()
         print " ", self.getName()
-        print summ
         for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
             else:
                 print "---", i
+        if show_moments:
+            print "      moments:"
+            for i in range(10):
+                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(self.moment(i,0))       
+            
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
@@ -544,6 +555,7 @@ def exp(d):
     if isinstance(d, Distr):
         return ExpDistr(d)
     return numpy.exp(d)
+
 class LogDistr(FuncDistr):
     """Natural logarithm of a random variable"""
     def __init__(self, d):
@@ -726,6 +738,93 @@ class AbsDistr(OpDistr):
         return "|#{0}|".format(id(self.d))
     def getName(self):
         return "|{0}|".format(self.d.getName())
+
+class FuncNoninjectiveDistr(OpDistr):
+    """Non-injective function of random variable only piecewise smooth functions are permitted"""
+    def __init__(self, d, fname="f"):
+# ====================================    
+#        self.intervals = []
+#        self.fs = []
+#        self.f_invs = [] 
+#        self.f_inv_derivs = []
+#        self.fname = "none" 
+# ====================================
+        self.fname = fname
+        self.d = d
+        super(FuncNoninjectiveDistr, self).__init__([d])       
+    def pdf(self, x):
+        return self.get_piecewise_pdf()(x)
+#    def pdf(self, x):
+#        # TODO repair this
+#        f = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
+#        if isscalar(x):
+#            if not isfinite(f):
+#                f = 0
+#        else:
+#            mask = isfinite(f)
+#            f[~mask] = 0
+#        return f
+    def __str__(self):
+        return "{0}(#{1})".format(self.fname, id(self.d))
+    def getName(self):
+        return "{0}({1})".format(self.fname, self.d.getName())
+    def rand_op(self, n, cache):
+        X = self.d.rand(n, cache)
+        Y = zeros_like(X)
+        print "<<<", X
+        for i in range(len(self.intervals)):
+            mask = (self.intervals[i][0] <= X) * (X <= self.intervals[i][1])
+            Y[mask] = self.fs[i](X[mask]) 
+            print i, "<<<", Y
+        return Y
+    def init_piecewise_pdf(self):
+        self.piecewise_pdf = self.d.get_piecewise_pdf().copyCompositionNoninjective(self.intervals, self.fs, self.f_invs, self.f_inv_derivs, pole_at_zero=self.pole_at_zero)
+
+class Sq2Distr(FuncNoninjectiveDistr):
+    """Exponent of a random variable"""
+    def __init__(self, d):
+        self.intervals = [[-Inf, 0], [0, +Inf]]
+        self.fs = [lambda x: x**2, lambda x: x**2]
+        self.f_invs = [lambda x: x**0.5,lambda x: -x**0.5] 
+        self.f_inv_derivs = [lambda x: 0.5*x**(-0.5),lambda x: -0.5*x**(-0.5)]
+        self.pole_at_zero = True        
+        super(Sq2Distr, self).__init__(d, fname = "sin")
+    def is_nonneg(self):
+        return True
+    
+class SinDistr(FuncNoninjectiveDistr):
+    """Exponent of a random variable"""
+    def __init__(self, d):
+        self.intervals = [[-pi/2, pi/2], [pi/2, 3*pi/2]]
+        self.fs = [sin, sin]
+        self.f_invs = [arcsin, lambda x: pi-arcsin(x)] 
+        self.f_inv_derivs = [lambda x: (1-x**2)**(-0.5),lambda x: -(1-x**2)**(-0.5)]
+        self.pole_at_zero = False        
+        super(SinDistr, self).__init__(d, fname = "sin")
+    def is_nonneg(self):
+        return True
+def sin(d):
+    """Overload the exp function."""
+    if isinstance(d, Distr):
+        return SinDistr(d)
+    return numpy.sin(d)
+
+class CosDistr(FuncNoninjectiveDistr):
+    """Exponent of a random variable"""
+    def __init__(self, d):
+        self.intervals = [[0.0, pi], [pi, 2.0*pi]]
+        self.fs = [cos, cos]
+        self.f_invs = [arccos, lambda x: 2*pi-arccos(x)] 
+        self.f_inv_derivs = [lambda x: -(1-x**2)**(-0.5),lambda x: (1-x**2)**(-0.5)]
+        self.pole_at_zero = False        
+        super(CosDistr, self).__init__(d, fname = "cos")
+    def is_nonneg(self):
+        return True
+def cos(d):
+    """Overload the exp function."""
+    if isinstance(d, Distr):
+        return CosDistr(d)
+    return numpy.cos(d)
 
 class DiscreteDistr(Distr):
     """Discrete distribution"""

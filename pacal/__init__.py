@@ -5,7 +5,7 @@ _np.seterr(all="ignore")
 
 from utils import Inf
 
-from distr import DiscreteDistr, exp, log, atan, min, max, sqrt, sign
+from distr import DiscreteDistr, exp, log, atan, min, max, sqrt, sign, sin, cos
 
 from standard_distr import FunDistr
 from standard_distr import NormalDistr
@@ -29,8 +29,8 @@ from standard_distr import OneDistr
 from standard_distr import ZeroDistr
 from standard_distr import BinomialDistr
 from standard_distr import MixDistr
-#from distr import CondGtDistr
-#from distr import CondLtDistr
+from distr import CondGtDistr
+from distr import CondLtDistr
 from distr import ConstDistr
 from distr import Gt
 from distr import Lt

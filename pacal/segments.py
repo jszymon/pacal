@@ -198,7 +198,7 @@ class Segment(object):
             b = self.a
         return Segment(a * scale + shift, b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
     def probComposition(self, g, ginv, ginvderiv, pole_at_zero = False):
-        """It produce probalilistic composition g o f for a given distribution f
+        """It produce probabilistic composition g o f for a given distribution f
         """
         def fun(x):
             if isscalar(x):
@@ -1196,6 +1196,17 @@ class PiecewiseFunction(object):
             segcomp = seg.probComposition(f, finv, finvDeriv, pole_at_zero = pole_at_zero)
             copyFunction.addSegment(segcomp)
         return copyFunction
+        
+    def copyCompositionNoninjective(self, intervals, fs, finvs, finvDerivs, pole_at_zero = False):
+        """Composition with non-injective function f """
+        assert len(fs)==len(finvs)==len(finvDerivs), "f, finv, finvDeriv should be lists of the same size"
+        #self_with_zero = self.splitByPoints([0])
+        copyFunction = self.__class__([])
+        for i in range(len(fs)):
+            summand = self.restrictToInterval(intervals[i][0], intervals[i][1])
+            copyFunction = copyFunction + summand.copyComposition(fs[i], finvs[i], finvDerivs[i], pole_at_zero)
+        return copyFunction
+    
     def symerticalNested(self):
         # TODO
         pass
@@ -1244,10 +1255,7 @@ class PiecewiseFunction(object):
         """Composition with logarithm"""
         fun  =self.splitByPoints([0.5, 1.0, 2.0])
         return fun.copyComposition(f, finv, finvDeriv, pole_at_zero = False)
-    def copyNonInjectiveComposition(self, fs, finvs, finvDerivs):
-        """Composition with non-injective function f """
-        # TODO 
-        
+
     def getBreaksExtended(self):
         # a version which reports poles on the left/right of each breakpoint, etc.
         #segments = self.getSegments()
@@ -1511,6 +1519,19 @@ class PiecewiseFunction(object):
                 assert False
         return result
 
+    def restrictToInterval(self, a, b):
+        """return function restricted to interval [a,b)
+        """
+        source = self.splitByPoints([a,b])
+        fun = self.__class__([])
+        for seg in source.segments:
+            if seg.isDirac():
+                if a<=seg.a and seg.b<b:
+                    fun.addSegment(seg)            
+            else:
+                if a<=seg.a and seg.b<=b:
+                    fun.addSegment(seg)
+        return fun
 
     def splitByPoints(self, points):
         """Pointwise subtraction of two piecewise functions """
