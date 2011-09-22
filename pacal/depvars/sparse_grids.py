@@ -6,16 +6,17 @@ from pacal.utils import cheb_nodes, binomial_coeff
 from pacal.utils import convergence_monitor
 import pacal.params as params
 
-from numpy import array, ones, atleast_1d, squeeze, exp, subtract, where, zeros_like, sum, dot
+from numpy import array, ones, atleast_1d
+from numpy import newaxis, squeeze, exp, subtract, where, zeros_like, sum, dot
 
 # import faster Cython versions if possible
 try:
     #import pyximport; pyximport.install()
-    from bary_interp import c_dense_grid_interp
+    from pacal.bary_interp import c_dense_grid_interp
     have_Cython = True
-    print "Using compiled interpolation routine"
+    print "Using compiled sparse grid routine"
 except:
-    print "Compiled interpolation routine not available"
+    print "Compiled sparse grid routine not available"
     have_Cython = False
 
 
