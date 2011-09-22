@@ -9,6 +9,7 @@ from numpy.linalg import det
 
 from pacal.depvars.sparse_grids import AdaptiveSparseGridInterpolator
 from pacal.integration import integrate_fejer2_pminf, integrate_fejer2, integrate_iter
+from pacal.segments import PiecewiseFunction
 import sympy as sympy
 
 #from rv import RV
@@ -150,7 +151,7 @@ class NDFun(object):
         else:
             # TODO: eliminate all vars at once using sparse grid integration
             return m.eliminate(var[:-1])      
-          
+         
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
         super(NDDistr, self).__init__(d, Vars, self.pdf)  
@@ -185,6 +186,38 @@ class NDDistr(NDFun):
                 nrm = nrm.as_constant().c
             unnormalized.f.Ys /= nrm
         return unnormalized
+    def regfun(self, var, type=0):
+        """It gives reggersion function E(var | I) """
+        var, c_var = self.prepare_var(var)
+        var, c_var  = self.Vars[var[0]], self.Vars[c_var[0]]
+        #print ">>>", var, c_var
+        assert self.d == 2
+        def _fun(x):
+            #print ">>>>>>", x, self.condition([c_var], x).distr_pdf(0.2)
+            #self.condition(c_var, [x]).distr_pdf.plot()
+            #show()
+            if isscalar(x):
+                distr = FunDistr(fun=self.condition([c_var], x).distr_pdf, breakPoints=var.get_piecewise_pdf().getBreaks())
+                if type==0:
+                    return distr.mean()
+                elif type==1:
+                    return distr.median()
+                elif type==2:
+                    return distr.mode()[0]
+                else:
+                    assert 1==0    
+                #return distr.median()
+            else:
+                print x
+                y =  zeros_like(x)
+                for i in range(len(x)):
+                    print i, "|||", _fun(x[i])
+                    y[i] = _fun(x[i])
+                return y  
+            #distr = FunDistr(fun=self.condition([c_var], x).distr_pdf, breakPoints=var.get_piecewise_pdf().getBreaks())
+            #return distr.mean()
+        #print "+++", _fun(0.5)
+        return PiecewiseFunction(fun=_fun, breakPoints=c_var.get_piecewise_pdf().getBreaks()).toInterpolated()
 
     def cov(self, i=None, j=None):
         if i is not None and j is not None:
@@ -720,24 +753,30 @@ def plot_2d_distr(f, theoretical=None):
             fig.colorbar(C)
 
 
+#if __name__ == "__main__":
+#    from pylab import *
+#    from pacal import *
+#    #from pacal.depvars.copulas import *
+#    #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
+#    
+#    d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
+#    print d.symVars
+#    plot_2d_distr(d)
+#    show()
 if __name__ == "__main__":
+
+
     from pylab import *
     from pacal import *
-    #from pacal.depvars.copulas import *
-    #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
-    
-    d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
-    print d.symVars
-    plot_2d_distr(d)
+    from pacal.depvars.copulas import *
+    X, Y = UniformDistr(), UniformDistr()
+    c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+    plot_2d_distr(c)
+    fun = c.regfun(Y)
+    print fun(0.2)
+    fun.plot()
     show()
-if __name__ == "__main__":
-
-
-    from pylab import *
-    from pacal import *
-    #from pacal.depvars.copulas import *
-    #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
-    
+    0/0
     d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
     print d.symVars
     plot_2d_distr(d)
