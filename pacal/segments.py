@@ -1202,8 +1202,19 @@ class PiecewiseFunction(object):
         assert len(fs)==len(finvs)==len(finvDerivs), "f, finv, finvDeriv should be lists of the same size"
         #self_with_zero = self.splitByPoints([0])
         copyFunction = self.__class__([])
+        a, b = self.range()
+#        intervals_ = copy(intervals)
+#        if intervals[0][0]<=a and b<=intervals[-1][0]:
+#            # ok
+#        else:            
+#            if a<=intervals[0][0]:
+#                
+#            pass
+#        if a<=intervals[0][0]:
+#            pass
+        
         for i in range(len(fs)):
-            summand = self.restrictToInterval(intervals[i][0], intervals[i][1])
+            summand = self.restrictToInterval(intervals_[i][0], intervals_[i][1])
             copyFunction = copyFunction + summand.copyComposition(fs[i], finvs[i], finvDerivs[i], pole_at_zero)
         return copyFunction
     
@@ -1626,7 +1637,7 @@ class PiecewiseDistribution(PiecewiseFunction):
         E = 0.0
         for seg in self.segments:
             if seg.isDirac():
-                i, e = seg.f*seg.a, 0
+                i, e = nan_to_num(f(seg.a))*seg.f, 0
             else:
                 i, e = _segint(lambda x: nan_to_num(f(x)) * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
             E += e

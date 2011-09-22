@@ -269,9 +269,10 @@ class Distr(RV):
                 print "---", i
         if show_moments:
             print "      moments:"
-            for i in range(10):
-                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(self.moment(i,0))       
-            
+            for i in range(15):
+                mi = self.moment(i,0)
+                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(mi)
+
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
