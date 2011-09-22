@@ -424,7 +424,7 @@ if __name__ == "__main__":
         else:
             sil *= i 
         mi = N.moment(i, 0.0)
-        print i, repr(mi),  repr(t_i[i]),  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]); 
+        print i, repr(mi),  repr(t_i[i])*sil*2,  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]); 
     print time.time()-t0
     
     

@@ -223,7 +223,7 @@ class Distr(RV):
     
     def mode(self):
         """Mode of distribution."""
-        return self.get_piecewise_pdf().mode()
+        return self.get_piecewise_pdf().maximum()[0]
     
     def int_error(self):
         """L_1 error for testing of accuracy"""
@@ -497,7 +497,7 @@ class FuncDistr(OpDistr):
 class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
     def __init__(self, d, shift = 0, scale = 1):
         assert(scale != 0)
-        super(ShiftedScaledDistr, self).__init__(d)
+        super(ShiftedScaledDistr, self).__init__(d, shift=shift, scale=scale)
         self.d = d
         self.shift = shift
         self.scale = scale
