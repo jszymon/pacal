@@ -1644,7 +1644,7 @@ class PiecewiseDistribution(PiecewiseFunction):
 
             I = I + i
             #print "ie=", i, e, f(seg.a), seg(seg.a)
-        if E>1.0e-1:
+        if E/I>1.0e-3:
             return NaN
         return I
     
