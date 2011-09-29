@@ -1048,7 +1048,7 @@ class PiecewiseFunction(object):
         x1, m1 = self.maximum()
         x2, m2 = self.minimum()
         if abs(m1)<abs(m2):
-            return x2, m2
+            return x2, abs(m2)
         else:
             return x1, m1
     def maximum(self):
