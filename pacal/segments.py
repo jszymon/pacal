@@ -1633,18 +1633,17 @@ class PiecewiseDistribution(PiecewiseFunction):
         if f is None:
             def f(x):
                 return x
-        I = 0.0 
+        I, absI = 0.0, 0.0  
         E = 0.0
         for seg in self.segments:
             if seg.isDirac():
                 i, e = nan_to_num(f(seg.a))*seg.f, 0
             else:
                 i, e = _segint(lambda x: nan_to_num(f(x)) * seg(x), seg.a, seg.b, force_poleL = seg.hasLeftPole(), force_poleU = seg.hasRightPole())
-            E += e
-
+            E += abs(e)
             I = I + i
-            #print "ie=", i, e, f(seg.a), seg(seg.a)
-        if E/I>1.0e-3:
+            absI += abs(i)
+        if  abs(E/absI)>1.0e-3 and abs(absI)>1e-10:
             return NaN
         return I
     
