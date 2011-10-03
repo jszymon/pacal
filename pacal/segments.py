@@ -1214,7 +1214,7 @@ class PiecewiseFunction(object):
 #            pass
         
         for i in range(len(fs)):
-            summand = self.restrictToInterval(intervals_[i][0], intervals_[i][1])
+            summand = self.restrictToInterval(intervals[i][0], intervals[i][1])
             copyFunction = copyFunction + summand.copyComposition(fs[i], finvs[i], finvDerivs[i], pole_at_zero)
         return copyFunction
     
@@ -1644,6 +1644,7 @@ class PiecewiseDistribution(PiecewiseFunction):
             I = I + i
             absI += abs(i)
         if  abs(E/absI)>1.0e-3 and abs(absI)>1e-10:
+            #print I, absI, E
             return NaN
         return I
     
