@@ -403,6 +403,12 @@ def debug_plot(a, b, nodes, fs, coeffs):
     except:
         _debug_cancelled = True
 
+def ordinal_ending(n):
+    if n == 1:
+        return "st"
+    if n == 2:
+        return "nd"
+    return "th"
 
 
 if __name__ == "__main__":

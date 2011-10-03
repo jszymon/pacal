@@ -65,7 +65,7 @@ def iid_unknown(X, n, k, **kwargs):
 
 
 def iid_median(X, n):
-    return iid_order_stat(X, n, n // 2)
+    return iid_order_stat(X, n, (n+1) // 2)
 
 # averages need special treatment
 def _int_exp2(x, n, op = operator.mul):
