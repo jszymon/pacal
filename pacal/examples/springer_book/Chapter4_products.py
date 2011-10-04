@@ -439,7 +439,7 @@ for n, m in [(2,2), (5,7)]:
         for j in xrange(int(numpy.floor((m*a-i)/a)+1)):
             s += (-1)**(i+j) * binomial_coeff(n, i) * binomial_coeff(m, j) * ((m-j)*a-i)**(n+m)
     cdf_formula = s / nrm
-    cdf_pacal = d.cdf(a)[0]
+    cdf_pacal = d.cdf(a)
     print "n={0},m={1}  cdf({2})={3}, err = {4}".format(n, m, a, cdf_pacal, abs(cdf_pacal - cdf_formula))
 
 #! Exercise 4.32
