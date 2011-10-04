@@ -144,7 +144,8 @@ figure()
 demo_distr(CauchyDistr(gamma = 1) / CauchyDistr(gamma = 1), xmin = -20, xmax = 20, ymax = 1.5, theoretical = partial(prod_cauchy, 1.0))
 figure()
 c = NormalDistr() / NormalDistr()
-demo_distr(c / c, xmin = -20, xmax = 20, ymax = 1.5, theoretical = partial(prod_cauchy, 1.0))
+c2 = NormalDistr() / NormalDistr()
+demo_distr(c / c2, xmin = -20, xmax = 20, ymax = 1.5, theoretical = partial(prod_cauchy, 1.0))
 figure()
 demo_distr(CauchyDistr(gamma = 3) / CauchyDistr(gamma = 3), xmin = -20, xmax = 20, ymax = 1.5, theoretical = partial(prod_cauchy, 1.0))
    
@@ -353,8 +354,9 @@ def theor_quot_triang(x):
          + (x > 1)*(x<=2)  *(-2.0/3 +x/6.0 +8.0/(3*x**2) -3.0/(2*x**3))
          + (x > 2) * 7.0/(6*x**3))
     return y
-T = UniformDistr(0,1) + UniformDistr(0,1)
-V = T / T
+T1 = UniformDistr(0,1) + UniformDistr(0,1)
+T2 = UniformDistr(0,1) + UniformDistr(0,1)
+V = T1 / T2
 demo_distr(V, theoretical = theor_quot_triang)
 
 #! Exercise 4.27

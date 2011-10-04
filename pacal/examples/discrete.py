@@ -16,7 +16,9 @@ from matplotlib.pyplot import legend
 U = UniformDistr(0, 1)
 M = DiscreteDistr(xi=[0.0, 1.0, 2.0, 3.0], pi=[0.3, 0.4, 0.2, 0.1])
 S = M + U
+params.general.warn_on_dependent = False
 SM = min(S, S)
+params.general.warn_on_dependent = True
 
 #! 
 M.summary()
@@ -24,16 +26,13 @@ S.summary()
 SM.summary()
 
 figure()
-subplot(121)
+subplot(221)
 S.plot()
-subplot(122)
+subplot(222)
 SM.plot()
-
-
-#! New plot
-#!----------
-figure()
+subplot(223)
 S.get_piecewise_cdf().plot()
+subplot(224)
 SM.get_piecewise_cdf().plot()
 
 #! Binomial and Bernoulli distributions
@@ -54,6 +53,7 @@ b5.hist()
 #!-----------------------------------------
 #!
 #! A test for equality of two proportions
+figure()
 b1 = BinomialDistr(5, 0.4)
 b2 = BinomialDistr(3, 0.45)
 bd = b1 / 5 - b2 / 3
@@ -76,19 +76,15 @@ A4 = U / d
 figure()
 subplot(221)
 A1.plot()
-subplot(222)
-A2.plot()
-subplot(223)
-A3.plot(xmax=6.0)
-subplot(224)
-A4.plot()
-subplot(221)
 A1.hist()
 subplot(222)
+A2.plot()
 A2.hist()
 subplot(223)
+A3.plot(xmax=6.0)
 A3.hist(xmin=0.5, xmax=6)
 subplot(224)
+A4.plot()
 A4.hist()
 
 A1.summary()
@@ -96,11 +92,14 @@ A2.summary()
 A3.summary()
 A4.summary()
 
-
 figure()
+subplot(221)
 A1.get_piecewise_cdf().plot()
+subplot(222)
 A2.get_piecewise_cdf().plot()
+subplot(223)
 A3.get_piecewise_cdf().plot(xmax=6.0)
+subplot(224)
 A4.get_piecewise_cdf().plot()
 
 
@@ -115,7 +114,6 @@ GM.summary()
 GM.plot()
 
 
-
 #! Sign, Abs 
 #! ----------
 figure()
@@ -127,26 +125,28 @@ A.plot(color='g', linewidth=2.0, label="abs(N)")
 N.plot(color='b', linewidth=2.0, label="N")
 legend()
 figure()
+params.general.warn_on_dependent = False
 demo_distr(S * A)#, theoretical=N)
+params.general.warn_on_dependent = True
 
 #! min, max, Conditional distributions
 #! ------------------------------------
 #!
 #! 
-
 figure()
 E = max(ExponentialDistr() - 1, ZeroDistr())
 subplot(211)
 E.plot(linewidth=2.0)
 E.summary()
 subplot(212)
+params.general.warn_on_dependent = False
 S = E + E + E + E + E + E
+params.general.warn_on_dependent = True
 S.plot(linewidth=2.0)
 S.summary()
 
 
 figure()
-
 E = ExponentialDistr()
 E1 = CondGtDistr(E, 1)
 E2 = CondLtDistr(E, 1)

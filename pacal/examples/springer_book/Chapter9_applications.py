@@ -204,9 +204,11 @@ def theor_quot_folded_normal(sigma1, sigma2, x):
     return 2*sigma1*sigma2 / numpy.pi / (sigma1**2 + x**2*sigma2**2)
 fn = abs(NormalDistr())
 figure()
+params.warn_on_dependent = False
 demo_distr(fn * fn)
 figure()
 demo_distr(fn / fn, theoretical = partial(theor_quot_folded_normal, 1, 1))
+params.warn_on_dependent = True
 
 
 #!-------------------
@@ -220,7 +222,7 @@ figure()
 demo_distr(truncExp(1, 10), err_plot = False)
 te1 = truncExp(1, 10)
 figure()
-demo_distr(te1 + te1 + te1, hist_points=10000)
+demo_distr(iid_sum(te1, 3), hist_points=10000)
 figure()
 demo_distr(te1 + 10*truncExp(2, 5), hist_points=10000)
 
@@ -298,7 +300,9 @@ f = FunDistr(lambda x: sqrt(2)/numpy.pi / (1+x**4), [-Inf, -1, 0, 1, Inf])
 figure()
 demo_distr(f, err_plot = False)
 figure()
+params.warn_on_dependent = False
 demo_distr(f/f, theoretical = CauchyDistr())
+params.warn_on_dependent = True
 
 
 
@@ -317,6 +321,7 @@ for l, n in [[1, 2],
 
 
 #! Exercise 9.2
+params.warn_on_dependent = False
 f = FunDistr(lambda x: 1.5*x*x, [-1,1])
 m = (f + f) / 2
 figure()
@@ -325,6 +330,7 @@ demo_distr(m, hist_points = 10000)
 m2 = (m + m) /2
 figure()
 demo_distr(m2, hist_points = 10000)
+params.warn_on_dependent = True
 
 #! Exercise 9.4
 for k, n in [[2,2]]:
@@ -339,20 +345,14 @@ for k, n in [[2,2]]:
 #! Exercise 9.6
 maxwell = sqrt(NormalDistr()**2 + NormalDistr()**2 + NormalDistr()**2)
 for n in [2, 3, 5]:
-    s = maxwell
-    for i in xrange(n-1):
-        s += maxwell
-    s /= n
+    s = iid_average(maxwell, n)
     figure()
     demo_distr(s)
 
 #! Exercise 9.7
 rayleigh = sqrt(NormalDistr()**2 + NormalDistr()**2)
 for n in [2, 3, 5]:
-    s = rayleigh
-    for i in xrange(n-1):
-        s += rayleigh
-    s /= n
+    s = iid_average(rayleigh, n)
     figure()
     demo_distr(s)
 
@@ -412,7 +412,9 @@ for a1, b1, a2, b2 in [[2, 0, 0.5, -1], #FIX: !!!! discontinuity at 0!!!! singul
     tr1 = b1 + tr/sqrt(a1)
     tr2 = b2 + tr/sqrt(a2)
     figure()
+    params.warn_on_dependent = False
     pr = tr1 * tr2
+    params.warn_on_dependent = True
     demo_distr(pr)
 
 #! Exercise 9.28: see Section 9.14

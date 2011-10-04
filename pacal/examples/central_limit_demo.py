@@ -55,12 +55,12 @@ central_limit_demo(X, N = 5, xmin=-5, xmax=5)
 #! Cauchy distribution
 #!----------------------
 X = CauchyDistr()
-central_limit_demo(X)
+central_limit_demo(X, xmin = -10, xmax = 10)
 
 #!----------------------
 #! Levy distribution
 #!----------------------
 X = LevyDistr()
-central_limit_demo(X, xmax=10)
+central_limit_demo(X, xmax=10, numberOfPoints = 10000)
 
 show()

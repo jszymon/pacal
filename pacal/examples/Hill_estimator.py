@@ -10,9 +10,7 @@ def Hill_estim_distr(d, n, xmin):
     >= xmin and sample size n."""
     #d = CondGtDistr(d, xmin)
     d = d | Gt(xmin)
-    s = log(d / xmin)
-    for i in xrange(n - 1):
-        s += log(d / xmin)
+    s = iid_sum(log(d / xmin), n)
     return 1 + n / s
 
 
