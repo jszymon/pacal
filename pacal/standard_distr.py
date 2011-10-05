@@ -688,6 +688,14 @@ class BinomialDistr(DiscreteDistr):
     def getName(self):
         return "Binom({0},{1})".format(self.n, self.p)
 
+class BernoulliDistr(DiscreteDistr):
+    def __init__(self, p=0.5, **kwargs):
+        super(BernoulliDistr, self).__init__(xi=[0, 1], pi=[1.0-p, p], **kwargs)
+    def __str__(self):
+        return "Bernoulli({0})#{1}".format(self.pi[1], id(self))
+    def getName(self):
+        return "Bernoulli({0})".format(self.pi[1])
+
 
 if __name__ == "__main__":
     from pylab import figure, show
