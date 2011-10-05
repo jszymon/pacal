@@ -40,7 +40,10 @@ class Model(object):
             self.rv_to_equation[rv] = rv.getSym()
     def __str__(self):
         s = "Model:\n"
-        s += "free vars: " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.free_rvs) + "\n"
+        #s += "free vars: " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.free_rvs) + "\n"
+        s += "free_vars:\n"
+        for rv in self.free_rvs:
+            s += "   " + str(rv.getSymname()) + " ~ " + str(rv.getName()) + "\n" 
         s += "dep vars:  " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.dep_rvs) + "\n"
         s += "Equations:\n"
         for rv, eq in self.rv_to_equation.iteritems():
@@ -58,6 +61,7 @@ class Model(object):
     def varschange(self, free_var, dep_var):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
+        print "change of variables:"
         if not self.is_free(free_var):
             raise RuntimeError("First exchanged variable must be free")
         if not self.is_dependent(dep_var):
@@ -118,6 +122,7 @@ class Model(object):
 
     def eliminate(self, var):
         var = self.prepare_var(var)
+        print "eliminate variable: ", var.getSymname()
         if var in self.free_rvs:
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
@@ -135,6 +140,7 @@ class Model(object):
             assert False
     def eliminate_other(self, vars):
         vars_to_eliminate = self.dep_rvs - set(vars)
+        print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
         for var in vars_to_eliminate:
             self.eliminate(var)
     def varchange_and_eliminate(self, var):
@@ -165,8 +171,10 @@ class Model(object):
                     note += 1
         return note                    
                
-    def condition(self, var, X, **kwargs):
+    def condition(self, var, X, **kwargs):        
         var = self.prepare_var(var)
+        
+        print "condition on variable: ",  var.getSymname(), "=" ,X
         if not self.is_free(var):
             raise RuntimeError("You can only condition on free variables")
         Xsym = sympy.S(X)
@@ -396,9 +404,6 @@ class TwoVarsModel(Model):
             segint = seg.toInterpolatedSegment()
             fg.addSegment(segint)
             ub=ub[0:-1]
-        print "f=", f
-        print "g=", g
-        print "=======", ub
         for i in range(len(ub) - 1) :
             segList = _findSegList(f, g, (ub[i] + ub[i + 1]) / 2, lop)
             seg = Segment(ub[i], ub[i + 1], partial(self.convmodelx, segList))
@@ -415,54 +420,41 @@ class TwoVarsModel(Model):
     def convmodelx(self, segList, xx):
         """Probabilistic weighted mean of f and g, integral at points xx 
         """    
-        op = self.symop#d.getSym()
+        op = self.symop #d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
-        lop = sympy.lambdify([x, y], op) 
-        
+        lop = sympy.lambdify([x, y], op)
         if size(xx) == 1:
             xx = asfarray([xx])
-        wyn = zeros_like(xx)
-        
+        wyn = zeros_like(xx)   
         P = self.nddistr
-        #P.setMarginals(F,G)
         #fun = lambda t : P.cdf(t, self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))
-        if isinstance(P, pacal.depvars.copulas.MCopula) | isinstance(P, pacal.depvars.copulas.WCopula):
-            #print ">>", P
-            #funPdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
-            funCdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
-            fun = funCdf
-        elif isinstance(P, pacal.depvars.copulas.PiCopula):        
+#        if isinstance(P, pacal.depvars.copulas.MCopula) | isinstance(P, pacal.depvars.copulas.WCopula):
+#            #print ">>", P
+#            #funPdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
+#            funCdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) #* abs(self.lJx(t, zj))
+#            fun = funCdf
+        if isinstance(P, pacal.depvars.copulas.PiCopula):        
             fun = lambda t : segi(t) * segj(self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))             
-            #print "here"
         else:
-            #print "<<<", P  
             fun = lambda t : P.pdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
         ##fun = lambda t : P.jpdf_(F, G, t, self.lfun_alongx(t, array([zj])))  * abs(self.lJx(t, array([zj])))
 
         
         for j in range(len(xx)) :  
             zj = xx[j]
-            if isinstance(P, pacal.depvars.copulas.WCopula):
-                I = 1
-            else:
-                I = 0
+#            if isinstance(P, pacal.depvars.copulas.WCopula):
+#                I = 1
+#            else:
+            I = 0
             err = 0
             #print j
             for segi, segj in segList:
                 if segi.isSegment() and segj.isSegment():
                     L, U = self.getUL(segi.a, segi.b, segj.a, segj.b, zj)
-                    L, U  = sort([U, L])
-                    X = NormalDistr(0,1, sym="X")
-    #tt = linspace(L, U, 100) 
-                    ##print self.fun_alongx
-                    #y =  self.lfun_alongx(tt,zj)
-                    #plot(tt, y, "k", linewidth=2.0)
-                
+                    L, U  = sort([U, L])             
                     if L < U:
-                        #print zj, L, U#, fun
-                        i, e = self._segint(fun, float(L), float(U))   
-                        print j, zj, i                     
+                        i, e = self._segint(fun, float(L), float(U))            
                     else:  
                         i, e = 0, 0
                 #elif segi.isDirac() and segj.isSegment():
@@ -475,12 +467,12 @@ class TwoVarsModel(Model):
                 #    pass
                     #i = segi(x-segj.a)/p/q          # TODO
                     #e=0;
-                if isinstance(P, pacal.depvars.copulas.WCopula):
-                    I = min(I,i)
-                elif isinstance(P, pacal.depvars.copulas.MCopula):
-                    I = max(I,i)
-                else:
-                    I += i
+#                if isinstance(P, pacal.depvars.copulas.WCopula):
+#                    I = min(I,i)
+#                elif isinstance(P, pacal.depvars.copulas.MCopula):
+#                    I = max(I,i)
+#                else:
+                I += i
                 err += e
             wyn[j] = I
         return wyn
