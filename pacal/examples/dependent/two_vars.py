@@ -29,46 +29,47 @@ from pacal.depvars.models import *
 #0/0
 # ==== probability boxex ===============================
 X = UniformDistr(1, 2, sym="x1")
-Y = UniformDistr(1, 2, sym="x2")
+Y = BetaDistr(2, 2, sym="x2")
 cw = WCopula(marginals=[X, Y])
 cw.plot()
 cm = MCopula(marginals=[X, Y])
 cm.plot()
+figure()
 #show()
 cp = PiCopula(marginals=[X, Y])
-U = X / Y #/ (Y + 1)# * X
+U = Y + X #/ (Y + 1)# * X
 
 Mw = TwoVarsModel(cw, U)
 Mm = TwoVarsModel(cm ,U)
 Mp = TwoVarsModel(cp ,U)
-funw = Mw.varchange_and_eliminate()
-funm = Mm.varchange_and_eliminate()
+#funw = Mw.varchange_and_eliminate()
+#funm = Mm.varchange_and_eliminate()
 funp = Mp.varchange_and_eliminate()
 figure()
-funw.plot()
+#funw.plot()
 #funw.summary()
-funm.plot()
-funp.get_piecewise_cdf().plot()
+#funm.plot()
+funp.get_piecewise_cdf().plot(color="k", linewidth=2.0)
 funp.summary()
-#for theta in [5, 10]:
-#    print "::", theta
-#    ci = GumbelCopula2d(marginals=[X, Y], theta=theta)
-#    Mi = TwoVarsModel(ci, U)
-#    funi = Mi.varchange_and_eliminate()
-#    funi.get_piecewise_cdf().plot(color="g")
-#    funi.summary()
-#for theta in [-15, -5, 5, 15]:
-#    print "::::", theta
-#    ci = FrankCopula2d(marginals=[X, Y], theta=theta)
-#    Mi = TwoVarsModel(ci, U)
-#    funi = Mi.varchange_and_eliminate()
-#    funi.get_piecewise_cdf().plot(color="b")
-#    funi.summary()
-#for theta in [5, 10]:
-#    print ":::", theta
-#    ci = ClaytonCopula(marginals=[X, Y], theta=theta)
-#    Mi = TwoVarsModel(ci, U)
-#    funi = Mi.varchange_and_eliminate()
-#    funi.get_piecewise_cdf().plot(color="r")
-#    funi.summary()
+for theta in [5, 10]:
+    print "::", theta
+    ci = GumbelCopula2d(marginals=[X, Y], theta=theta)
+    Mi = TwoVarsModel(ci, U)
+    funi = Mi.varchange_and_eliminate()
+    funi.get_piecewise_cdf().plot(color="g")
+    funi.summary()
+for theta in [-15, -5, 5, 15]:
+    print "::::", theta
+    ci = FrankCopula2d(marginals=[X, Y], theta=theta)
+    Mi = TwoVarsModel(ci, U)
+    funi = Mi.varchange_and_eliminate()
+    funi.get_piecewise_cdf().plot(color="b")
+    funi.summary()
+for theta in [5, 10]:
+    print ":::", theta
+    ci = ClaytonCopula(marginals=[X, Y], theta=theta)
+    Mi = TwoVarsModel(ci, U)
+    funi = Mi.varchange_and_eliminate()
+    funi.get_piecewise_cdf().plot(color="r")
+    funi.summary()
 show()
