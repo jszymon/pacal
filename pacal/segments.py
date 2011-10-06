@@ -1529,7 +1529,6 @@ class PiecewiseFunction(object):
             else:
                 assert False
         return result
-
     def restrictToInterval(self, a, b):
         """return function restricted to interval [a,b)
         """
@@ -1543,7 +1542,6 @@ class PiecewiseFunction(object):
                 if a<=seg.a and seg.b<=b:
                     fun.addSegment(seg)
         return fun
-
     def splitByPoints(self, points):
         """Pointwise subtraction of two piecewise functions """
         points = array(points)
@@ -1581,6 +1579,47 @@ class PiecewiseFunction(object):
             else:
                 fun.addSegment(Segment(a, b, seg.f))
         return fun
+    def inverse(self, y):
+        vals = self.getSegVals()
+        breaks = self.getBreaks()
+        x = None
+        if isscalar(y):
+            # coinituaous part of cumilative function
+            for i in range(len(vals)):
+                segi = self.segments[i]
+                if (vals[i][0]<=y<=vals[i][1]):   
+                    if segi.isMInf():
+                        x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+                    elif segi.isPInf():
+                        x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+                    else:
+                        x = findinv(segi.f,  a = segi.a, b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) # TODO PInd, MInf
+            # discrete part of cumilative function
+            for i in range(len(vals)-1):
+                if (vals[i][1]<=y) & (y<=vals[i+1][0]):   
+                    x = breaks[i+1]    
+        else:
+            y = array(y)
+            x = zeros(size(y))
+            # coinituaous part of cumilative function
+            for i in range(len(vals)):
+                segi = self.segments[i]
+                ind = where((vals[i][0]<=y) & (y<=vals[i][1]))                   
+                if segi.isMInf():
+                    x[ind] = [findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+                elif segi.isPInf():
+                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+                else:
+                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+            # discrete part of cumilative function
+            for i in range(len(vals)-1):
+                ind = where((vals[i][1]<=y) & (y<=vals[i+1][0]))   
+                x[ind] = breaks[i+1]                 
+        if (x is None): # It means
+            print "ASSERT x is None y=", y, self.__str__()
+            print "ASSERT x is None vals=", vals
+            assert(False)
+        return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
 
     def invfun(self, use_end_poles = True, use_interpolated=True):
         """
@@ -1760,47 +1799,47 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
     def _inverse_(self, level):
         #TODO remove -1e-10
         return findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.reltol)
-    def inverse(self, y):
-        vals = self.getSegVals()
-        breaks = self.getBreaks()
-        x = None
-        if isscalar(y):
-            # coinituaous part of cumilative function
-            for i in range(len(vals)):
-                segi = self.segments[i]
-                if (vals[i][0]<=y<=vals[i][1]):   
-                    if segi.isMInf():
-                        x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
-                    elif segi.isPInf():
-                        x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
-                    else:
-                        x = findinv(segi.f,  a = segi.a, b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) # TODO PInd, MInf
-            # discrete part of cumilative function
-            for i in range(len(vals)-1):
-                if (vals[i][1]<=y) & (y<=vals[i+1][0]):   
-                    x = breaks[i+1]    
-        else:
-            y = array(y)
-            x = zeros(size(y))
-            # coinituaous part of cumilative function
-            for i in range(len(vals)):
-                segi = self.segments[i]
-                ind = where((vals[i][0]<=y) & (y<=vals[i][1]))                   
-                if segi.isMInf():
-                    x[ind] = [findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
-                elif segi.isPInf():
-                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
-                else:
-                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
-            # discrete part of cumilative function
-            for i in range(len(vals)-1):
-                ind = where((vals[i][1]<=y) & (y<=vals[i+1][0]))   
-                x[ind] = breaks[i+1]                 
-        if (x is None): # It means
-            print "ASSERT x is None y=", y, self.__str__()
-            print "ASSERT x is None vals=", vals
-            assert(False)
-        return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
+#    def inverse(self, y):
+#        vals = self.getSegVals()
+#        breaks = self.getBreaks()
+#        x = None
+#        if isscalar(y):
+#            # coinituaous part of cumilative function
+#            for i in range(len(vals)):
+#                segi = self.segments[i]
+#                if (vals[i][0]<=y<=vals[i][1]):   
+#                    if segi.isMInf():
+#                        x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+#                    elif segi.isPInf():
+#                        x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+#                    else:
+#                        x = findinv(segi.f,  a = segi.a, b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) # TODO PInd, MInf
+#            # discrete part of cumilative function
+#            for i in range(len(vals)-1):
+#                if (vals[i][1]<=y) & (y<=vals[i+1][0]):   
+#                    x = breaks[i+1]    
+#        else:
+#            y = array(y)
+#            x = zeros(size(y))
+#            # coinituaous part of cumilative function
+#            for i in range(len(vals)):
+#                segi = self.segments[i]
+#                ind = where((vals[i][0]<=y) & (y<=vals[i][1]))                   
+#                if segi.isMInf():
+#                    x[ind] = [findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+#                elif segi.isPInf():
+#                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+#                else:
+#                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+#            # discrete part of cumilative function
+#            for i in range(len(vals)-1):
+#                ind = where((vals[i][1]<=y) & (y<=vals[i+1][0]))   
+#                x[ind] = breaks[i+1]                 
+#        if (x is None): # It means
+#            print "ASSERT x is None y=", y, self.__str__()
+#            print "ASSERT x is None vals=", vals
+#            assert(False)
+#        return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
     def rand(self, n = None, cache = None):
         """Generates random numbers using inverse cumulative distribution function.
 

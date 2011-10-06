@@ -1,11 +1,54 @@
-from pacal import *
+
 from pacal.depvars.copulas import *
 from pacal.depvars.models import *
+from pacal import *
+from pacal.segments import *
 
+ 
+params.interpolation.maxn = 10
+params.interpolation.use_cheb_2nd = False
+                
 # ==== probability BMI ===============================
+X, Y = BetaDistr(3, 2, sym="X"), BetaDistr(2, 1, sym="Y")
+#c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+F = FrankCopula(theta = 2, marginals=[X, Y])
 
+def _fun(x):
+    if isscalar(x):
+        distr = FunDistr(fun=lambda y: F.pdf(x,y)/X.pdf(x), breakPoints=Y.get_piecewise_pdf().getBreaks())
+        #print x
+        #distr.summary()
+        #return distr.mean()
+        return distr.median()
+        #return distr.mode()        
+    else:
+        y =  zeros_like(x)
+        for i in range(len(x)):
+            y[i] = _fun(x[i])
+        return y 
+y = linspace(0,1,100)
+z = F.pdf(0.1,y)/Y.pdf(y)
 
+F.plot()
+figure()
+F.contour()
+print "a"
+rx,ry = F.rand2d_invcdf(500)
+print "b"
+plot(rx,ry,'.')
+figure()
+plot(y,z)
 
+mreg = PiecewiseFunction(fun=_fun, breakPoints=X.get_piecewise_pdf().getBreaks()).toInterpolated()
+figure()
+mreg.plot()
+
+figure()
+distr = FunDistr(fun=lambda y: F.pdf(0.04,y)/X.pdf(0.04), breakPoints=Y.get_piecewise_pdf().getBreaks())
+distr.summary()
+distr.plot()
+show()
+0/0
 ## ==== probability BMI ===============================
 #X = BetaDistr(4, 3, sym="x1")
 #Y = BetaDistr(3, 5, sym="x2")

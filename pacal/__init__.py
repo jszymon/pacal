@@ -46,4 +46,6 @@ from stats.iid_ops import iid_order_stat, iid_median
 
 from stats.distr_est import LoglikelihoodEstimator
 
+import params
+
 from pylab import show

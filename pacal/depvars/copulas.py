@@ -140,6 +140,30 @@ class Copula(NDDistr):
             ax2.set_zlabel('Z')
         except(Exception):
             pass
+    def contour(self, n=50, cdf=False, **kwargs):
+        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
+        #Z = self.jcdf(f, g, X, Y)
+        if self.marginals is not None and len(self.marginals) > 1:
+            f, g = self.marginals[:2]
+            self.setMarginals((f, g))
+        else:
+            f, g = UniformDistr(), UniformDistr()  
+        Lf, Uf = f.ci(0.01)
+        Lg, Ug = g.ci(0.01)
+        deltaf = (Uf - Lf) / n
+        deltag = (Ug - Lg) / n 
+        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
+        if cdf:
+            Z = self.cdf(X, Y)
+        else:
+            Z = self.pdf(X, Y)
+        #Z = self.jpdf_(f, g, X, Y)
+        
+        fig = figure(figsize=plt.figaspect(0.5))
+        cset = contour(X, Y, Z, n, **kwargs)
+        xlabel(f.getSymname())
+        ylabel(g.getSymname())
+
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -528,7 +552,7 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         for i in range(len(u)):
             #Cd = self.condition([0],u[i])        
             #print i
-            v[i] = self.conditionCDF([0], u[i]).distr_pdf.inverse(t[i])
+            v[i] = self.conditionCDF([0], u[i]).distr_pdf.invfun()(t[i])
             #v[i] = bisect(lambda x : condition(x,u[i])-t[i], 1e-50,1)
         return u, v
 
