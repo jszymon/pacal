@@ -1,0 +1,49 @@
+INSTALLATION:
+=============
+
+Requirements:
+-------------
+
+The following packages are required:
+
+* Python programming language versions 2.6 or 2.7 (not 3.x)
+* NumPy numerical library
+* Matplotlib plotting package 
+
+The following packages are recommended:
+
+* SciPy Python scientific library
+* Cython if you want to compile the code yourself 
+
+Downloading and installation:
+-----------------------------
+
+Download Pacal at SourceForge. If you are a Windows user, get the provided Windows installer. Otherwise get the tar.gz file, unpack it and type
+
+  python setup.py install
+
+just as with any other Python package.
+
+USING PaCal:
+============
+
+To start using the package, run Python and type
+
+from pacal import *
+N = NormalDistr()
+N.plot()
+show()
+N.cdf(0)          # should produce 0.5
+N.summary()       # prints summary: mean, variance, etc.
+
+
+You can compute with probability distributions just as with standard variables (independence is always assumed):
+
+C = N / N         # Cauchy distribution
+C.summary()
+L = N*N + N*N     # Laplace distribution
+L.plot()
+show()
+
+
+Many more examples are available with the package in the examples/ directory.
