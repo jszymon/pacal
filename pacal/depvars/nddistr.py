@@ -204,7 +204,11 @@ class NDDistr(NDFun):
                 elif type==1:
                     return distr.median()
                 elif type==2:
-                    return distr.mode()
+                    return distr.mode()                
+                elif type==3:
+                    return distr.quantile(0.025)
+                elif type==4:
+                    return distr.quantile(0.975)
                 else:
                     assert 1==0    
                 #return distr.median()
@@ -694,7 +698,7 @@ def plot_2d_distr(f, theoretical=None):
             ax.plot_surface(X, Y, Z - Zt, rstride=1, cstride=1)
     else:
         ax = fig.add_subplot(111)
-        C = ax.contour(X, Y, Z, 100)
+        C = ax.contour(X, Y, Z, 25)
         fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
@@ -711,9 +715,14 @@ if __name__ == "__main__":
     from pylab import *
     from pacal import *
     from pacal.depvars.copulas import *
-    X, Y = BetaDistr(2,3), BetaDistr(6,1)
+     
+    params.interpolation.maxn = 10
+    params.interpolation.use_cheb_2nd = False
+    X, Y = UniformDistr() + UniformDistr(), BetaDistr(1,4)  #BetaDistr(6,1)
     #c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
-    c = FrankCopula(theta = 2, marginals=[X, Y])
+    #c = ClaytonCopula(theta = 5, marginals=[X, Y])
+    c = FrankCopula(theta = 3, marginals=[X, Y])
+    #c = GumbelCopula(theta = 2, marginals=[X, Y])
     plot_2d_distr(c)
     fun0 = c.regfun(Y, type=0)
     fun0.plot(linewidth=2.0, color='r', label="mean")
@@ -721,7 +730,15 @@ if __name__ == "__main__":
     fun1.plot(linewidth=2.0, color='g', label="median")
     fun2 = c.regfun(Y, type=2)
     fun2.plot(linewidth=2.0, color='b', label="mode")
+    
+    fun3 = c.regfun(Y, type=3)
+    fun3.plot(linewidth=1.0, color='k', label="ci_L")
+    fun4 = c.regfun(Y, type=4)
+    fun4.plot(linewidth=1.0, color='k', label="ci_U")
     legend()
+    rx,ry = c.rand2d_invcdf(500)
+    plot(rx,ry,'.')
+    c.plot()
     show()
     0/0
     
