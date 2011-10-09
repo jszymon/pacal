@@ -159,7 +159,8 @@ class Copula(NDDistr):
             Z = self.pdf(X, Y)
         #Z = self.jpdf_(f, g, X, Y)
         
-        fig = figure(figsize=plt.figaspect(0.5))
+        #fig = figure(figsize=plt.figaspect(0.5))
+        figure()
         cset = contour(X, Y, Z, n, **kwargs)
         xlabel(f.getSymname())
         ylabel(g.getSymname())
@@ -320,10 +321,9 @@ class MCopula(Copula):
                 mi[ind] = xia[ind]
         return mi
     def _segmin(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
-            debug_info = False, debug_plot = False):
-        
-        xopt = fminbound(lambda x: -fun(float(x)), L, U, xtol = 1e-16)
-        return fun(xopt), 0
+            debug_info = False, debug_plot = False):   
+        xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
+        return max(y), 0 #fun(xopt), 0
     
 class WCopula(Copula):
     def __init__(self, marginals=None):
@@ -530,7 +530,7 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
                 else:
                     dF *= self.marginals[i].get_piecewise_pdf()(X[i])                    
             return funcond(*Y)
-        return NDFun(self.d, self.Vars, fun_)        
+        return NDFun(self.d, self.Vars, fun_)
     def debug_info(self):
         #self.fi_inv_defiv = simplify(sympy.diff(self.sym_fi_inv(self.s, self.theta), self.s))
         print "theta=", self.theta
@@ -547,12 +547,10 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         u = self.marginals[0].rand_invcdf(n)
         t = UniformDistr().rand(n)
         v = zeros_like(t)
-        #print "u=", u
-        #print "t=", t
         for i in range(len(u)):
             #Cd = self.condition([0],u[i])        
             #print i
-            v[i] = self.conditionCDF([0], u[i]).distr_pdf.invfun()(t[i])
+            v[i] = self.conditionCDF([0], u[i]).distr_pdf.inverse(t[i])
             #v[i] = bisect(lambda x : condition(x,u[i])-t[i], 1e-50,1)
         return u, v
 
