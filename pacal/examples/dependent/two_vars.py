@@ -9,18 +9,28 @@ params.interpolation.maxn = 10
 params.interpolation.use_cheb_2nd = False
                 
 # ==== probability BMI ===============================
-X, Y = BetaDistr(3, 2, sym="X"), BetaDistr(2, 1, sym="Y")
-#c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
-F = FrankCopula(theta = 2, marginals=[X, Y])
 
-def _fun(x):
+from pacal.depvars.copulas import *
+from pacal.depvars.models import *
+from pacal import *
+from pacal.segments import *
+
+ 
+params.interpolation.maxn = 10
+params.interpolation.use_cheb_2nd = False
+                
+# ==== Copulas, regression =============================
+#X, Y = BetaDistr(3, 6, sym="X"), BetaDistr(3, 1, sym="Y")
+X, Y = BetaDistr(2,3), UniformDistr() + UniformDistr()
+#c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+F = FrankCopula(theta = 8, marginals=[X, Y])
+
+def _fun(x, type=3):
     if isscalar(x):
         distr = FunDistr(fun=lambda y: F.pdf(x,y)/X.pdf(x), breakPoints=Y.get_piecewise_pdf().getBreaks())
-        #print x
-        #distr.summary()
-        #return distr.mean()
-        return distr.median()
-        #return distr.mode()        
+        if type==1: return distr.mean()
+        if type==2: return distr.median()
+        if type==3: return distr.mode()        
     else:
         y =  zeros_like(x)
         for i in range(len(x)):
@@ -30,17 +40,14 @@ y = linspace(0,1,100)
 z = F.pdf(0.1,y)/Y.pdf(y)
 
 F.plot()
-figure()
 F.contour()
+t0 = time.time()
 print "a"
 rx,ry = F.rand2d_invcdf(500)
-print "b"
+print "b", time.time() - t0
 plot(rx,ry,'.')
-figure()
-plot(y,z)
 
 mreg = PiecewiseFunction(fun=_fun, breakPoints=X.get_piecewise_pdf().getBreaks()).toInterpolated()
-figure()
 mreg.plot()
 
 figure()
