@@ -6,7 +6,8 @@ from functools import partial
 import numpy
 from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
 from numpy import sqrt, pi, arctan, tan, asfarray, zeros, Inf, NaN
-from numpy import sin, cos, tan, arcsin, arccos
+#from numpy import sin, cos, tan,
+from numpy import arcsin, arccos
 from numpy.random import uniform
 from numpy import minimum, maximum
 from numpy import hstack, cumsum, searchsorted
@@ -16,6 +17,7 @@ from pacal.utils import Inf
 
 from pylab import bar
 
+import time
 import traceback
 
 import params
@@ -141,8 +143,7 @@ class Distr(RV):
         if x<=seg.a or not seg.isPInf():
             return 1-self.get_piecewise_cdf()(x)
         else:
-            return seg.integrate(x)
-    
+            return seg.integrate(x)   
     def log_pdf(self,x):
         return log(self.pdf())
     def mean(self):
@@ -160,15 +161,14 @@ class Distr(RV):
         return self.get_piecewise_pdf().meanf(f=f)
     def skewness(self):
         if not self.var()==0.0:               
-            return self.moment(3,self.mean())/self.var()**3
+            return self.moment(3,self.mean())/self.var()**1.5
         else:
             return NaN
     def kurtosis(self):
         if not self.var()==0.0:               
-            return self.moment(4,self.mean())/self.var()**4
+            return self.moment(4,self.mean())/self.var()**2
         else:
             return NaN
- 
     def mgf(self):      
         def fun(t):
             if isscalar(t):
@@ -178,8 +178,11 @@ class Distr(RV):
                 for i in range(len(t)):
                     y[i] = fun(t[i])
                 return y 
-        print fun(0.0), fun(1.0), fun(2.0), fun(array([0.0,1.0,2]))    
         return PiecewiseFunction(fun=fun, breakPoints=self.get_piecewise_pdf().getBreaks()) 
+    def cf(self):
+        # TODO
+        pass
+    
     def std(self):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().std()
@@ -249,6 +252,7 @@ class Distr(RV):
         r['mode'] = self.mode()
         #r['interp_errs'] = self.getInterpErrors()
         try:
+            r['mode'] = self.mode()
             r['median'] = self.median()
             r['iqrange(0.025)'] = self.iqrange()
             r['medianad'] = self.medianad()  
@@ -259,7 +263,8 @@ class Distr(RV):
     def summary(self, show_moments=True):
         """Summary statistics for a given distribution."""
         print "============= summary ============="
-        print self.get_piecewise_pdf()
+        #print self.get_piecewise_pdf()
+        t0  = time.time()
         summ = self.summary_map()
         print " ", self.getName()
         for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
@@ -269,10 +274,10 @@ class Distr(RV):
                 print "---", i
         if show_moments:
             print "      moments:"
-            for i in range(15):
+            for i in range(11):
                 mi = self.moment(i,0)
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(mi)
-
+        print "=====", time.time() - t0, "sec."
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
@@ -772,11 +777,9 @@ class FuncNoninjectiveDistr(OpDistr):
     def rand_op(self, n, cache):
         X = self.d.rand(n, cache)
         Y = zeros_like(X)
-        print "<<<", X
         for i in range(len(self.intervals)):
             mask = (self.intervals[i][0] <= X) * (X <= self.intervals[i][1])
             Y[mask] = self.fs[i](X[mask]) 
-            print i, "<<<", Y
         return Y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyCompositionNoninjective(self.intervals, self.fs, self.f_invs, self.f_inv_derivs, pole_at_zero=self.pole_at_zero)
@@ -799,7 +802,7 @@ class SinDistr(FuncNoninjectiveDistr):
         self.intervals = [[-pi/2, pi/2], [pi/2, 3*pi/2]]
         self.fs = [sin, sin]
         self.f_invs = [arcsin, lambda x: pi-arcsin(x)] 
-        self.f_inv_derivs = [lambda x: (1-x**2)**(-0.5),lambda x: -(1-x**2)**(-0.5)]
+        self.f_inv_derivs = [lambda x: (1-x**2)**(-0.5),lambda x: -(1-x**2)**(-0.5)]        
         self.pole_at_zero = False        
         super(SinDistr, self).__init__(d, fname = "sin")
     def is_nonneg(self):
@@ -826,6 +829,22 @@ def cos(d):
     if isinstance(d, Distr):
         return CosDistr(d)
     return numpy.cos(d)
+
+class TanDistr(FuncDistr):
+    """Natural logarithm of a random variable"""
+    def __init__(self, d):
+        if not d.is_nonneg():
+            raise ValueError("logarithm of a nonpositive distribution")
+        super(TanDistr, self).__init__(d, numpy.tan, numpy.atan,
+                                       lambda x: 1.0/(1.0 + x**2), pole_at_zero= False, fname = "tan")
+    def init_piecewise_pdf(self):
+        self.piecewise_pdf = self.d.get_piecewise_pdf().copyComposition(self.f, self.f_inv, self.f_inv_deriv, pole_at_zero = self.pole_at_zero)
+    
+def tan(d):
+    """Overload the exp function."""
+    if isinstance(d, Distr):
+        return TanDistr(d)
+    return numpy.tan(d)
 
 class DiscreteDistr(Distr):
     """Discrete distribution"""
@@ -1064,9 +1083,9 @@ class CondGtDistr(Distr):
         diracB = Z.get_piecewise_pdf().segments.pop(0)
         self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
     def __str__(self):
-        return "{0} | {1}<x".format(self.d, self.L)
+        return "{0} | X>{1}".format(self.d, self.L)
     def getName(self):
-        return "{0} | {1}<x".format(self.d.getName(), self.L)
+        return "{0} | X>{1}".format(self.d.getName(), self.L)
     def rand_raw(self, n):
         return self.rand_invcdf(n)
 
@@ -1080,9 +1099,9 @@ class CondLtDistr(Distr):
         diracB = Z.get_piecewise_pdf().segments.pop(-1)
         self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
     def __str__(self):
-        return "{0} | x<{1}".format(self.d, self.U)
+        return "{0} | X<{1}".format(self.d, self.U)
     def getName(self):
-        return "{0} | x<{1}".format(self.d.getName(), self.U)
+        return "{0} | X<{1}".format(self.d.getName(), self.U)
     def rand_raw(self, n):
         return self.rand_invcdf(n)
     
