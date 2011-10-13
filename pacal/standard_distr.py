@@ -654,6 +654,41 @@ class FrechetDistr(Distr):
     def getName(self):
         return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
 
+class MollifierDistr(Distr):
+    """An infinitely smooth distribution which can be convolved with
+    other distributions to smooth them out."""
+    def __init__(self, epsilon = 1, **kwargs):
+        assert epsilon > 0
+        super(MollifierDistr, self).__init__(**kwargs)
+        self.epsilon = epsilon
+        self.nrm = 2.252283621043581010499781255559830730074 / epsilon
+    def pdf(self, x):
+        if isscalar(x):
+            if abs(x) >= self.epsilon:
+                y = 0
+            else:
+                t = x / self.epsilon
+                y = exp(-1.0 / (1 - t*t))
+        else:
+            y = zeros_like(asfarray(x))
+            mask = abs(x) < self.epsilon
+            y[mask] = self.nrm * exp(-1.0 / (1 - (x[mask] / self.epsilon)**2))
+        return y
+    def init_piecewise_pdf(self):
+        # split at inflection points
+        infl2 = 3.0 ** (-0.25) * self.epsilon
+        infl1 = -infl2
+        self.piecewise_pdf = PiecewiseDistribution([])
+        self.piecewise_pdf.addSegment(Segment(-self.epsilon, infl1, self.pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
+        self.piecewise_pdf.addSegment(Segment(infl2, self.epsilon, self.pdf))
+    def rand_raw(self, n = 1):
+        return self.rand_invcdf(n)
+    def __str__(self):
+        return "MollifierDistr(epsilon={0})#{1}".format(self.epsilon, id(self))
+    def getName(self):
+        return "Mollifier({0})".format(self.epsilon)
+
 
 ### Discrete distributions
 
