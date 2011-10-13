@@ -154,8 +154,8 @@ class NDFun(object):
           
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
-        super(NDDistr, self).__init__(d, Vars, self.pdf)  
-
+        super(NDDistr, self).__init__(d, Vars, self.pdf)          
+        self.marginals = Vars
     def condition(self, var, *X, **kwargs):
         """Return the NDDistr conditioned on var=X.
 
@@ -670,8 +670,8 @@ def plot_2d_distr(f, theoretical=None):
     #    have_3d = False
     have_3d = False
     #a, b = f.a, f.b
-    a, b = getRanges(f.Vars)
-    #a, b = getRanges(f.Vars, ci=0.01)
+    #a, b = getRanges(f.Vars)
+    a, b = getRanges(f.Vars, ci=0.01)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
