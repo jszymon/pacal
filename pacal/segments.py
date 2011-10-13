@@ -497,7 +497,12 @@ class PInfSegment(Segment):
     def findRightEps(self):
         x = self.a + 0.1
         while (abs(self.f(x) - self.f(1.2*x))>1e-16):
+            y = x+1.2*abs(x-self.a)
+            if isnan(self.f(y)) | isinf(self.f(y)):
+                #print "fidRightEps()=", x, self.f(x), self.f(y)
+                break
             x = x+1.2*abs(x-self.a)
+            
         return x
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
