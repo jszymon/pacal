@@ -1,6 +1,8 @@
 """PaCal, the probabilistic calculator."""
 
 import numpy as _np
+from pylab import show
+
 _np.seterr(all="ignore")
 
 from utils import Inf
@@ -29,6 +31,7 @@ from standard_distr import MollifierDistr
 from standard_distr import OneDistr
 from standard_distr import ZeroDistr
 from standard_distr import BinomialDistr
+from standard_distr import BernoulliDistr
 from standard_distr import MixDistr
 from distr import CondGtDistr
 from distr import CondLtDistr
@@ -49,4 +52,3 @@ from stats.distr_est import LoglikelihoodEstimator
 
 import params
 
-from pylab import show
