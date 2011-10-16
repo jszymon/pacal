@@ -679,9 +679,10 @@ def plot_2d_distr(f, theoretical=None):
     #    ax = fig.add_subplot(111)
     #    have_3d = False
     have_3d = False
-    #a, b = f.a, f.b
+    have_3d = True
+    a, b = f.a, f.b
     #a, b = getRanges(f.Vars)
-    a, b = getRanges(f.Vars, ci=0.01)
+    #a, b = getRanges(f.Vars, ci=0.01)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
@@ -724,24 +725,26 @@ class NDNoisyFun(NDDistr):
 
     Behaves like a conditional distribution."""
     def __init__(self, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
-        Vars = f_vars + [noise_distr]
+        a, b = getRanges(f_vars)  # just set to infinity?
+        if f_range is None:
+            # assume f is monotonic in all vars.  TODO: fix this!
+            f_a = f(*a)
+            f_b = f(*b)
+            f_a, f_b = min(f_a, f_b), max(f_a, f_b)
+        else:
+            f_a, f_b = f_range
+        noise_range = getRanges([noise_distr])
+        noise_a, noise_b = noise_range[0][0], noise_range[1][0]
+        a = concatenate([a, [noise_a + f_a]])
+        b = concatenate([b, [noise_b + f_b]])
+        Vars = f_vars + [RV(sym = "fun", a = a[-1], b = b[-1])]
         d = len(Vars)
         super(NDNoisyFun, self).__init__(d, Vars)
         self.f = f
         self.f_range = f_range
         self.noise_distr = noise_distr
-        self.a, self.b = getRanges(f_vars)  # just set to infinity?
-        noise_range = getRanges([noise_distr])
-        self.noise_a, self.noise_b = noise_range[0][0], noise_range[1][0]
-        if f_range is None:
-            # assume f is monotonic in all vars.  TODO: fix this!
-            f_a = self.f(*self.a)
-            f_b = self.f(*self.b)
-            f_a, f_b = min(f_a, f_b), max(f_a, f_b)
-        else:
-            f_a, f_b = f_range
-        self.a = concatenate([self.a, [self.noise_a + f_a]])
-        self.b = concatenate([self.b, [self.noise_b + f_b]])
+        self.a, self.b = a, b
+        self.noise_a, self.noise_b = noise_a, noise_b
 
     def pdf(self, *X):
         if isscalar(X[0]):
@@ -756,7 +759,7 @@ class NDNoisyFun(NDDistr):
             z = X[-1]
             fy = self.f(*X[:-1])
             mask = (self.noise_a <= z - fy) & (z - fy <= self.noise_b)
-            y[mask] = self.noise_distr(z - fy)
+            y[mask] = self.noise_distr((z - fy)[mask])
         return y
     
     def eliminate(self, var):
@@ -795,7 +798,7 @@ if __name__ == "__main__":
     #from pacal.depvars.copulas import *
 
     X = BetaDistr(3,3, sym = "X")
-    Y = BetaDistr(2,4, sym = "Y")
+    Y = BetaDistr(3,4, sym = "Y")
     noise = BetaDistr(5,5)*2 - 1
     noise.setSym("Z")
     print X, Y, noise
@@ -805,9 +808,9 @@ if __name__ == "__main__":
     pr = NDProductDistr([X, Y, nf])
     print pr.a, pr.b
     zd = pr.eliminate([X])
-    print zd.a, zd.b
-    zd = pr.eliminate([Y])
-    print zd
+    plot_2d_distr(zd)
+    figure()
+    zd = zd.eliminate([Y])
     pfun = FunDistr(zd, breakPoints = [zd.a[0], zd.b[0]])
     pfun.plot()
     pfun.summary()
