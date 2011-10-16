@@ -472,6 +472,13 @@ class NDProductDistr(NDDistr):
         Vars = list(set.union(*[set(f.Vars) for f in new_factors]))
         super(NDProductDistr, self).__init__(len(Vars), Vars)
         self.factors = self.optimize(new_factors)
+        self.a = [-inf] * len(self.Vars)
+        self.b = [inf] * len(self.Vars)
+        for f in self.factors:
+            for i, v in enumerate(f.Vars):
+                j = Vars.index(v)
+                self.a[j] = max(self.a[j], f.a[i])
+                self.b[j] = min(self.b[j], f.b[i])
     def __str__(self):
         s = "Factors:\n"
         for i, f in enumerate(self.factors):
@@ -713,16 +720,19 @@ def plot_2d_distr(f, theoretical=None):
 
 
 class NDNoisyFun(NDDistr):
-    """Function with additive noise."""
+    """Function with additive noise.
+
+    Behaves like a conditional distribution."""
     def __init__(self, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
         Vars = f_vars + [noise_distr]
         d = len(Vars)
         super(NDNoisyFun, self).__init__(d, Vars)
         self.f = f
+        self.f_range = f_range
         self.noise_distr = noise_distr
         self.a, self.b = getRanges(f_vars)  # just set to infinity?
-        noise_range = getRanges(noise_distr)
-        self.noise_a, self.noise_b = noise_range
+        noise_range = getRanges([noise_distr])
+        self.noise_a, self.noise_b = noise_range[0][0], noise_range[1][0]
         if f_range is None:
             # assume f is monotonic in all vars.  TODO: fix this!
             f_a = self.f(*self.a)
@@ -730,8 +740,8 @@ class NDNoisyFun(NDDistr):
             f_a, f_b = min(f_a, f_b), max(f_a, f_b)
         else:
             f_a, f_b = f_range
-        self.a.append(noise_a + f_a)
-        self.b.append(noise_b + f_b)
+        self.a = concatenate([self.a, [self.noise_a + f_a]])
+        self.b = concatenate([self.b, [self.noise_b + f_b]])
 
     def pdf(self, *X):
         if isscalar(X[0]):
@@ -751,32 +761,59 @@ class NDNoisyFun(NDDistr):
     
     def eliminate(self, var):
         var, c_var = self.prepare_var(var)
-        # assume var is a dimension number here
-        m_mu = delete(self.mu, var)
-        m_Sigma = delete(delete(self.Sigma, var, 0), var, 1)
-        if len(m_mu) == 0:
-            return NDOneFactor()
-        return NDNormalDistr(m_mu, m_Sigma, [self.Vars[i] for i in c_var])
+        if len(var) != 1 or var[0] != self.d - 1:
+            raise RuntimeError("Can only eliminate the function value variable")
+        return NDOneFactor()
+    #class partial_f(object):
+    #    def __init__(f, d, inds, vals):
+    #        self.orig_f = f
+    #        self.orig_d = d
+    #        assert len(inds) == len(vals)
+    #        self.inds = inds
+    #        self.vals = vals
+    #        self.var_inds = list(sorted(set(range(d)) - set(inds)))
+    #        self.arg_template = [None] * self.orig_d
+    #        for i, v in zip(self.inds, self.vals):
+    #            self.arg_template[i] = v
+    #    def __call__(self, *X):
+    #        args = self.arg_template.copy()
+    #        for i, x in zip(self.var_inds, X):
+    #            args[i] = x
+    #        return self.orig_f(*args)
     def condition(self, var, *X, **kwargs):
         var, c_var = self.prepare_var(var)
-        if len(c_var) == 0:
-            return NDOneFactor()
-        Sigma_11 = self.Sigma[c_var, c_var]
-        Sigma_12 = self.Sigma[c_var, var]
-        Sigma_21 = self.Sigma[var, c_var]
-        Sigma_22 = self.Sigma[var, var]
-        c_mu = self.mu[c_var] + Sigma_12 * Sigma_22.I * (X - self.mu[var])
-        c_mu = array(c_mu)[0]
-        c_Sigma = Sigma_11 - Sigma_12 * Sigma_22.I * Sigma_21
-        return NDNormalDistr(c_mu, c_Sigma, [self.Vars[i] for i in c_var])
+        if self.d - 1 in var:
+            raise RuntimeError("Cannot condition on the function value variable")
+        pf = partial_f(self.f, self.d - 1, var, *X)
+        return NDNoisyFun(f, f_vars, noise_distr = self.noise_distr, f_range = self.f_range)
 
 if __name__ == "__main__":
 
 
     from pylab import *
     from pacal import *
-    from pacal.depvars.copulas import *
-     
+    #from pacal.depvars.copulas import *
+
+    X = BetaDistr(3,3, sym = "X")
+    Y = BetaDistr(2,4, sym = "Y")
+    noise = BetaDistr(5,5)*2 - 1
+    noise.setSym("Z")
+    print X, Y, noise
+    #, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
+    nf = NDNoisyFun(lambda x, y: x + y, [X, Y], noise)
+    print nf.a, nf.b
+    pr = NDProductDistr([X, Y, nf])
+    print pr.a, pr.b
+    zd = pr.eliminate([X])
+    print zd.a, zd.b
+    zd = pr.eliminate([Y])
+    print zd
+    pfun = FunDistr(zd, breakPoints = [zd.a[0], zd.b[0]])
+    pfun.plot()
+    pfun.summary()
+    show()
+    0/0
+
     params.interpolation.maxn = 10
     params.interpolation.use_cheb_2nd = False
     X, Y = UniformDistr() + UniformDistr(), BetaDistr(1,4)  #BetaDistr(6,1)
