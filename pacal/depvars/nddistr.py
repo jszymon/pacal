@@ -655,6 +655,9 @@ class IJthOrderStatsNDDistr(NDDistr):
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
         #    print i,e
         return i,e     
+
+
+
     
 def plot_2d_distr(f, theoretical=None):
     # plot distr in 3d
@@ -708,6 +711,64 @@ def plot_2d_distr(f, theoretical=None):
             C = ax.contour(X, Y, Z + Zt)
             fig.colorbar(C)
 
+
+class NDNoisyFun(NDDistr):
+    """Function with additive noise."""
+    def __init__(self, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
+        Vars = f_vars + [noise_distr]
+        d = len(Vars)
+        super(NDNoisyFun, self).__init__(d, Vars)
+        self.f = f
+        self.noise_distr = noise_distr
+        self.a, self.b = getRanges(f_vars)  # just set to infinity?
+        noise_range = getRanges(noise_distr)
+        self.noise_a, self.noise_b = noise_range
+        if f_range is None:
+            # assume f is monotonic in all vars.  TODO: fix this!
+            f_a = self.f(*self.a)
+            f_b = self.f(*self.b)
+            f_a, f_b = min(f_a, f_b), max(f_a, f_b)
+        else:
+            f_a, f_b = f_range
+        self.a.append(noise_a + f_a)
+        self.b.append(noise_b + f_b)
+
+    def pdf(self, *X):
+        if isscalar(X[0]):
+            z = X[-1]
+            fy = self.f(*X[:-1])
+            if self.noise_a <= z - fy <= self.noise_b:
+                y = self.noise_distr(z - fy)
+            else:
+                y = 0
+        else:
+            y = zeros_like(X[0])
+            z = X[-1]
+            fy = self.f(*X[:-1])
+            mask = (self.noise_a <= z - fy) & (z - fy <= self.noise_b)
+            y[mask] = self.noise_distr(z - fy)
+        return y
+    
+    def eliminate(self, var):
+        var, c_var = self.prepare_var(var)
+        # assume var is a dimension number here
+        m_mu = delete(self.mu, var)
+        m_Sigma = delete(delete(self.Sigma, var, 0), var, 1)
+        if len(m_mu) == 0:
+            return NDOneFactor()
+        return NDNormalDistr(m_mu, m_Sigma, [self.Vars[i] for i in c_var])
+    def condition(self, var, *X, **kwargs):
+        var, c_var = self.prepare_var(var)
+        if len(c_var) == 0:
+            return NDOneFactor()
+        Sigma_11 = self.Sigma[c_var, c_var]
+        Sigma_12 = self.Sigma[c_var, var]
+        Sigma_21 = self.Sigma[var, c_var]
+        Sigma_22 = self.Sigma[var, var]
+        c_mu = self.mu[c_var] + Sigma_12 * Sigma_22.I * (X - self.mu[var])
+        c_mu = array(c_mu)[0]
+        c_Sigma = Sigma_11 - Sigma_12 * Sigma_22.I * Sigma_21
+        return NDNormalDistr(c_mu, c_Sigma, [self.Vars[i] for i in c_var])
 
 if __name__ == "__main__":
 
