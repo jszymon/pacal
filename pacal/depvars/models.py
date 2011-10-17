@@ -309,28 +309,23 @@ class TwoVarsModel(Model):
         plt.figure()
         h = 0.1
         plt.axis((ax - h, bx + h, ay - h, by + h))
-        print self.symvars
-         
-        print self.d.getSym()
-        print self.symop
+        #print self.symvars         
+        #print self.d.getSym()
+        #print self.symop
         x = self.symvars[0]
         y = self.symvars[1]
         
         lop = sympy.lambdify([x, y], self.symop) 
         tmp = [lop(ax, ay), lop(ax, by), lop(bx, ay), lop(bx, by)]
-        print tmp
         i0, i1 = min(tmp), max(tmp)
         for i in linspace(i0, i1, 20):
             #y =  self.lfun_alongx(t, i)
             #plot(t, y)
             try:
                 L, U = self.getUL(ax, bx, ay, by, i)
-                #print "**", i, L, U
                 tt = linspace(L, U, 100)
-                #print self.fun_alongx
                 y = self.lfun_alongx(tt, array([i]))
                 plot(tt, y, "k", linewidth=2.0)
-                
                 #axcz, bxcz = self.solveCutsX(self.fun_alongx , ay,by)
                 ##print "==", self.fun_alongx, "|", axcz, "|", bxcz
                 #axc = axcz.subs(self.z, i)
@@ -338,17 +333,13 @@ class TwoVarsModel(Model):
                 ##print "==", axc,bxc
                 #plot(axc,ay, 'k.')
                 #plot(bxc,by, 'b.')
-                
-                #aycz, bycz = self.solveCutsY(self.fun_alongx, ax,bx)
-                
+                #aycz, bycz = self.solveCutsY(self.fun_alongx, ax,bx)   
                 ##print "====", axcz,bxcz 
                 #ayc = aycz.subs(self.z, i)
                 #byc = bycz.subs(self.z, i)
                 ##print "====", ayc,byc
                 #plot(ax, ayc, 'r.')
-                #plot(bx, byc, 'g.')
-            
-                
+                #plot(bx, byc, 'g.')     
             except:
                 traceback.print_exc()  
         plot([ax, ax], [ay, by], "k:")
@@ -434,10 +425,11 @@ class TwoVarsModel(Model):
 #            #funPdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
 #            funCdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) #* abs(self.lJx(t, zj))
 #            fun = funCdf
-        if isinstance(P, pacal.depvars.copulas.PiCopula):        
-            fun = lambda t : segi(t) * segj(self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))             
-        else:
-            fun = lambda t : P.pdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
+        #if isinstance(P, pacal.depvars.copulas.PiCopula):        
+        #    print "Piiii"
+        #    fun = lambda t : segi(t) * segj(self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))             
+        #else:
+        fun = lambda t : P.pdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
         ##fun = lambda t : P.jpdf_(F, G, t, self.lfun_alongx(t, array([zj])))  * abs(self.lJx(t, array([zj])))
 
         
@@ -448,13 +440,13 @@ class TwoVarsModel(Model):
 #            else:
             I = 0
             err = 0
-            #print j
             for segi, segj in segList:
+                #print segi, segj
                 if segi.isSegment() and segj.isSegment():
                     L, U = self.getUL(segi.a, segi.b, segj.a, segj.b, zj)
-                    L, U  = sort([U, L])             
+                    L, U  = sort([U, L])
                     if L < U:
-                        i, e = self._segint(fun, float(L), float(U))            
+                        i, e = self._segint(fun, float(L), float(U), debug_info=False)            
                     else:  
                         i, e = 0, 0
                 #elif segi.isDirac() and segj.isSegment():
@@ -473,6 +465,7 @@ class TwoVarsModel(Model):
 #                    I = max(I,i)
 #                else:
                 I += i
+                #print I
                 err += e
             wyn[j] = I
         return wyn
