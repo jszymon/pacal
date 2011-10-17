@@ -740,6 +740,7 @@ class NDNoisyFun(NDDistr):
         Vars = f_vars + [RV(sym = "fun", a = a[-1], b = b[-1])]
         d = len(Vars)
         super(NDNoisyFun, self).__init__(d, Vars)
+        self.fun_value_var = Vars[-1]
         self.f = f
         self.f_range = f_range
         self.noise_distr = noise_distr
@@ -814,6 +815,9 @@ if __name__ == "__main__":
     pfun = FunDistr(zd, breakPoints = [zd.a[0], zd.b[0]])
     pfun.plot()
     pfun.summary()
+    figure()
+    zd2 = pr.condition([nf.fun_value_var], 0)
+    plot_2d_distr(zd2)
     show()
     0/0
 
