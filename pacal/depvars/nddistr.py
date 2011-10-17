@@ -5,7 +5,7 @@ from functools import partial
 from copy import copy
 
 from numpy import asfarray, asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
-from numpy import pi, sqrt, exp, argmin, isfinite
+from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
 from numpy.linalg import det
 
 from pacal.depvars.sparse_grids import AdaptiveSparseGridInterpolator
@@ -471,6 +471,7 @@ class NDProductDistr(NDDistr):
                 f = Factor1DDistr(f)
             new_factors.append(f)
         Vars = list(set.union(*[set(f.Vars) for f in new_factors]))
+        Vars.sort(key = lambda v: v.getSymname())
         super(NDProductDistr, self).__init__(len(Vars), Vars)
         self.factors = self.optimize(new_factors)
         self.a = [-inf] * len(self.Vars)
@@ -717,7 +718,7 @@ def plot_2d_distr(f, theoretical=None):
         if theoretical is not None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            C = ax.contour(X, Y, Z + Zt)
+            C = ax.contour(X, Y, Z - Zt)
             fig.colorbar(C)
 
 
@@ -816,12 +817,16 @@ if __name__ == "__main__":
     pfun = FunDistr(zd, breakPoints = [zd.a[0], zd.b[0]])
     pfun.plot()
     pfun.summary()
+    ylim(ymin = 0)
+    ylabel("$PDF_Z$")
     zd2 = pr.eliminate([nf.fun_value_var])
     plot_2d_distr(zd2)
     zd3 = pr.condition([nf.fun_value_var], 0)
     plot_2d_distr(zd3)
+    xlim(0,0.7)
+    ylim(0,0.65)
     show()
-    0/0
+    stop
 
     params.interpolation.maxn = 10
     params.interpolation.use_cheb_2nd = False
