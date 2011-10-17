@@ -2,6 +2,7 @@
 
 import numbers
 from functools import partial
+from copy import copy
 
 from numpy import asfarray, asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
 from numpy import pi, sqrt, exp, argmin, isfinite
@@ -679,7 +680,7 @@ def plot_2d_distr(f, theoretical=None):
     #    ax = fig.add_subplot(111)
     #    have_3d = False
     have_3d = False
-    have_3d = True
+    #have_3d = True
     a, b = f.a, f.b
     #a, b = getRanges(f.Vars)
     #a, b = getRanges(f.Vars, ci=0.01)
@@ -724,7 +725,7 @@ class NDNoisyFun(NDDistr):
     """Function with additive noise.
 
     Behaves like a conditional distribution."""
-    def __init__(self, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
+    def __init__(self, f, f_vars, noise_distr = BetaDistr(5, 5), value_sym = "fun_value", f_range = None):
         a, b = getRanges(f_vars)  # just set to infinity?
         if f_range is None:
             # assume f is monotonic in all vars.  TODO: fix this!
@@ -737,7 +738,7 @@ class NDNoisyFun(NDDistr):
         noise_a, noise_b = noise_range[0][0], noise_range[1][0]
         a = concatenate([a, [noise_a + f_a]])
         b = concatenate([b, [noise_b + f_b]])
-        Vars = f_vars + [RV(sym = "fun", a = a[-1], b = b[-1])]
+        Vars = f_vars + [RV(sym = value_sym, a = a[-1], b = b[-1])]
         d = len(Vars)
         super(NDNoisyFun, self).__init__(d, Vars)
         self.fun_value_var = Vars[-1]
@@ -751,6 +752,8 @@ class NDNoisyFun(NDDistr):
         if isscalar(X[0]):
             z = X[-1]
             fy = self.f(*X[:-1])
+            print "Q"
+            print self.noise_a, z, fy, self.noise_b, X,X[:-1]
             if self.noise_a <= z - fy <= self.noise_b:
                 y = self.noise_distr(z - fy)
             else:
@@ -768,28 +771,27 @@ class NDNoisyFun(NDDistr):
         if len(var) != 1 or var[0] != self.d - 1:
             raise RuntimeError("Can only eliminate the function value variable")
         return NDOneFactor()
-    #class partial_f(object):
-    #    def __init__(f, d, inds, vals):
-    #        self.orig_f = f
-    #        self.orig_d = d
-    #        assert len(inds) == len(vals)
-    #        self.inds = inds
-    #        self.vals = vals
-    #        self.var_inds = list(sorted(set(range(d)) - set(inds)))
-    #        self.arg_template = [None] * self.orig_d
-    #        for i, v in zip(self.inds, self.vals):
-    #            self.arg_template[i] = v
-    #    def __call__(self, *X):
-    #        args = self.arg_template.copy()
-    #        for i, x in zip(self.var_inds, X):
-    #            args[i] = x
-    #        return self.orig_f(*args)
+    class partial_f(object):
+        def __init__(self, f, d, inds, vals):
+            self.orig_f = f
+            self.orig_d = d
+            assert len(inds) == len(vals)
+            self.inds = inds
+            self.vals = vals
+            self.var_inds = list(sorted(set(range(d)) - set(inds)))
+        def __call__(self, *X):
+            args = [None] * self.orig_d
+            for i, v in zip(self.inds, self.vals):
+                args[i] = zeros_like(X[0]) + v
+            for i, x in zip(self.var_inds, X):
+                args[i] = x
+            return self.orig_f(*args)
     def condition(self, var, *X, **kwargs):
         var, c_var = self.prepare_var(var)
-        if self.d - 1 in var:
-            raise RuntimeError("Cannot condition on the function value variable")
-        pf = partial_f(self.f, self.d - 1, var, *X)
-        return NDNoisyFun(f, f_vars, noise_distr = self.noise_distr, f_range = self.f_range)
+        pf = NDNoisyFun.partial_f(self, self.d, var, X)
+        new_vars = [self.Vars[i] for i in c_var]
+        cd = NDFun(self.d - 1, new_vars, pf)
+        return cd
 
 if __name__ == "__main__":
 
@@ -801,10 +803,9 @@ if __name__ == "__main__":
     X = BetaDistr(3,3, sym = "X")
     Y = BetaDistr(3,4, sym = "Y")
     noise = BetaDistr(5,5)*2 - 1
-    noise.setSym("Z")
     print X, Y, noise
-    #, f, f_vars, noise_distr = BetaDistr(5, 5), f_range = None):
-    nf = NDNoisyFun(lambda x, y: x + y, [X, Y], noise)
+    nf = NDNoisyFun(lambda x, y: x + y, [X, Y], noise, value_sym = "Z")
+    #nf = NDNoisyFun(lambda x, y: x * y, [X, Y], noise, value_sym = "Z")
     print nf.a, nf.b
     pr = NDProductDistr([X, Y, nf])
     print pr.a, pr.b
@@ -815,9 +816,10 @@ if __name__ == "__main__":
     pfun = FunDistr(zd, breakPoints = [zd.a[0], zd.b[0]])
     pfun.plot()
     pfun.summary()
-    figure()
-    zd2 = pr.condition([nf.fun_value_var], 0)
+    zd2 = pr.eliminate([nf.fun_value_var])
     plot_2d_distr(zd2)
+    zd3 = pr.condition([nf.fun_value_var], 0)
+    plot_2d_distr(zd3)
     show()
     0/0
 
