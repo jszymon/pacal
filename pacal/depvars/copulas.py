@@ -92,7 +92,7 @@ class Copula(NDDistr):
     def ccdf(self, *X):
         """Copula, joint cumulative distribution function  with uniform  U[0,1] marginals"""
         pass
-    def plot(self, n=50):
+    def debug_plot(self, n=50):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -160,11 +160,36 @@ class Copula(NDDistr):
         #Z = self.jpdf_(f, g, X, Y)
         
         #fig = figure(figsize=plt.figaspect(0.5))
-        figure()
+        #figure()
         cset = contour(X, Y, Z, n, **kwargs)
         xlabel(f.getSymname())
         ylabel(g.getSymname())
-
+    def plot(self, n=50, cdf=False, **kwargs):
+        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
+        #Z = self.jcdf(f, g, X, Y)
+        if self.marginals is not None and len(self.marginals) > 1:
+            f, g = self.marginals[:2]
+            self.setMarginals((f, g))
+        else:
+            f, g = UniformDistr(), UniformDistr()  
+        Lf, Uf = f.ci(0.01)
+        Lg, Ug = g.ci(0.01)
+        deltaf = (Uf - Lf) / n
+        deltag = (Ug - Lg) / n 
+        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
+        if cdf:
+            Z = self.cdf(X, Y)
+        else:
+            Z = self.pdf(X, Y)
+        #Z = self.jpdf_(f, g, X, Y)
+        
+        #fig = figure(figsize=plt.figaspect(0.5))
+        #figure()
+        ax = gca(projection='3d')
+        
+        cset = ax.plot_wireframe(X, Y, Z, **kwargs)
+        xlabel(f.getSymname())
+        ylabel(g.getSymname())
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -323,7 +348,7 @@ class MCopula(Copula):
     def _segmin(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
             debug_info = False, debug_plot = False):   
         xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
-        return max(y), 0 #fun(xopt), 0
+        return max(xopt), 0 #fun(xopt), 0
     
 class WCopula(Copula):
     def __init__(self, marginals=None):
@@ -381,16 +406,9 @@ class ArchimedeanCopula(Copula):
         
     def cpdf(self, *X):
         assert len(X) == len(self.marginals), "incorrect copula dimension"
-        si = zeros_like(X[0])
-        
+        si = zeros_like(X[0])    
         for xi in X:
-            #print "======", si
-            #print "===xi=", xi            
-            #print self.fi(xi)  
             si += self.fi(xi)        
-        #ind = (si < 0) # or isnan(si)
-        #print ind        
-        #si[ind] = 0.0    
         si = self.fi_inv_nth_deriv(si)
         pi = ones_like(X[0])
         for xi in X:
@@ -433,8 +451,6 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
                                                         fi_inv_nth_deriv=sympy.lambdify(self.s, self.sym_fi_inv_nth_deriv, "numpy"),
                                                         marginals=marginals)
         vars = self.symVars
-        #for i in range(self.d):
-        #    vars.append(sympy.Symbol("u{0}".format(i + 1)))
         si = 0
         for i in range(self.d):
             si += self.fi_(vars[i], self.theta)
@@ -443,7 +459,6 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
     def eliminate(self, var):
         var, c_var = self.prepare_var(var)
         c_marginals = [self.marginals[i] for i in c_var]
-        #print var, c_var, c_marginals
         if len(var) == 0:
             return self
         return ArchimedeanSymbolicCopula(fi=self.fi_,
@@ -457,12 +472,9 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         var, c_var = self.prepare_var(var)
         symvars = [self.symVars[i] for i in var]        
         DC = self.sym_C
-        #print DC
         for i in range(len(self.Vars)): 
-            #for i in range(len(var)):
             if i in set(var):
                 DC = sympy.diff(DC, self.symVars[i])                
-                #print DC
             else:
                 pass
         dC = sympy.lambdify(self.symVars, DC, "numpy")  
@@ -495,9 +507,7 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         """
         funcond = self.ccond(var)
         var, c_var = self.prepare_var(var)
-        #new_cond = set(self.cond_vars) - set(var)
         new_cond = var
-        #print "var=", var, "X=", X
         def fun_(*Y_):
             j, k = 0, 0 
             Y = []
@@ -518,7 +528,6 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         funcond = self.ccond(var)
         var, c_var = self.prepare_var(var)
         new_cond = var
-        #print "var=", var
         def fun_(*X):
             j, k = 0, 0 
             Y = []
