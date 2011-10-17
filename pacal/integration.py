@@ -16,7 +16,7 @@
 
 from numpy.fft import ifft
 from numpy import array, zeros, ones, hstack, arange, zeros_like, asfarray
-from numpy import dot
+from numpy import dot, isscalar
 from numpy import finfo, double, isinf
 from numpy import ceil,log10, logspace
 
@@ -32,6 +32,7 @@ from vartransforms import VarTransformReciprocal_PMInf
 from vartransforms import VarTransformReciprocal_PInf
 from vartransforms import VarTransformReciprocal_MInf
 
+from pacal.interpolation import ChebyshevInterpolator1
 import params
 
 # cache for Clenshaw quadrature coefficients
