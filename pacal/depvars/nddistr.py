@@ -162,11 +162,11 @@ class NDDistr(NDFun):
 
         The default implementation uses NDInterpolatedDistr"""
         var, c_var = self.prepare_var(var)
-        if len(c_var) == 0:
-            return NDOneFactor()
         for i in range(len(var)):
             ai, bi = self.Vars[var[i]].range()
             assert ai <= X[i] <= bi, "var({0})={1} outside of range [{2}, {3}]".format(var[i], X[i], ai, bi)
+        if len(c_var) == 0:
+            return NDOneFactor()
         if not hasattr(X, "__iter__"):
             X = [X]
         assert len(X) == len(var)
@@ -571,7 +571,7 @@ class NDProductDistr(NDDistr):
                 if V in cf.Vars:
                     cV.append(V)
                     cX.append(X[i])
-            print cf, cf.Vars[0].getSymname()
+            print cf, cf.Vars[0].getSymname(), cf.condition(cV, cX, normalize=False)
             new_cond_factors.append(cf.condition(cV, cX, normalize=False))
         cfp = NDProductDistr(kept_factors + new_cond_factors)
         nrm = cfp.eliminate(range(cfp.d))

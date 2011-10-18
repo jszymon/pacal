@@ -67,6 +67,10 @@ class Model(object):
             if vsym in set(eq.atoms(sympy.Symbol)):
                 ch.append(rv)
         return ch
+    def get_parents(self, var):
+        pnames = self.rv_to_equation[var].atoms(sympy.Symbol)
+        return [self.sym_to_rv[pn] for pn in pnames]
+
     def varschange(self, free_var, dep_var):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
@@ -202,7 +206,7 @@ class Model(object):
                 elim_dangling = False
                 for v in self.dep_rvs:
                     to_remove = []
-                    if v not in wanted_rvs and len(self.get_children(v)) == 0:
+                    if v not in wanted_rvs and not v in cond and len(self.get_children(v)) == 0:
                         to_remove.append(v)
                         elim_dangling = True
                     for v in to_remove:
@@ -210,18 +214,36 @@ class Model(object):
             # a single itertion below reverses the DAG
             exchanged_vars = set()
             while wanted_rvs | exchanged_vars != set(self.all_vars):
-                # find a free var to eliminate or exchange
+                # find a free var to eliminate
+                to_remove = []
                 for v in self.free_rvs:
-                    to_remove = []
-                    if v not in wanted_rvs and len(self.get_children(v)) == 0:
-                        to_remove.append(v)
-                    # TODO: eliminate all vars at once so that NDProductDistr heuristic is used
-                    for v in to_remove:
-                        if v not in cond:
-                            self.eliminate(v)
-                        else:
-                            self.condition(v, cond[v])
-            break
+                    if v not in wanted_rvs:
+                        if v in cond or len(self.get_children(v)) == 0:
+                            to_remove.append(v)
+                # TODO: eliminate all vars at once so that NDProductDistr heuristic is used
+                for v in to_remove:
+                    if v not in cond:
+                        self.eliminate(v)
+                    else:
+                        self.condition(v, cond[v])
+                if len(to_remove) > 0:
+                    continue
+                # find an unwanted free var and a dep var to exchange
+                exchangeable_dep_vars = []
+                for v in self.dep_rvs:
+                    if v not in exchanged_vars and set(self.get_parents(v)).issubset(self.free_rvs):
+                        exchangeable_dep_vars.append(v)
+                if len(exchangeable_dep_vars) > 0:
+                    # TODO: pick better pair of variables
+                    for dv in exchangeable_dep_vars:
+                        for fv in self.get_parents(dv):
+                            if fv not in wanted_rvs:
+                                break
+                    self.varschange(fv, dv)
+                    if fv not in wanted_rvs:
+                        self.eliminate(fv)
+                    else:
+                        exchanged_vars.add(fv)
 
     def are_free(self, vars):        
         for v in vars:
@@ -589,8 +611,14 @@ if __name__ == "__main__":
     M = Model(P, [S])
     print M
     #M.inference2(wanted_rvs = [X])
-    M.inference2(wanted_rvs = [X], cond_rvs = [Y], cond_X = [0.5])
+    #M.inference2(wanted_rvs = [X], cond_rvs = [Y], cond_X = [1.5])
+    #M.inference2(wanted_rvs = [S])
+    #M.inference2(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
+    #M.inference2(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
+    M.inference2(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5])
     print M
+    M.plot()
+    show()
     stop
 
     N = X * Y; N.setSym("N")
