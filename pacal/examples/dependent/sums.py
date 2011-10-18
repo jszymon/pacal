@@ -48,10 +48,13 @@ S4.setSym("S4")
 P = NDProductDistr([Factor1DDistr(X1), Factor1DDistr(X2), Factor1DDistr(X3), Factor1DDistr(X4)])
 M = Model(P, [S2, S3, S4])
 print M
-M.eliminate_other([S4,S2])
+#M.eliminate_other([S4,S2])
+#print M
+M.inference([X1,X4], [S4], [2.5])
 print M
-M.unchain([S2,S4])
-print M
+M.plot()
+#M.nddistr.cov(0,1)
+show()
 0/0
 M.varschange(X1, S2)
 print M
