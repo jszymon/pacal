@@ -147,7 +147,7 @@ class Model(object):
         print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
         for var in vars_to_eliminate:
             self.eliminate(var)
-    def unchain(self, vars):
+    def unchain(self, vars, excluded=[]):
         vars_to_unchain = set(vars) - set(self.free_rvs)
         print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)  
         print "unchain variables: ",self.are_free(vars)
@@ -163,7 +163,7 @@ class Model(object):
                         av = self.prepare_var(a)
                         print ">=", av
                         print self.__str__()
-                        if self.is_free(av):
+                        if self.is_free(av) and not av in set(excluded):
                             print "varschangeL:", av.getSymname(), var.getSymname()
                             self.varschange(av, var)
                             break   
@@ -172,7 +172,7 @@ class Model(object):
         assert len(condvars)==len(condvals), "condvars, condvals must be equal size" 
         self.eliminate_other(set(vars) | set(condvars))
         print self.__str__()
-        self.unchain(set(vars) | set(condvars))
+        self.unchain(set(vars) | set(condvars), excluded=vars)
         print self.__str__()
         for i in range(len(condvars)):
             self.condition(condvars[i], condvals[i])
