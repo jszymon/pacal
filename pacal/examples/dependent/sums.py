@@ -50,7 +50,7 @@ M = Model(P, [S2, S3, S4])
 print M
 #M.eliminate_other([S4,S2])
 #print M
-M.inference([X1,X4], [S4], [2.5])
+M.inference([X1,X2], [S3], [2.5])
 print M
 M.plot()
 #M.nddistr.cov(0,1)
