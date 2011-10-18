@@ -40,13 +40,19 @@ X3 = BetaDistr(3, 5, sym = "X3")
 X4 = BetaDistr(3, 3, sym = "X4")
 S2 = X1 + X2
 S2.setSym("S2")
-S3 = S2 * X3
+S3 = S2 + X3
 S3.setSym("S3")
+S4 = S3 + X4
+S4.setSym("S4")
 
-P = NDProductDistr([Factor1DDistr(X1), Factor1DDistr(X2), Factor1DDistr(X3)])
-M = Model(P, [S2, S3])
-#M.eliminate_other([S3])
+P = NDProductDistr([Factor1DDistr(X1), Factor1DDistr(X2), Factor1DDistr(X3), Factor1DDistr(X4)])
+M = Model(P, [S2, S3, S4])
 print M
+M.eliminate_other([S4,S2])
+print M
+M.unchain([S2,S4])
+print M
+0/0
 M.varschange(X1, S2)
 print M
 M.varschange(X3, S3)
@@ -55,7 +61,7 @@ M.eliminate(X1)
 M.eliminate(X2)
 #M.eliminate_other([X3])
 print M
-print M.nddistr.corrcoef(0,1)
+print M.nddistr.cov(0,1)
 #M.condition(S3, 0.8)
 #M.varschange(S2, X3)
 #M.varschange(X3, X1)
