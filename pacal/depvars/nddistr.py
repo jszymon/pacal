@@ -365,6 +365,8 @@ class NDConstFactor(NDDistr):
         return self
     def condition(self, var, *X, **kwargs):
         return self
+    def as_constant(self):
+        return self.c
 
 class NDOneFactor(NDConstFactor):
     def __init__(self):
@@ -510,10 +512,10 @@ class NDProductDistr(NDDistr):
         """Return self as NDConstFactor if possible, else raise an exception."""
         factors = self.optimize(self.factors)
         if len(factors) == 0:
-            return NDOneFactor()
+            return 1
         if len(factors) != 1 or not isinstance(factors[0], NDConstFactor):
             raise RuntimeError("Product is not constant")
-        return factors[0]
+        return factors[0].c
 
     def factor_out(self, factors, v):
         kept_factors = []
@@ -548,6 +550,8 @@ class NDProductDistr(NDDistr):
             ef = [_NDProductDistr(elim_factors).eliminate(v1)]
         del Var[best_v]
         new_factors = self.optimize(kept_factors + ef)
+        if len(new_factors) == 0:
+            return NDOneFactor()
         if len(new_factors) == 1:
             return NDProductDistr([new_factors[0].eliminate(Var)])
         newpd = NDProductDistr(new_factors)
@@ -572,7 +576,7 @@ class NDProductDistr(NDDistr):
         cfp = NDProductDistr(kept_factors + new_cond_factors)
         nrm = cfp.eliminate(range(cfp.d))
         nrm = nrm.as_constant()
-        cfp.factors = cfp.optimize(cfp.factors + [NDConstFactor(1.0 / nrm.c)])
+        cfp.factors = cfp.optimize(cfp.factors + [NDConstFactor(1.0 / nrm)])
         return cfp
     #def varschange(self, vari, varj):
     def varschange(self, vari, inv_transf, inv_transf_vars, jacobian):

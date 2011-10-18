@@ -48,8 +48,7 @@ class Model(object):
         s += "Equations:\n"
         for rv, eq in self.rv_to_equation.iteritems():
             s += str(rv.getSymname()) + " = " + str(eq) + "(" + str(self.eval_var(rv)) + ")\n"
-        s += str(self.nddistr) + "\n"
-        s += str(self.nddistr.Vars) + "\n"
+        s += str(self.nddistr)
         s += "\n"
         #self.toGraphwiz()
         return s
@@ -60,6 +59,14 @@ class Model(object):
         elif isinstance(var, sympy.Symbol):
             var = self.sym_to_rv[var]
         return var
+    def get_children(self, var):
+        """Children of a variable."""
+        ch = []
+        vsym = var.getSymname()
+        for rv, eq in self.rv_to_equation.iteritems():
+            if vsym in set(eq.atoms(sympy.Symbol)):
+                ch.append(rv)
+        return ch
     def varschange(self, free_var, dep_var):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
@@ -133,10 +140,12 @@ class Model(object):
                     raise RuntimeError("Cannot eliminate free variable on which other variables depend")
             self.nddistr = self.nddistr.eliminate(var)
             self.free_rvs.remove(var)
+            self.all_vars.remove(var)
         elif var in self.dep_rvs:
             subs_eq = self.rv_to_equation[var]
             del self.rv_to_equation[var]
             self.dep_rvs.remove(var)
+            self.all_vars.remove(var)
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                     self.rv_to_equation[rv] = eq.subs(var.getSymname(), subs_eq)
@@ -180,7 +189,40 @@ class Model(object):
             self.eliminate(var)
         for var in set(self.free_rvs) - set(vars):
             self.eliminate(var)
-        
+
+    def inference2(self, wanted_rvs, cond_rvs = [], cond_X = []):
+        wanted_rvs = set(wanted_rvs)
+        cond = {}
+        for v, x in zip(cond_rvs, cond_X):
+            cond[v] = x
+        while wanted_rvs != set(self.all_vars):
+            # eliminate all dangling variables
+            elim_dangling = True
+            while elim_dangling:
+                elim_dangling = False
+                for v in self.dep_rvs:
+                    to_remove = []
+                    if v not in wanted_rvs and len(self.get_children(v)) == 0:
+                        to_remove.append(v)
+                        elim_dangling = True
+                    for v in to_remove:
+                        self.eliminate(v)
+            # a single itertion below reverses the DAG
+            exchanged_vars = set()
+            while wanted_rvs | exchanged_vars != set(self.all_vars):
+                # find a free var to eliminate or exchange
+                for v in self.free_rvs:
+                    to_remove = []
+                    if v not in wanted_rvs and len(self.get_children(v)) == 0:
+                        to_remove.append(v)
+                    # TODO: eliminate all vars at once so that NDProductDistr heuristic is used
+                    for v in to_remove:
+                        if v not in cond:
+                            self.eliminate(v)
+                        else:
+                            self.condition(v, cond[v])
+            break
+
     def are_free(self, vars):        
         for v in vars:
             if not self.is_free(v): return False
@@ -224,6 +266,7 @@ class Model(object):
             if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                 self.rv_to_equation[rv] = eq.subs(var.getSymname(), Xsym)
         self.free_rvs.remove(var)
+        self.all_vars.remove(var)
         self.nddistr = self.nddistr.condition([var], X)
 
     def as1DDistr(self):
@@ -540,6 +583,15 @@ if __name__ == "__main__":
 
     X = UniformDistr(1, 2, sym="X")
     Y = UniformDistr(1, 3, sym="Y")
+
+    S = X + Y; S.setSym("S")
+    P = NDProductDistr([X, Y])
+    M = Model(P, [S])
+    print M
+    #M.inference2(wanted_rvs = [X])
+    M.inference2(wanted_rvs = [X], cond_rvs = [Y], cond_X = [0.5])
+    print M
+    stop
 
     N = X * Y; N.setSym("N")
     D = X + Y; D.setSym("D")
