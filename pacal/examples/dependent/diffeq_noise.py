@@ -29,6 +29,7 @@ for i, o in enumerate(O):
     o.setSym("O"+str(i))
 P = NDProductDistr([A, Y[0]] + E)
 M = Model(P, O)
+print M
 M.eliminate_other([K] + E + O + Y)
 
 

@@ -143,7 +143,7 @@ class Model(object):
         else:
             assert False
     def eliminate_other(self, vars):
-        vars_to_eliminate = self.dep_rvs - set(vars)
+        vars_to_eliminate = list(set(self.dep_rvs) - set(vars))
         print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
         for var in vars_to_eliminate:
             self.eliminate(var)
