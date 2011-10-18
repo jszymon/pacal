@@ -148,24 +148,39 @@ class Model(object):
         for var in vars_to_eliminate:
             self.eliminate(var)
     def unchain(self, vars):
-        vars_to_unchain = set(vars) - self.free_rvs
+        vars_to_unchain = set(vars) - set(self.free_rvs)
         print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)  
         print "unchain variables: ",self.are_free(vars)
         print "unchain variables: ",self.are_free(vars_to_unchain)
-        print ": ", vars_to_unchain
+        print ": ", vars_to_unchain        
+        for i in range(len(vars_to_unchain)):
+            for var in vars_to_unchain:
+                #print ">>>>>>.", var.getSymname(), self.rv_to_equation[var]
+                #print ">>", self.rv_to_equation[var].atoms
+                if self.is_dependent(var) and self.are_free(self.rv_to_equation[var].atoms()):
+                    for a in self.rv_to_equation[var].atoms():
+                        print ">", a
+                        av = self.prepare_var(a)
+                        print ">=", av
+                        print self.__str__()
+                        if self.is_free(av):
+                            print "varschangeL:", av.getSymname(), var.getSymname()
+                            self.varschange(av, var)
+                            break   
+                 
+    def inference(self, vars, condvars, condvals):
+        assert len(condvars)==len(condvals), "condvars, condvals must be equal size" 
+        self.eliminate_other(set(vars) | set(condvars))
+        print self.__str__()
+        self.unchain(set(vars) | set(condvars))
+        print self.__str__()
+        for i in range(len(condvars)):
+            self.condition(condvars[i], condvals[i])
+        for var in set(self.dep_rvs):
+            self.eliminate(var)
+        for var in set(self.free_rvs) - set(vars):
+            self.eliminate(var)
         
-        for var in vars_to_unchain:
-            print ">>>>>>.", self.rv_to_equation[var]
-            print ">>", self.rv_to_equation[var].atoms
-            for a in self.rv_to_equation[var].atoms():
-                print ">", a
-                av = self.prepare_var(a)
-                print ">=", av
-                print self.__str__()
-                if self.is_free(av):
-                    self.varschange(av, var)
-                    break            
-           
     def are_free(self, vars):        
         for v in vars:
             if not self.is_free(v): return False
