@@ -584,9 +584,9 @@ class NDProductDistr(NDDistr):
         for ef in elim_factors:
             new_factors.append(NDDistrWithVarSubst(ef, vari, inv_transf, inv_transf_vars))
         new_factors.append(jacobian)
-        print "kept factors=", kept_factors
-        print "elim factors=", elim_factors
-        print "new factors=", new_factors
+        #print "kept factors=", kept_factors
+        #print "elim factors=", elim_factors
+        #print "new factors=", new_factors
         return NDProductDistr(new_factors)        
 
 class _NDProductDistr(NDProductDistr):

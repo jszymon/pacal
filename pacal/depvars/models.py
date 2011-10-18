@@ -24,14 +24,14 @@ class Model(object):
     def __init__(self, nddistr, rvs=[]):
         self.nddistr = nddistr
         self._segint = nddistr._segint 
-        free_rvs = set(self.nddistr.Vars)
+        free_rvs = list(self.nddistr.Vars)
         # fetch all necessary RVs
         dep_rvs = set(rvs)
         for rv in rvs:
             dep_rvs.update(rv.getParentsDep())
         self.free_rvs = free_rvs
-        self.dep_rvs = dep_rvs
-        self.all_vars = free_rvs | dep_rvs
+        self.dep_rvs = list(sorted(dep_rvs))
+        self.all_vars = list(sorted(set(free_rvs) | dep_rvs))
         self.sym_to_rv = {}
         for rv in self.all_vars:
             self.sym_to_rv[rv.getSymname()] = rv
@@ -48,8 +48,10 @@ class Model(object):
         s += "Equations:\n"
         for rv, eq in self.rv_to_equation.iteritems():
             s += str(rv.getSymname()) + " = " + str(eq) + "(" + str(self.eval_var(rv)) + ")\n"
+        s += str(self.nddistr) + "\n"
+        s += str(self.nddistr.Vars) + "\n"
         s += "\n"
-        self.toGraphwiz()
+        #self.toGraphwiz()
         return s
 
     def prepare_var(self, var):
@@ -72,10 +74,12 @@ class Model(object):
         for s in parents:
             if not self.is_free(s):
                 raise RuntimeError("Dependent variable has a nonfree parent")
-        inv_transf, inv_transf_lamdified, inv_transf_vars, jacobian = self.var_change_helper(free_var, dep_var)
+        var_changes = self.var_change_helper(free_var, dep_var)
+        assert len(var_changes) == 1
+        inv_transf, inv_transf_lamdified, inv_transf_vars, jacobian = var_changes[0]
         self.free_rvs.remove(free_var)
-        self.free_rvs.add(dep_var)
-        self.dep_rvs.add(free_var)
+        self.free_rvs.append(dep_var)
+        self.dep_rvs.append(free_var)
         self.dep_rvs.remove(dep_var)
         del self.rv_to_equation[dep_var]
         for rv, eq in self.rv_to_equation.iteritems():
@@ -90,35 +94,35 @@ class Model(object):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
         # inverve transformation
-        uj = sympy.solve(self.rv_to_equation[dep_var] - dep_var.getSymname(), free_var.getSymname())
-        assert len(uj) == 1, uj
-        uj = uj[0]
-        uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
-        inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")  
-        inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
+        solutions = sympy.solve(self.rv_to_equation[dep_var] - dep_var.getSymname(), free_var.getSymname())
+        var_changes = []
+        for uj in solutions:
+            uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
+            inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")  
+            inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
-        print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-        print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-        print "solution: ", free_var.getSymname(), "=", uj
-        print "variables: ", uj_symbols, inv_transf_vars
+            print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+            print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+            print "solution: ", free_var.getSymname(), "=", uj
+            print "variables: ", uj_symbols, inv_transf_vars
 
-        # Jacobian
-        #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
-        J = sympy.diff(uj, dep_var.getSymname())
-        J_symbols = list(sorted(J.atoms(sympy.Symbol)))
-        if len(J_symbols) > 0:
-            jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
-            jacobian = sympy.lambdify(J_symbols, J, "numpy")
-            jacobian = NDFun(len(jacobian_vars), jacobian_vars, jacobian, safe = True, abs = True)
-        else:
-            jacobian = NDConstFactor(abs(float(J)))
-            jacobian_vars = []
+            # Jacobian
+            #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
+            J = sympy.diff(uj, dep_var.getSymname())
+            J_symbols = list(sorted(J.atoms(sympy.Symbol)))
+            if len(J_symbols) > 0:
+                jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
+                jacobian = sympy.lambdify(J_symbols, J, "numpy")
+                jacobian = NDFun(len(jacobian_vars), jacobian_vars, jacobian, safe = True, abs = True)
+            else:
+                jacobian = NDConstFactor(abs(float(J)))
+                jacobian_vars = []
 
-        print "J=", J
-        print "variables: ", J_symbols, jacobian_vars
+            print "J=", J
+            print "variables: ", J_symbols, jacobian_vars
 
-        return uj, inv_transf, inv_transf_vars, jacobian
-        
+            var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
+        return var_changes
 
     def eliminate(self, var):
         var = self.prepare_var(var)
@@ -495,8 +499,30 @@ def _findSegList(f, g, z, op):
 if __name__ == "__main__":
     from pacal.distr import demo_distr
     from pacal.depvars.nddistr import *
-    #X = UniformDistr(1, 2, sym="x1")
-    #Y = UniformDistr(1, 3, sym="x2")
+
+    X = UniformDistr(1, 2, sym="X")
+    Y = UniformDistr(1, 3, sym="Y")
+
+    N = X * Y; N.setSym("N")
+    D = X + Y; D.setSym("D")
+    R = N / D; R.setSym("R")
+    P = NDProductDistr([X, Y])
+    M = Model(P, [N, D, R])
+    print M
+    M.varschange(X, N)
+    M.eliminate(X)
+    print M
+    M.varschange(Y, D)
+    M.eliminate(Y)
+    print M
+    M.varschange(D, R)
+    M.eliminate(D)
+    print M
+    M.eliminate(N)
+    print M
+    M.plot()
+    show()
+    stop
     
     X1 = UniformDistr(1.5, 2.5, sym="x1")
     X2 = UniformDistr(1.5, 2.5, sym="x2")
