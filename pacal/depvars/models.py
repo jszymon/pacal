@@ -67,7 +67,7 @@ class Model(object):
         if not self.is_free(free_var):
             raise RuntimeError("First exchanged variable must be free")
         if not self.is_dependent(dep_var):
-            raise RuntimeError("First exchanged variable must be free")
+            raise RuntimeError("First exchanged variable must be free, second must be dependent")
         parents = self.rv_to_equation[dep_var].atoms(sympy.Symbol)
         if free_var.getSymname() not in parents:
             raise RuntimeError("Free variable is not a parent of dependent variable")
@@ -147,6 +147,29 @@ class Model(object):
         print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
         for var in vars_to_eliminate:
             self.eliminate(var)
+    def unchain(self, vars):
+        vars_to_unchain = set(vars) - self.free_rvs
+        print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)  
+        print "unchain variables: ",self.are_free(vars)
+        print "unchain variables: ",self.are_free(vars_to_unchain)
+        print ": ", vars_to_unchain
+        
+        for var in vars_to_unchain:
+            print ">>>>>>.", self.rv_to_equation[var]
+            print ">>", self.rv_to_equation[var].atoms
+            for a in self.rv_to_equation[var].atoms():
+                print ">", a
+                av = self.prepare_var(a)
+                print ">=", av
+                print self.__str__()
+                if self.is_free(av):
+                    self.varschange(av, var)
+                    break            
+           
+    def are_free(self, vars):        
+        for v in vars:
+            if not self.is_free(v): return False
+            return True
     def varchange_and_eliminate(self, var):
         if self.is_free(var) and len(self.dep_rvs)==0:
             # eliminujemy pozostale zmienne wolne
