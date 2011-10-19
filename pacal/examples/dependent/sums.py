@@ -52,7 +52,8 @@ print M
 #print M
 #M.inference([X1,X2], [S3], [2.5])
 #M.inference2([X1,X4], [S3], [2.5])
-M.inference2([X1,X2], [S3], [2.5])
+#M.inference2([X1,X2], [S3], [2.5])
+M.inference2([X1,S4], [X2], [0.5])
 print M
 M.plot()
 #M.nddistr.cov(0,1)

@@ -202,9 +202,9 @@ class Model(object):
         while wanted_rvs != set(self.all_vars):
             #print "OUTER LOOP| wanted:", wanted_rvs, "all:", self.all_vars
             # eliminate all dangling variables
+            to_remove = []
             for v in self.dep_rvs:
-                to_remove = []
-                if v not in wanted_rvs and not v in cond and len(self.get_children(v)) == 0:
+                if v not in wanted_rvs and v not in cond and len(self.get_children(v)) == 0:
                     to_remove.append(v)
             for v in to_remove:
                 self.eliminate(v)
