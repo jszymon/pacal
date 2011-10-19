@@ -85,8 +85,13 @@ class Model(object):
         for s in parents:
             if not self.is_free(s):
                 raise RuntimeError("Dependent variable has a nonfree parent")
-        var_changes = self.var_change_helper(free_var, dep_var)
-        assert len(var_changes) == 1
+        var_changes, equation = self.var_change_helper(free_var, dep_var)
+        if len(var_changes) != 1:
+            print "Equation:", equation, "has multiple solutions"
+            for vc in var_changes:
+                print vc[0]
+            raise RuntimeError("Equations with multiple solutions are not supported")
+
         inv_transf, inv_transf_lamdified, inv_transf_vars, jacobian = var_changes[0]
         self.free_rvs.remove(free_var)
         self.free_rvs.append(dep_var)
@@ -105,11 +110,12 @@ class Model(object):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
         # inverve transformation
-        solutions = sympy.solve(self.rv_to_equation[dep_var] - dep_var.getSymname(), free_var.getSymname())
+        equation = self.rv_to_equation[dep_var] - dep_var.getSymname()
+        solutions = sympy.solve(equation, free_var.getSymname())
         var_changes = []
         for uj in solutions:
             uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
-            inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")  
+            inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
             #print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
@@ -133,7 +139,7 @@ class Model(object):
             #print "variables: ", J_symbols, jacobian_vars
 
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
-        return var_changes
+        return var_changes, equation
 
     def eliminate(self, var):
         var = self.prepare_var(var)
