@@ -51,8 +51,8 @@ print M
 #M.eliminate_other([S4,S2])
 #print M
 #M.inference([X1,X2], [S3], [2.5])
-#M.inference2([S2,S4], [S3], [2.5])
-M.inference([X2,S4], [X1] , [0.5])
+#M.inference2([X1,X4], [S3], [2.5])
+M.inference2([X1,X2], [S3], [2.5])
 print M
 M.plot()
 #M.nddistr.cov(0,1)

@@ -74,7 +74,7 @@ class Model(object):
     def varschange(self, free_var, dep_var):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
-        print "change of variables:"
+        print "exchange free variable: ", free_var.getSymname(), "with dependent variable", dep_var.getSymname()
         if not self.is_free(free_var):
             raise RuntimeError("First exchanged variable must be free")
         if not self.is_dependent(dep_var):
@@ -112,10 +112,10 @@ class Model(object):
             inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")  
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
-            print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-            print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-            print "solution: ", free_var.getSymname(), "=", uj
-            print "variables: ", uj_symbols, inv_transf_vars
+            #print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+            #print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+            #print "solution: ", free_var.getSymname(), "=", uj
+            #print "variables: ", uj_symbols, inv_transf_vars
 
             # Jacobian
             #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
@@ -129,8 +129,8 @@ class Model(object):
                 jacobian = NDConstFactor(abs(float(J)))
                 jacobian_vars = []
 
-            print "J=", J
-            print "variables: ", J_symbols, jacobian_vars
+            #print "J=", J
+            #print "variables: ", J_symbols, jacobian_vars
 
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
         return var_changes
@@ -200,20 +200,22 @@ class Model(object):
         for v, x in zip(cond_rvs, cond_X):
             cond[v] = x
         while wanted_rvs != set(self.all_vars):
+            #print "OUTER LOOP| wanted:", wanted_rvs, "all:", self.all_vars
             # eliminate all dangling variables
-            elim_dangling = True
-            while elim_dangling:
-                elim_dangling = False
-                for v in self.dep_rvs:
-                    to_remove = []
-                    if v not in wanted_rvs and not v in cond and len(self.get_children(v)) == 0:
-                        to_remove.append(v)
-                        elim_dangling = True
-                    for v in to_remove:
-                        self.eliminate(v)
+            for v in self.dep_rvs:
+                to_remove = []
+                if v not in wanted_rvs and not v in cond and len(self.get_children(v)) == 0:
+                    to_remove.append(v)
+            for v in to_remove:
+                self.eliminate(v)
+            if len(to_remove) > 0:
+                continue
             # a single itertion below reverses the DAG
             exchanged_vars = set()
             while wanted_rvs | exchanged_vars != set(self.all_vars):
+                #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", self.all_vars
+                #print self
+                #print
                 # find a free var to eliminate
                 to_remove = []
                 for v in self.free_rvs:
@@ -244,7 +246,9 @@ class Model(object):
                         self.eliminate(fv)
                     else:
                         exchanged_vars.add(fv)
-
+                else:
+                    # whole graph has been reversed, may need to do it again in the outer loop...
+                    break
     def are_free(self, vars):        
         for v in vars:
             if not self.is_free(v): return False

@@ -29,10 +29,19 @@ for i, o in enumerate(O):
     o.setSym("O"+str(i))
 P = NDProductDistr([A, Y[0]] + E)
 M = Model(P, O)
-print M
 M.eliminate_other([K] + E + O + Y)
+print M
 
 
+M.inference2(wanted_rvs = [A, Y[-1]], cond_rvs = [O[-1]], cond_X = [1.1])
+print M
+M.plot()
+M.inference2(wanted_rvs = [A])
+M.plot()
+show()
+stop
+
+# or... do the elimination by hand
 M.varschange(A, K)
 print M
 print M.nddistr
