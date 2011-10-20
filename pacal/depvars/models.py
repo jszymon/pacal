@@ -9,6 +9,7 @@ import sympy
 import traceback
 from numpy import size, isnan
 from pylab import *
+from copy import copy
 import pacal
 
 from pacal.distr import *
@@ -17,11 +18,13 @@ from pacal.segments import PiecewiseDistribution#, _segint
 from pacal.depvars.copulas import GumbelCopula, GumbelCopula2d, ClaytonCopula, FrankCopula2d, FrankCopula
 from pacal.depvars.copulas import PiCopula, WCopula, MCopula
 
-from pacal.depvars.nddistr import NDFun, NDConstFactor
+from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
+        if not isinstance(nddistr, NDFun):
+            nddistr = NDProductDistr(nddistr)
         self.nddistr = nddistr
         self._segint = nddistr._segint 
         free_rvs = list(self.nddistr.Vars)
@@ -38,6 +41,14 @@ class Model(object):
         self.rv_to_equation = {}
         for rv in self.dep_rvs:
             self.rv_to_equation[rv] = rv.getSym()
+    def copy(self):
+        cp = copy(self)
+        cp.free_rvs = copy(cp.free_rvs)
+        cp.dep_rvs = copy(cp.dep_rvs)
+        cp.all_vars = copy(cp.all_vars)
+        cp.sym_to_rv = copy(cp.sym_to_rv)
+        cp.rv_to_equation = copy(cp.rv_to_equation)
+        return cp
     def __str__(self):
         s = "Model:\n"
         #s += "free vars: " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.free_rvs) + "\n"
@@ -201,51 +212,52 @@ class Model(object):
             self.eliminate(var)
 
     def inference2(self, wanted_rvs, cond_rvs = [], cond_X = []):
+        M = self.copy()
         wanted_rvs = set(wanted_rvs)
         cond = {}
         for v, x in zip(cond_rvs, cond_X):
             cond[v] = x
-        while wanted_rvs != set(self.all_vars):
-            #print "OUTER LOOP| wanted:", wanted_rvs, "all:", self.all_vars
+        while wanted_rvs != set(M.all_vars):
+            #print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
             # eliminate all dangling variables
             to_remove = []
-            for v in self.dep_rvs:
-                if v not in wanted_rvs and v not in cond and len(self.get_children(v)) == 0:
+            for v in M.dep_rvs:
+                if v not in wanted_rvs and v not in cond and len(M.get_children(v)) == 0:
                     to_remove.append(v)
             for v in to_remove:
-                self.eliminate(v)
+                M.eliminate(v)
             if len(to_remove) > 0:
                 continue
             # a single itertion below reverses the DAG
             exchanged_vars = set()
-            while wanted_rvs | exchanged_vars != set(self.all_vars):
-                #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", self.all_vars
-                #print self
+            while wanted_rvs | exchanged_vars != set(M.all_vars):
+                #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
+                #print M
                 #print
                 # find a free var to eliminate
                 to_remove = []
-                for v in self.free_rvs:
+                for v in M.free_rvs:
                     if v not in wanted_rvs:
-                        if v in cond or len(self.get_children(v)) == 0:
+                        if v in cond or len(M.get_children(v)) == 0:
                             to_remove.append(v)
                 # TODO: eliminate all vars at once so that NDProductDistr heuristic is used
                 for v in to_remove:
                     if v not in cond:
-                        self.eliminate(v)
+                        M.eliminate(v)
                     else:
-                        self.condition(v, cond[v])
+                        M.condition(v, cond[v])
                 if len(to_remove) > 0:
                     continue
                 # find an unwanted free var and a dep var to exchange
                 exchangeable_dep_vars = []
-                for v in self.dep_rvs:
-                    if v not in exchanged_vars and set(self.get_parents(v)).issubset(self.free_rvs):
+                for v in M.dep_rvs:
+                    if v not in exchanged_vars and set(M.get_parents(v)).issubset(M.free_rvs):
                         exchangeable_dep_vars.append(v)
                 pairs = []
                 for dv in exchangeable_dep_vars:
-                    nparents = len(self.get_parents(dv))
-                    for fv in self.get_parents(dv):
-                        nchildren = len(self.get_children(fv))
+                    nparents = len(M.get_parents(dv))
+                    for fv in M.get_parents(dv):
+                        nchildren = len(M.get_children(fv))
                         nterms = 0 # TODO!!!
                         #key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
                         key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
@@ -253,14 +265,15 @@ class Model(object):
                 if len(pairs) > 0:
                     pairs.sort()
                     _key, fv, dv = pairs[0]
-                    self.varschange(fv, dv)
+                    M.varschange(fv, dv)
                     if fv not in wanted_rvs:
-                        self.eliminate(fv)
+                        M.eliminate(fv)
                     else:
                         exchanged_vars.add(fv)
                 else:
                     # whole graph has been reversed, may need to do it again in the outer loop...
                     break
+        return M
     def are_free(self, vars):        
         for v in vars:
             if not self.is_free(v): return False
@@ -328,7 +341,7 @@ class Model(object):
             pfun.plot(label = str(self.nddistr.Vars[0].getSymname()), **kwargs)
             legend()
             pfun.summary()
-        elif len(self.all_vars) == 1 and len(self.free_rvs) == 2:
+        elif len(self.all_vars) == 2 and len(self.free_rvs) == 2:
             plot_2d_distr(self.nddistr)
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
             a, b = self.free_rvs[0].range()
@@ -628,17 +641,17 @@ if __name__ == "__main__":
     Y = UniformDistr(1, 3, sym="Y")
 
     S = X + Y; S.setSym("S")
-    P = NDProductDistr([X, Y])
-    M = Model(P, [S])
+    #P = NDProductDistr([X, Y])
+    M = Model([X, Y], [S])
     print M
     #M.inference2(wanted_rvs = [X])
     #M.inference2(wanted_rvs = [X], cond_rvs = [Y], cond_X = [1.5])
     #M.inference2(wanted_rvs = [S])
     #M.inference2(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
     #M.inference2(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
-    M.inference2(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5])
-    print M
-    M.plot()
+    M.inference2(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
+    #print M
+    #M.plot()
     show()
     stop
 

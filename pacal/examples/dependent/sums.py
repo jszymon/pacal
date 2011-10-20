@@ -45,17 +45,17 @@ S3.setSym("S3")
 S4 = S3 + X4
 S4.setSym("S4")
 
-P = NDProductDistr([X1, X2, X3, X4])
-M = Model(P, [S2, S3, S4])
+#P = NDProductDistr([X1, X2, X3, X4])
+M = Model([X1, X2, X3, X4], [S2, S3, S4])
 print M
 #M.eliminate_other([S4,S2])
 #print M
 #M.inference([X1,X2], [S3], [2.5])
 #M.inference2([X1,X4], [S3], [2.5])
-#M.inference2([X1,X2], [S3], [2.5])
-M.inference2([X1,S4], [X2], [0.5])
-print M
-M.plot()
+M2 = M.inference2([X1,X2], [S3], [2.5])
+print M2; figure();M2.plot()
+M2 = M.inference2([X1,S4], [X2], [0.5])
+print M2; figure();M2.plot()
 #M.nddistr.cov(0,1)
 show()
 0/0
