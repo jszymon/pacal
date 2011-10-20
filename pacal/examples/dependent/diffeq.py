@@ -26,6 +26,14 @@ for i in xrange(n):
 P = NDProductDistr([Factor1DDistr(A), Factor1DDistr(Y[0])])
 M = Model(P, Y[1:])
 M.eliminate_other([K] + Y)
+
+#M2 = M.inference2([Y[0], A], [Y[n]], [1])
+#M2.plot(); print M2; show()
+M2 = M.inference2([Y[0]], [Y[n]], [1])
+figure()
+M2.plot(); print M2; show()
+stop
+
 print "---", [K] + Y
 print M
 M.varschange(A, K)

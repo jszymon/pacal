@@ -35,10 +35,10 @@ print M
 
 #M.inference2(wanted_rvs = [A, Y[-1]], cond_rvs = [O[-1]], cond_X = [1.1])
 #M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.1])
-M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
+M2 = M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
 
-print M
-M.plot()
+print M2
+M2.plot()
 show()
 stop
 
