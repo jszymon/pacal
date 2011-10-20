@@ -241,12 +241,21 @@ class Model(object):
                 for v in self.dep_rvs:
                     if v not in exchanged_vars and set(self.get_parents(v)).issubset(self.free_rvs):
                         exchangeable_dep_vars.append(v)
+                pairs_w_unwanted = []
+                pairs_w_wanted = []
                 if len(exchangeable_dep_vars) > 0:
                     # TODO: pick better pair of variables
                     for dv in exchangeable_dep_vars:
                         for fv in self.get_parents(dv):
                             if fv not in wanted_rvs:
-                                break
+                                pairs_w_unwanted.append((fv, dv))
+                            else:
+                                pairs_w_wanted.append((fv, dv))
+                    if len(pairs_w_unwanted) > 0:
+                        pairs = pairs_w_unwanted
+                    else:
+                        pairs = pairs_w_wanted
+                    fv, dv = pairs[0]
                     self.varschange(fv, dv)
                     if fv not in wanted_rvs:
                         self.eliminate(fv)
