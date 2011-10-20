@@ -725,6 +725,18 @@ def plot_2d_distr(f, theoretical=None):
             C = ax.contour(X, Y, Z - Zt)
             fig.colorbar(C)
 
+def plot_1d1d_distr(free_distr, a, b, fun):
+    # plot distr in 3d
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    X = np.linspace(a, b, 1000)
+    Y = fun(X)
+    Z = free_distr(X)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]), rstride=1, cstride=1)
+
 
 class NDNoisyFun(NDDistr):
     """Function with additive noise.

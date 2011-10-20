@@ -18,7 +18,7 @@ from pacal.depvars.copulas import GumbelCopula, GumbelCopula2d, ClaytonCopula, F
 from pacal.depvars.copulas import PiCopula, WCopula, MCopula
 
 from pacal.depvars.nddistr import NDFun, NDConstFactor
-from pacal.depvars.nddistr import plot_2d_distr
+from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
@@ -323,13 +323,18 @@ class Model(object):
             raise RuntimeError("Too many variables.")        
     
     def plot(self, **kwargs):
-        if len(self.free_rvs) == 1:
+        if len(self.all_vars) == 1 and len(self.free_rvs) == 1:
             pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
             pfun.plot(label = str(self.nddistr.Vars[0].getSymname()), **kwargs)
             legend()
             pfun.summary()
-        elif len(self.free_rvs) == 2:
+        elif len(self.all_vars) == 1 and len(self.free_rvs) == 2:
             plot_2d_distr(self.nddistr)
+        elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
+            a, b = self.free_rvs[0].range()
+            freesym = self.free_rvs[0].getSym()
+            fun = sympy.lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
+            plot_1d1d_distr(self.nddistr, a, b, fun)
         else:
             raise RuntimeError("Too many variables.")
     def is_free(self, var):
