@@ -35,7 +35,7 @@ from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 ##0/0
 
 X1 = BetaDistr(3, 3, sym = "X1")
-X2 = BetaDistr(2, 2, sym = "X2")
+X2 = BetaDistr(4, 4, sym = "X2")
 X3 = BetaDistr(3, 5, sym = "X3")
 X4 = BetaDistr(3, 3, sym = "X4")
 S2 = X1 + X2
@@ -45,7 +45,7 @@ S3.setSym("S3")
 S4 = S3 + X4
 S4.setSym("S4")
 
-P = NDProductDistr([Factor1DDistr(X1), Factor1DDistr(X2), Factor1DDistr(X3), Factor1DDistr(X4)])
+P = NDProductDistr([X1, X2, X3, X4])
 M = Model(P, [S2, S3, S4])
 print M
 #M.eliminate_other([S4,S2])
