@@ -576,6 +576,8 @@ class NDProductDistr(NDDistr):
         cfp = NDProductDistr(kept_factors + new_cond_factors)
         nrm = cfp.eliminate(range(cfp.d))
         nrm = nrm.as_constant()
+        if nrm == 0:
+            nrm = 1
         cfp.factors = cfp.optimize(cfp.factors + [NDConstFactor(1.0 / nrm)])
         return cfp
     #def varschange(self, vari, varj):

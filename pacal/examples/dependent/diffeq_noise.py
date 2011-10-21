@@ -11,7 +11,8 @@ from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 
 
 #A = BetaDistr(1, 1, sym="A")
-A = UniformDistr(0.5, 1.75, sym="A")
+#A = UniformDistr(0.5, 1.75, sym="A")
+A = UniformDistr(-1, 4, sym="A")
 Y0 = BetaDistr(2, 6, sym="Y0")
 n = 4
 h = 1.0/n
