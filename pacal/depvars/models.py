@@ -125,6 +125,14 @@ class Model(object):
         solutions = sympy.solve(equation, free_var.getSymname())
         var_changes = []
         for uj in solutions:
+            vj = uj.atoms(sympy.Symbol)
+            hvj = {}
+            for v in vj: 
+                print self.sym_to_rv[v].range()
+                hvj[v]=self.sym_to_rv[v].range()[1]                
+            #print "---->>>>", hvj, uj, sympy.im(uj.subs(hvj))==0, uj.subs(hvj)
+            if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
+                continue
             uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
             inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
@@ -198,7 +206,7 @@ class Model(object):
                             self.varschange(av, var)
                             break   
                  
-    def inference(self, vars, condvars, condvals):
+    def inference_to_remove(self, vars, condvars, condvals):
         assert len(condvars)==len(condvals), "condvars, condvals must be equal size" 
         self.eliminate_other(set(vars) | set(condvars))
         print self.__str__()
@@ -211,7 +219,7 @@ class Model(object):
         for var in set(self.free_rvs) - set(vars):
             self.eliminate(var)
 
-    def inference2(self, wanted_rvs, cond_rvs = [], cond_X = []):
+    def inference(self, wanted_rvs, cond_rvs = [], cond_X = []):
         M = self.copy()
         wanted_rvs = set(wanted_rvs)
         cond = {}
@@ -319,7 +327,7 @@ class Model(object):
         self.free_rvs.remove(var)
         self.all_vars.remove(var)
         self.nddistr = self.nddistr.condition([var], X)
-
+        
     def as1DDistr(self):
         if len(self.dep_rvs) > 0:
             raise RuntimeError("Cannot get distribution of dependent variable.")
@@ -652,25 +660,26 @@ if __name__ == "__main__":
     M.inference2(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
     #print M
     #M.plot()
-    show()
-    stop
-
+    #show()
+    #stop
+    figure()
     N = X * Y; N.setSym("N")
     D = X + Y; D.setSym("D")
     R = N / D; R.setSym("R")
     P = NDProductDistr([X, Y])
     M = Model(P, [N, D, R])
     print M
-    M.varschange(X, N)
-    M.eliminate(X)
-    print M
-    M.varschange(Y, D)
-    M.eliminate(Y)
-    print M
-    M.varschange(D, R)
-    M.eliminate(D)
-    print M
-    M.eliminate(N)
+    M.inference([R, N],[],[])
+#    M.varschange(X, N)
+#    M.eliminate(X)
+#    print M
+#    M.varschange(Y, D)
+#    M.eliminate(Y)
+#    print M
+#    M.varschange(D, R)
+#    M.eliminate(D)
+#    print M
+#    M.eliminate(N)
     print M
     M.plot()
     show()
