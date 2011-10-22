@@ -123,8 +123,10 @@ class Model(object):
         # inverve transformation
         equation = self.rv_to_equation[dep_var] - dep_var.getSymname()
         solutions = sympy.solve(equation, free_var.getSymname())
+        print solutions
         var_changes = []
         for uj in solutions:
+            # remove complex valued solutions
             vj = uj.atoms(sympy.Symbol)
             hvj = {}
             for v in vj: 
@@ -652,16 +654,17 @@ if __name__ == "__main__":
     #P = NDProductDistr([X, Y])
     M = Model([X, Y], [S])
     print M
-    #M.inference2(wanted_rvs = [X])
-    #M.inference2(wanted_rvs = [X], cond_rvs = [Y], cond_X = [1.5])
-    #M.inference2(wanted_rvs = [S])
-    #M.inference2(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
-    #M.inference2(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
-    M.inference2(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
-    #print M
-    #M.plot()
-    #show()
-    #stop
+    #M2 = M.inference(wanted_rvs = [X])
+    #M2 = M.inference(wanted_rvs = [X], cond_rvs = [Y], cond_X = [1.5])
+    #M2 = M.inference(wanted_rvs = [S])
+    #M2 = M.inference(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
+    #M2 = M.inference(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
+    M2 = M.inference(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
+    print M2
+    M.plot()
+    show()
+    stop
+    
     figure()
     N = X * Y; N.setSym("N")
     D = X + Y; D.setSym("D")
@@ -669,17 +672,11 @@ if __name__ == "__main__":
     P = NDProductDistr([X, Y])
     M = Model(P, [N, D, R])
     print M
-    M.inference([R, N],[],[])
-#    M.varschange(X, N)
-#    M.eliminate(X)
-#    print M
-#    M.varschange(Y, D)
-#    M.eliminate(Y)
-#    print M
-#    M.varschange(D, R)
-#    M.eliminate(D)
-#    print M
-#    M.eliminate(N)
+    M2 = M.inference(wanted_rvs = [R])
+    M2.plot()
+    stop
+    M.varschange(X, N)
+    M.eliminate(X)
     print M
     M.plot()
     show()
