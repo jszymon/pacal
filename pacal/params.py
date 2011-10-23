@@ -52,12 +52,12 @@ class pole_detection(params_class):
 
 # default convergence test
 class convergence(params_class):
-    abstol = 1 * finfo(double).eps
+    abstol = 16 * finfo(double).eps
     reltol = 16 * finfo(double).eps
     min_quit_iter = 10000 # quit no earlier than this iteration
     min_quit_no_improvement = 2 # quit if no improvement for this many
                                 # steps
-    min_improvement_ratio = 0.5 # minumum decrease in error considered
+    min_improvement_ratio = 0.5 # minimum decrease in error considered
                                 # an improvement
 
 # default interpolation parameters
@@ -65,7 +65,7 @@ class interpolation(params_class):
     maxn = 100
     debug_info = False
     debug_plot = False
-    use_cheb_2nd = True     # always use interpolator based on  
+    use_cheb_2nd = False    # always use interpolator based on  
                             # chebyshev nodes of 2nd kind (faster and accurate at ends of intervals)
                             # if False use interpolator based on nodes
                             # of 1st kind (no nodes at ends of intervals)
@@ -94,14 +94,16 @@ class interpolation_infinite(interpolation):
 class interpolation_asymp(interpolation):
     maxn = 100
     class convergence(convergence):
-        abstol = 1 * finfo(double).eps
-        reltol = 1 * finfo(double).eps
+        abstol = 16 * finfo(double).eps
+        reltol = 16 * finfo(double).eps
 class interpolation_pole(interpolation):
     maxn = 200
 
 class interpolation_nd(interpolation):
     maxn = 6
-
+    debug_info = False
+    debug_plot = False
+    
 # integration in arithmetic operations for target value in
 # finite/infinite/asymptotic/pole segments
 class integration_finite(integration):
