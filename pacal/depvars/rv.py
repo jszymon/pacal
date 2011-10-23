@@ -21,7 +21,7 @@ from pacal.utils import Inf
 import traceback
 
 class RV(object):
-    def __init__(self, parents = [], sym = None, a=-5, b=5):
+    def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
         self.parents = parents
         self.a = a
         self.b = b
@@ -299,6 +299,8 @@ class ShiftedScaledRV(OpRV):
         assert(scale != 0)
         self.shift = shift
         self.scale = scale
+        self.a = d.a*self.scale+self.shift
+        self.b = d.b*self.scale+self.shift
         super(ShiftedScaledRV, self).__init__([d], sym = (d.getSymname()*self.scale+self.shift))
         self.d = d
         self._1_scale = 1.0 / scale
