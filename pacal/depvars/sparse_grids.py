@@ -113,7 +113,7 @@ class AdaptiveSparseGridInterpolator(object):
             inc_Ys = atleast_1d(squeeze(self.f(*inc_Xs)))
             err = self.test_accuracy(inc_Xs, inc_Ys)
             maxy = max(abs(inc_Ys).max(), abs(self.Ys).max())
-            if True or par.debug_info:
+            if par.debug_info:
                 print "interp. err", err, old_err, q
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
@@ -177,8 +177,9 @@ class AdaptiveSparseGridInterpolator(object):
             si = sum(p)
             c = (-1)**(q-si) * binomial_coeff(self.d - 1, q-si)
             subgrid_map[p] = (c, array(subgrid_indices))
-        print len(subgrid_map), "rect. subgrids,", sum(len(subgrid_map[k]) for k in subgrid_map), "ops per X,", len(nodes), "nodes,",
-        print "full grid size", self.exps[q-self.d+1]**self.d, "dim", self.d
+        if params.interpolation_nd.debug_info:
+            print len(subgrid_map), "rect. subgrids,", sum(len(subgrid_map[k]) for k in subgrid_map), "ops per X,", len(nodes), "nodes,",
+            print "full grid size", self.exps[q-self.d+1]**self.d, "dim", self.d
         return nodes, subgrid_map
 
     def interp_at(self, *X):
