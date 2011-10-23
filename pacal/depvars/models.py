@@ -12,12 +12,10 @@ from pylab import *
 from copy import copy
 import pacal
 
-from pacal.distr import *
-from pacal.standard_distr import *
-from pacal.segments import PiecewiseDistribution#, _segint
-from pacal.depvars.copulas import GumbelCopula, GumbelCopula2d, ClaytonCopula, FrankCopula2d, FrankCopula
-from pacal.depvars.copulas import PiCopula, WCopula, MCopula
-
+#from pacal.distr import FunDistr
+from pacal.standard_distr import FunDistr, PDistr
+from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segment
+#, _segint
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 
@@ -123,14 +121,14 @@ class Model(object):
         # inverve transformation
         equation = self.rv_to_equation[dep_var] - dep_var.getSymname()
         solutions = sympy.solve(equation, free_var.getSymname())
-        print solutions
+        #print solutions
         var_changes = []
         for uj in solutions:
             # remove complex valued solutions
             vj = uj.atoms(sympy.Symbol)
             hvj = {}
             for v in vj: 
-                print self.sym_to_rv[v].range()
+                #print self.sym_to_rv[v].range()
                 hvj[v]=self.sym_to_rv[v].range()[1]                
             #print "---->>>>", hvj, uj, sympy.im(uj.subs(hvj))==0, uj.subs(hvj)
             if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
@@ -352,7 +350,7 @@ class Model(object):
             legend()
             pfun.summary()
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 2:
-            plot_2d_distr(self.nddistr)
+            plot_2d_distr(self.nddistr, **kwargs)
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
             a, b = self.free_rvs[0].range()
             freesym = self.free_rvs[0].getSym()
@@ -622,7 +620,7 @@ class TwoVarsModel(Model):
         return wyn
     
     def varchange_and_eliminate(self):
-        return PDistr(self.convmodel())
+        return pacal.standard_distr.PDistr(self.convmodel())
             
 def _findSegList(f, g, z, op):
     """It find list of segments for integration purposes, for given z 
@@ -646,6 +644,9 @@ def _findSegList(f, g, z, op):
 if __name__ == "__main__":
     from pacal.distr import demo_distr
     from pacal.depvars.nddistr import *
+    from pacal.depvars.copulas import GumbelCopula, GumbelCopula2d, ClaytonCopula, FrankCopula2d, FrankCopula
+    from pacal.depvars.copulas import PiCopula, WCopula, MCopula
+
 
     X = UniformDistr(1, 2, sym="X")
     Y = UniformDistr(1, 3, sym="Y")
