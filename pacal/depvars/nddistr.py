@@ -21,6 +21,7 @@ from pacal.integration import *
 from pacal.depvars.rv import RV
 from pacal.distr import Distr
 import numpy
+from pylab import linspace
 numpy.seterr(all="ignore")
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -164,7 +165,7 @@ class NDDistr(NDFun):
         var, c_var = self.prepare_var(var)
         for i in range(len(var)):
             ai, bi = self.Vars[var[i]].range()
-            assert ai <= X[i] <= bi, "var({0})={1} outside of range [{2}, {3}]".format(var[i], X[i], ai, bi)
+            assert ai <= numpy.squeeze(X[i]) <= bi, "var({0})={1} outside of range [{2}, {3}]".format(var[i], X[i], ai, bi)
         if len(c_var) == 0:
             return NDOneFactor()
         if not hasattr(X, "__iter__"):
@@ -214,7 +215,6 @@ class NDDistr(NDFun):
                     assert 1==0    
                 #return distr.median()
             else:
-                print x
                 y =  zeros_like(x)
                 for i in range(len(x)):
                     print i, "|||", _fun(x[i])
@@ -234,21 +234,20 @@ class NDDistr(NDFun):
             gmean = 0 #g.mean()           
             f0, f1 = f.range()
             g0, g1 = g.range() 
-            print f0,f1
             if i == j:
                 c, e =  1, 0#integrate_fejer2(lambda x: (x - fmean) ** 2 * f.pdf(x), f0, f1)                  
             else:
                 c, e = integrate_iter(lambda x, y: (x - fmean) * (y - gmean) * dij.pdf(x, y), f0, f1, g0, g1)
-            print c
             return c
         else:
             c = zeros((self.d, self.d))
             for i in range(self.d):
                 for j in range(self.d):
-                    print c[i,j]
-                    print self.cov(i,j)   
+                    #print c[i,j]
+                    #print self.cov(i,j)   
                     c[i, j] = self.cov(i,j)                                          
             return c
+
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -353,7 +352,7 @@ class Factor1DDistr(NDDistr):
         super(Factor1DDistr, self).__init__(1, [distr])
     def pdf(self, *X):        
         return self.distr.pdf(*X)
-    
+
 class NDConstFactor(NDDistr):
     def __init__(self, c):
         super(NDConstFactor, self).__init__(0, [])
@@ -571,7 +570,7 @@ class NDProductDistr(NDDistr):
                 if V in cf.Vars:
                     cV.append(V)
                     cX.append(X[i])
-            print cf, cf.Vars[0].getSymname(), cf.condition(cV, cX, normalize=False)
+            #print cf, cf.Vars[0].getSymname(), cf.condition(cV, cX, normalize=False)
             new_cond_factors.append(cf.condition(cV, cX, normalize=False))
         cfp = NDProductDistr(kept_factors + new_cond_factors)
         nrm = cfp.eliminate(range(cfp.d))
@@ -674,22 +673,20 @@ class IJthOrderStatsNDDistr(NDDistr):
 
 
     
-def plot_2d_distr(f, theoretical=None):
+def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     # plot distr in 3d
     from mpl_toolkits.mplot3d import axes3d
     import matplotlib.pyplot as plt
     import numpy as np
-    fig = plt.figure()    
     #try:
     #    have_3d = True
     #    ax = fig.add_subplot(111, projection='3d')
     #except:
     #    ax = fig.add_subplot(111)
     #    have_3d = False
-    have_3d = False
     #have_3d = True
     a, b = f.a, f.b
-    #a, b = getRanges(f.Vars)
+    a, b = getRanges(f.Vars)
     #a, b = getRanges(f.Vars, ci=0.01)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
@@ -704,21 +701,31 @@ def plot_2d_distr(f, theoretical=None):
         Zt = theoretical(X, Y)
     if theoretical is not None:
         fig = plt.figure()
-        
+    fig = plt.gcf()
+    
     if have_3d:
-        ax = fig.add_subplot(111, projection='3d')
+        #ax = fig.add_subplot(111, projection='3d')
+        ax = plt.gca(projection='3d')
         ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)
         #ax.plot_surface(X, Y, Z, rstride=1, cstride=1)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
+            plt.figure()
+            ax = plt.gca(projection='3d')
             ax.plot_surface(X, Y, Z - Zt, rstride=1, cstride=1)
     else:
-        ax = fig.add_subplot(111)
-        C = ax.contour(X, Y, Z, 25)
-        fig.colorbar(C)
+        #ax = fig.add_subplot(111)
+        nc = cont_levels
+        ax = plt.gca()
+        maxV = round(numpy.max(Z)*20.0)/20.0
+        minV = round(max(0, numpy.min(Z)*20))/20.0
+        dV = (maxV-minV)/nc
+        V = linspace(minV + dV/2, maxV-dV/2, nc)
+        print "max=", maxV, V
+        C = ax.contour(X, Y, Z, V, colors="k")
+        #C.clabel()
+        #fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
