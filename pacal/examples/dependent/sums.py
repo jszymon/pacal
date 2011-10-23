@@ -29,33 +29,33 @@ print M
 M.toGraphwiz()
 #M = M.inference([S[-1], S[-4]], [S[-3]], [1])
 #M = M.inference([X[0], X[1]], [S[-1]], [3.5])
-
-M_S4X5 = M.inference(wanted_rvs =[S[1], S[4]])
 print "===================="
-MC_S4X5 = M.inference(wanted_rvs =[S[1], S[4]], cond_rvs=[S[3]], cond_X=[2])
+M1 = M.inference(wanted_rvs =[X[0], X[1]], cond_rvs=[S[-1]], cond_X=[1])
 print "===================="
-MC_X0X1 = M.inference(wanted_rvs =[X[0], X[1]], cond_rvs=[S[-1]], cond_X=[1])
+M2 = M.inference(wanted_rvs =[S[1], S[4]])
+print "===================="
+M3 = M.inference(wanted_rvs =[S[1], S[4]], cond_rvs=[S[3]], cond_X=[2])
 print "===================="
 MC_X0 = M.inference(wanted_rvs =[X[0]], cond_rvs=[S[-1]], cond_X=[1])
 print "===================="
 
-print M_S4X5
+print M1
 figure()
-M_S4X5.plot()
+M1.plot()
 figure()
-M_S4X5.plot(have_3d=True)
+M1.plot(have_3d=True)
 
-print MC_S4X5
+print M2
 figure()
-MC_S4X5.plot()
+M2.plot()
 figure()
-MC_S4X5.plot(have_3d=True)
+M2.plot(have_3d=True)
 
-print MC_X0X1
+print M3
 figure()
-MC_X0X1.plot()
+M3.plot()
 figure()
-MC_X0X1.plot(have_3d=True)
+M3.plot(have_3d=True)
 
 print MC_X0
 figure()
