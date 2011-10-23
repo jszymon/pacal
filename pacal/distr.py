@@ -204,9 +204,10 @@ class Distr(RV):
     def L2_dist(self,other):
         """Median of the distribution."""
         return self.get_piecewise_pdf().L2_distance(other.get_piecewise_pdf())
-    def range(self):
-        """Range of the distribution."""
-        return self.get_piecewise_pdf().range()
+#    #TODO fix this to use only rv.range() in all cases
+#    def range(self, lazy=True):
+#        """Range of the distribution."""
+#        return self.get_piecewise_pdf().range()
         
     def iqrange(self, level=0.025):
         """Inter-quantile range of the distribution."""
@@ -267,7 +268,7 @@ class Distr(RV):
         t0  = time.time()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
+        for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'mode', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
             else:
