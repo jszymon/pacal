@@ -718,14 +718,14 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         #ax = fig.add_subplot(111)
         nc = cont_levels
         ax = plt.gca()
-        maxV = round(numpy.max(Z)*20.0)/20.0
-        minV = round(max(0, numpy.min(Z)*20))/20.0
+        maxV = numpy.max(Z)
+        minV = max(0, numpy.min(Z))
         dV = (maxV-minV)/nc
-        V = linspace(minV + dV/2, maxV-dV/2, nc)
+        V = numpy.round(linspace(minV + dV/8, maxV-dV/2, nc)*100)/100.0
         print "max=", maxV, V
         C = ax.contour(X, Y, Z, V, colors="k")
         #C.clabel()
-        #fig.colorbar(C)
+        fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
@@ -742,8 +742,10 @@ def plot_1d1d_distr(free_distr, a, b, fun):
     X = np.linspace(a, b, 1000)
     Y = fun(X)
     Z = free_distr(X)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111, projection='3d')
+    ax = plt.gca(projection='3d')
+    #ax = plt.gca()
     ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]), rstride=1, cstride=1)
 
 
