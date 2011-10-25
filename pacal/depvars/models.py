@@ -367,14 +367,14 @@ class Model(object):
         return var in self.dep_rvs
     
     def toGraphwiz(self, f = sys.stdout):
-        print >>f, "graph G {rankdir = BT"
+        print >>f, "digraph G {rankdir = BT"
         for key in self.free_rvs:
             print >>f, "\"{0}\"".format(key.getSymname()), " [label=\"{0}\"]".format(key.getSymname())
         for key in self.dep_rvs:
             print >>f, "\"{0}\"".format(key.getSymname()), " [label=\"{0}={1}\"]".format(key.getSymname(),self.rv_to_equation[key])
         for rv, eq in self.rv_to_equation.iteritems():
             for a in eq.atoms(sympy.Symbol):
-                print >>f, "\"{0}\" -- \"{1}\"".format(str(rv.getSymname()), str(a))
+                print >>f, "\"{0}\" -> \"{1}\"".format(str(a), str(rv.getSymname()))
         print >>f, "}"
             
 class TwoVarsModel(Model):    
