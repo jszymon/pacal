@@ -7,6 +7,8 @@ from pylab import figure, show
 import numpy as _np
 import time
 
+params.interpolation_nd.maxn = 8
+
 n = 5
 X = [0]*n
 S = [0]*n
@@ -41,19 +43,19 @@ print "===================="
 
 print M1
 figure()
-M1.plot()
+M1.plot(cont_levels=10)
 figure()
 M1.plot(have_3d=True)
 
 print M2
 figure()
-M2.plot()
+M2.plot(cont_levels=10)
 figure()
 M2.plot(have_3d=True)
 
 print M3
 figure()
-M3.plot()
+M3.plot(cont_levels=10)
 figure()
 M3.plot(have_3d=True)
 
