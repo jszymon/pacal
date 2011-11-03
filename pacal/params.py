@@ -100,7 +100,10 @@ class interpolation_pole(interpolation):
     maxn = 200
 
 class interpolation_nd(interpolation):
-    maxn = 6
+    maxn = 7
+    class convergence(interpolation.convergence):
+        abstol = 1e-4
+        reltol = 1e-4
     debug_info = False
     debug_plot = False
     
