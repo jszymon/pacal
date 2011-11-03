@@ -832,12 +832,10 @@ def cos(d):
     return numpy.cos(d)
 
 class TanDistr(FuncDistr):
-    """Natural logarithm of a random variable"""
+    """Tangent of a random variable"""
     def __init__(self, d):
-        if not d.is_nonneg():
-            raise ValueError("logarithm of a nonpositive distribution")
-        super(TanDistr, self).__init__(d, numpy.tan, numpy.atan,
-                                       lambda x: 1.0/(1.0 + x**2), pole_at_zero= False, fname = "tan")
+        super(TanDistr, self).__init__(d, numpy.tan, numpy.arctan,
+                                       lambda x: 1.0/(1.0 + x**2), pole_at_zero = False, fname = "tan")
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyComposition(self.f, self.f_inv, self.f_inv_deriv, pole_at_zero = self.pole_at_zero)
     
