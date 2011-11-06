@@ -620,7 +620,7 @@ class TwoVarsModel(Model):
             wyn[j] = I
         return wyn
     
-    def varchange_and_eliminate(self):
+    def eval(self):
         return pacal.standard_distr.PDistr(self.convmodel())
             
 def _findSegList(f, g, z, op):
@@ -717,9 +717,9 @@ if __name__ == "__main__":
 #    Mm = TwoVarsModel(cm ,U)
 #    #Mp = TwoVarsModel(cp ,U)
 #    
-#    funw = Mw.varchange_and_eliminate()
-#    funm = Mm.varchange_and_eliminate()
-#    #funp = Mp.varchange_and_eliminate()
+#    funw = Mw.eval()
+#    funm = Mm.eval()
+#    #funp = Mp.eval()
 #    figure()
 #    funw.plot()
 #    funw.summary()
@@ -733,28 +733,28 @@ if __name__ == "__main__":
 #        print "::", theta
 #        ci = GumbelCopula2d(marginals=[X, Y], theta=theta)
 #        Mi = TwoVarsModel(ci, U)
-#        funi = Mi.varchange_and_eliminate()
+#        funi = Mi.eval()
 #        funi.get_piecewise_cdf().plot(color="g")
 #        funi.summary()
 #    for theta in [-15, -5, 5, 15]:
 #        print "::::", theta
 #        ci = FrankCopula2d(marginals=[X, Y], theta=theta)
 #        Mi = TwoVarsModel(ci, U)
-#        funi = Mi.varchange_and_eliminate()
+#        funi = Mi.eval()
 #        funi.get_piecewise_cdf().plot(color="b")
 #        funi.summary()
 #    for theta in [5, 10]:
 #        print ":::", theta
 #        ci = ClaytonCopula(marginals=[X, Y], theta=theta)
 #        Mi = TwoVarsModel(ci, U)
-#        funi = Mi.varchange_and_eliminate()
+#        funi = Mi.eval()
 #        funi.get_piecewise_cdf().plot(color="r")
 #        funi.summary()
 #    print "==============="
 #    V= X-Y
 #    cp = PiCopula(marginals=[X, Y])
 #    m = TwoVarsModel(cp, V)
-#    fun = m.varchange_and_eliminate()
+#    fun = m.eval()
 #    fun.summary()
 #    fun.plot()
 #    show()
@@ -775,14 +775,14 @@ if __name__ == "__main__":
     
     print "p=", V.parents[1].getSym()
     mR = TwoVarsModel(cij, V)
-    funR = mR.varchange_and_eliminate()
+    funR = mR.eval()
     funR.summary()
     funR.plot(color="k")
     
 #    cc = ClaytonCopula(marginals=[X1, X2], theta=1.0/10.0)
 #    cc.plot()
 #    mC = TwoVarsModel(cc,V)
-#    funC = mC.varchange_and_eliminate()
+#    funC = mC.eval()
 #    funC.summary()
 #    funC.plot(color="m")
     
