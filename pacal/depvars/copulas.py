@@ -24,8 +24,8 @@ from pacal.depvars.nddistr import NDDistr, NDFun
 import sympy
 import numpy as np
 from sympy import Symbol, diff, pprint, simplify
-#from pylab import *
 
+from pylab import meshgrid, contour, xlabel, ylabel
 import mpl_toolkits.mplot3d.axes3d as p3
 
 try:
@@ -140,7 +140,7 @@ class Copula(NDDistr):
             ax2.set_zlabel('Z')
         except(Exception):
             pass
-    def contour(self, n=50, cdf=False, **kwargs):
+    def contour(self, n=100, cdf=False, **kwargs):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -148,8 +148,8 @@ class Copula(NDDistr):
             self.setMarginals((f, g))
         else:
             f, g = UniformDistr(), UniformDistr()  
-        Lf, Uf = f.ci(0.01)
-        Lg, Ug = g.ci(0.01)
+        Lf, Uf = f.ci(0.001)
+        Lg, Ug = g.ci(0.001)
         deltaf = (Uf - Lf) / n
         deltag = (Ug - Lg) / n 
         X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
@@ -161,7 +161,7 @@ class Copula(NDDistr):
         
         #fig = figure(figsize=plt.figaspect(0.5))
         #figure()
-        cset = contour(X, Y, Z, n, **kwargs)
+        cset = contour(X, Y, Z, 20, **kwargs)
         xlabel(f.getSymname())
         ylabel(g.getSymname())
     def plot(self, n=50, cdf=False, labels = True, **kwargs):
