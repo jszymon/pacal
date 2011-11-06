@@ -4,7 +4,7 @@ import numbers
 from functools import partial
 
 import numpy
-from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
+from numpy import array, zeros_like, ones_like, unique, concatenate, isscalar, isfinite
 from numpy import sqrt, pi, arctan, tan, asfarray, zeros, Inf, NaN
 #from numpy import sin, cos, tan,
 from numpy import arcsin, arccos
@@ -205,9 +205,9 @@ class Distr(RV):
         """Median of the distribution."""
         return self.get_piecewise_pdf().L2_distance(other.get_piecewise_pdf())
 #    #TODO fix this to use only rv.range() in all cases
-#    def range(self, lazy=True):
-#        """Range of the distribution."""
-#        return self.get_piecewise_pdf().range()
+    def range(self, lazy=True):
+        """Range of the distribution."""
+        return self.get_piecewise_pdf().range()
         
     def iqrange(self, level=0.025):
         """Inter-quantile range of the distribution."""
@@ -856,6 +856,12 @@ class DiscreteDistr(Distr):
         self.xi = [p[0] for p in px]
         self.pi = [p[1] for p in px]
         self.cumP = cumsum(self.pi)
+    def pdf(self, x):
+        """it override pdf() method to obtain discrete probabilities"""
+        yy = zeros_like(x)
+        for i in range(len(self.pi)):
+            yy[x==self.xi[i]] += float(self.pi[i])
+        return yy
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])        
         for i in xrange(len(self.xi)):
