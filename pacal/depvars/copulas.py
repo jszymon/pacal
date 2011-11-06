@@ -164,7 +164,7 @@ class Copula(NDDistr):
         cset = contour(X, Y, Z, n, **kwargs)
         xlabel(f.getSymname())
         ylabel(g.getSymname())
-    def plot(self, n=50, cdf=False, **kwargs):
+    def plot(self, n=50, cdf=False, labels = True, **kwargs):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -188,8 +188,9 @@ class Copula(NDDistr):
         ax = gca(projection='3d')
         
         cset = ax.plot_wireframe(X, Y, Z, **kwargs)
-        xlabel(f.getSymname())
-        ylabel(g.getSymname())
+        if labels:
+            xlabel(f.getSymname())
+            ylabel(g.getSymname())
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent

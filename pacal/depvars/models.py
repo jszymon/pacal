@@ -3,11 +3,12 @@ Created on 07-12-2010
 
 @author: marcin
 '''
+from functools import partial
+from numpy import size, isnan
 import sys
 import time
 import sympy
 import traceback
-from numpy import size, isnan
 from pylab import *
 from copy import copy
 import pacal
