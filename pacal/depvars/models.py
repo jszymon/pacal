@@ -11,7 +11,6 @@ import sympy
 import traceback
 from pylab import *
 from copy import copy
-import pacal
 
 #from pacal.distr import FunDistr
 from pacal.standard_distr import FunDistr, PDistr
@@ -395,22 +394,22 @@ class TwoVarsModel(Model):
         print self.rv_to_equation
         self.symop = self.rv_to_equation[d]
         
-        if self.vars.__len__() <> 2:
+        if len(self.vars) != 2:
             raise Exception("use it with two variables")
         x = self.symvars[0]
         y = self.symvars[1]
         z = sympy.Symbol("z")
         self.fun_alongx = sympy.solve(self.symop - z, y)[0]
         self.fun_alongy = sympy.solve(self.symop - z, x)[0]
-        
-        self.lfun_alongx = sympy.lambdify([x, z], self.fun_alongx)    
-        self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy)
+
+        self.lfun_alongx = sympy.lambdify([x, z], self.fun_alongx, "numpy")    
+        self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy, "numpy")
         self.Jx = 1 * sympy.diff(self.fun_alongx, z)
         print "Jx=", self.Jx
-        print "fun_alongx=",self.fun_alongx
+        print "fun_alongx=", self.fun_alongx
         self.Jy = 1 * sympy.diff(self.fun_alongy, z)
-        self.lJx = sympy.lambdify([x, z], self.Jx)
-        self.lJy = sympy.lambdify([y, z], self.Jy)
+        self.lJx = sympy.lambdify([x, z], self.Jx, "numpy")
+        self.lJy = sympy.lambdify([y, z], self.Jy, "numpy")
         self.z = z
     def solveCutsX(self, fun, ay, by):        
         axc = sympy.solve(fun - ay, self.symvars[0])[0]
@@ -465,7 +464,7 @@ class TwoVarsModel(Model):
         x = self.symvars[0]
         y = self.symvars[1]
         
-        lop = sympy.lambdify([x, y], self.symop) 
+        lop = sympy.lambdify([x, y], self.symop, "numpy") 
         tmp = [lop(ax, ay), lop(ax, by), lop(bx, ay), lop(bx, by)]
         i0, i1 = min(tmp), max(tmp)
         for i in linspace(i0, i1, 20):
@@ -510,7 +509,7 @@ class TwoVarsModel(Model):
         op = self.symop#d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
-        lop = sympy.lambdify([x, y], op) 
+        lop = sympy.lambdify([x, y], op, "numpy") 
         F = self.vars[0]
         G = self.vars[1]
         #self.nddistr.setMarginals(F, G)
@@ -564,7 +563,7 @@ class TwoVarsModel(Model):
         op = self.symop #d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
-        lop = sympy.lambdify([x, y], op)
+        lop = sympy.lambdify([x, y], op, "numpy")
         if size(xx) == 1:
             xx = asfarray([xx])
         wyn = zeros_like(xx)   
@@ -621,14 +620,16 @@ class TwoVarsModel(Model):
         return wyn
     
     def eval(self):
-        return pacal.standard_distr.PDistr(self.convmodel())
-            
+        return PDistr(self.convmodel())
+    def varchange_and_eliminate(self):
+        return self.eval()
+
 def _findSegList(f, g, z, op):
     """It find list of segments for integration purposes, for given z 
     input: f, g - piecewise function, z = op(x,y), op - operation (+ - * /)
     output: list of segment products depends on z 
     """
-    slist = [];
+    slist = []
     for segi in f.segments:
         for segj in g.segments: 
             R1 = array([segi.a, segi.b, segi.a, segi.b]) 

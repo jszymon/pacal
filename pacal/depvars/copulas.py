@@ -23,8 +23,8 @@ from pacal.depvars.nddistr import NDDistr, NDFun
 
 import sympy
 import numpy as np
-from sympy import Symbol, diff, pprint, simplify, log
-from pylab import *
+from sympy import Symbol, diff, pprint, simplify
+#from pylab import *
 
 import mpl_toolkits.mplot3d.axes3d as p3
 
@@ -455,7 +455,7 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         si = 0
         for i in range(self.d):
             si += self.fi_(vars[i], self.theta)
-        self.sym_C = self.fi_inv_(si, self.theta)      
+        self.sym_C = self.fi_inv_(si, self.theta)
 
     def eliminate(self, var):
         var, c_var = self.prepare_var(var)
@@ -639,10 +639,10 @@ class FrankCopula(ArchimedeanSymbolicCopula):
     def __init__(self, theta=3.1, marginals=None):
         self.const2 = exp(-theta) - 1.0
         super(FrankCopula, self).__init__(fi=self.fi_, fi_inv=self.fi_inv_,
-                                            theta=theta, marginals=marginals)
+                                          theta=theta, marginals=marginals)
         
     def fi_(self, t, theta):
-        return -sympy.log((sympy.exp(-t * theta) - 1) / (exp(-self.theta) - 1.0)) 
+        return -sympy.log((sympy.exp(-t * theta) - 1) / (exp(-self.theta) - 1.0))
 #    def fi_(self, t, theta):
 #        return - log((exp(-t * theta) - 1) / (exp(-self.theta) - 1.0)) 
     def fi_inv_(self, s, theta):

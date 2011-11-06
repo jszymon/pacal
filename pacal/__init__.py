@@ -51,5 +51,9 @@ from stats.iid_ops import iid_order_stat, iid_median
 
 from stats.distr_est import LoglikelihoodEstimator
 
+# dependent variables
+from depvars.copulas import PiCopula, FrankCopula, ClaytonCopula, GumbelCopula
+from depvars.models import TwoVarsModel
+
 import params
 
