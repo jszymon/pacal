@@ -615,7 +615,7 @@ class ZeroNeighborhoodInterpolator(object):
     def __call__(self, x):
         return self.interp_at(x)
 
-class VarTransformInterpolator(ChebyshevInterpolator): # przywraca stan oryginalny
+class VarTransformInterpolator(ChebyshevInterpolator): # original state
 #class VarTransformInterpolator(ChebyshevInterpolator1):
 #class VarTransformInterpolator(ZeroNeighborhoodInterpolator):
 #class VarTransformInterpolator(ValTransformInterpolator):
