@@ -18,7 +18,23 @@ from pacal.segments import *
  
 params.interpolation.maxn = 10
 params.interpolation.use_cheb_2nd = False
-                
+    
+X, Y = UniformDistr() + UniformDistr(), BetaDistr(1, 4) 
+#c = ClaytonCopula(theta = 0.5, marginals=[X, Y])
+F = FrankCopula(theta = 8, marginals=[X, Y])            
+#cp = PiCopula(marginals=[X, Y])
+#cp = ClaytonCopula(theta=2, marginals=[X, Y])
+U = X  +Y
+M = TwoVarsModel(F ,U)
+y = M.varchange_and_eliminate()
+t0 = time.time()
+y.plot()
+print time.time() -t0
+t0 = time.time()
+U.plot()
+print time.time() -t0show()
+show()
+0/0
 # ==== Copulas, regression =============================
 #X, Y = BetaDistr(3, 6, sym="X"), BetaDistr(3, 1, sym="Y")
 X, Y = BetaDistr(2,3), UniformDistr() + UniformDistr()
