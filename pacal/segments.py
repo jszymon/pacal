@@ -991,13 +991,13 @@ class PiecewiseFunction(object):
             I = I + i             
         return I
     def getInterpErrors(self):
-        err = zeros(len(self.getSegments()))
+        err = list()
         i = 0
         for seg in self.getSegments():
             if isinstance(seg.f, AdaptiveInterpolator) or isinstance(seg.f, AdaptiveInterpolator1):
-                err[i] = seg.f.err
+                err.append((seg.a, seg.b, seg.f.err))
             elif isinstance(seg.f, PInfInterpolator):
-                err[i] = seg.f.vb.err 
+                err.append((seg.a, seg.b, seg.f.vb.err))
             i += 1      
         return err    
     def isNonneg(self):
