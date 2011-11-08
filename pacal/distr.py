@@ -239,6 +239,9 @@ class Distr(RV):
     def int_error(self):
         """L_1 error for testing of accuracy"""
         return 1-self.get_piecewise_pdf().integrate()
+    def interp_error(self):
+        """Estimated error of interpolation"""
+        return self.get_piecewise_pdf().getInterpErrors()
     def summary_map(self):
         r = {}
         r['mean'] = self.mean()
