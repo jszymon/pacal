@@ -355,7 +355,9 @@ class Model(object):
             a, b = self.free_rvs[0].range()
             freesym = self.free_rvs[0].getSym()
             fun = sympy.lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
-            plot_1d1d_distr(self.nddistr, a, b, fun)
+            ax = plot_1d1d_distr(self.nddistr, a, b, fun)
+            ax.set_xlabel(self.free_rvs[0].getSymname())
+            ax.set_ylabel(self.dep_rvs[0].getSymname())
         else:
             raise RuntimeError("Too many variables.")
     def is_free(self, var):
@@ -525,7 +527,8 @@ class TwoVarsModel(Model):
                 if not isnan(lop(xi, yi)):
                     bi[k] = lop(xi, yi)
                 else:
-                    print "not a number, xi=", xi, "yi=", yi, "result=", lop(xi,yi)
+                    pass
+                    #print "not a number, xi=", xi, "yi=", yi, "result=", lop(xi,yi)
                 k += 1
         ub = array(unique(bi))
         

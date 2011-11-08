@@ -28,7 +28,7 @@ from pacal.depvars.rv import *
 #class Distr(object):
 #    def __init__(self, parents = [], indep = None):
 class Distr(RV):
-    def __init__(self, parents = [], indep = False, sym = None):
+    def __init__(self, parents = [], indep = True, sym = None):
         super(Distr, self).__init__(parents, sym)
         # indep = True means the distribution is treated as
         # independent from all others.  For examples this results in
