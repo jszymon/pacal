@@ -1,7 +1,12 @@
-New in version 1.0
+New in version 1.0:
 
 * order statistics
-* noncentral Chi^2 and T distributions
+* noncentral distributions: Chi^2, F, Beta and T
+* optimized routines for sum, average, max, min etc. of i.i.d. random variables
+* Extreme Value Distributions: Gumbel, Weibull, Frechet
 * better accuracy of Beta distribution
-* special routines for opeartions on i.i.d. random variables
-* warning on dependent arguments
+* methods interp_error and interp_error_by_segment return estimates of
+  interpolation errors
+* a warning is issued when dependent RVs are used in operations
+  (use params.general.warn_on_dependent = False to suppress)
+* bug fixes
