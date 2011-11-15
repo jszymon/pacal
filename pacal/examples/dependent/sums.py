@@ -3,11 +3,20 @@ from pacal import *
 
 #from pacal.depvars.copulas import *
 #from pacal.depvars.models import Model
-from pylab import figure, show
+from pylab import figure, show, rc
 import numpy as _np
 import time
 
 params.interpolation_nd.maxn = 8
+rc('axes', labelsize=18)
+rc('xtick', labelsize=15.0)
+rc('ytick', labelsize=15.0)
+rc('legend', fontsize=17.0)
+
+
+linestyles = ["-", "--", "-.", ":"]
+pfargs = {"linewidth":3, "color":"k", "dash_joinstyle":"round"}
+from numpy import ceil, isscalar, zeros_like, asfarray
 
 n = 5
 X = [0]*n
