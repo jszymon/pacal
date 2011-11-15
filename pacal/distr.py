@@ -268,7 +268,7 @@ class Distr(RV):
         except Exception, e:           
             traceback.print_exc() 
         return r
-    def summary(self, show_moments=True):
+    def summary(self, show_moments=False):
         """Summary statistics for a given distribution."""
         print "============= summary ============="
         #print self.get_piecewise_pdf()
