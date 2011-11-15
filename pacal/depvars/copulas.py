@@ -25,7 +25,7 @@ import sympy
 import numpy as np
 from sympy import Symbol, diff, pprint, simplify
 
-from pylab import meshgrid, contour, xlabel, ylabel
+from pylab import meshgrid, contour, xlabel, ylabel, gca
 import mpl_toolkits.mplot3d.axes3d as p3
 
 try:
@@ -252,8 +252,8 @@ class Copula(NDDistr):
             return c
     def corrcoef(self, i=None, j=None):    
         c = self.cov()
-        vi = sqrt(diag(c))            
-        vij = multiply.outer(vi, vi)
+        vi = sqrt(np.diag(c))            
+        vij = np.multiply.outer(vi, vi)
         cc = c / vij
         if i is not None and j is not None:
             return cc[i, j]
