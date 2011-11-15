@@ -390,10 +390,10 @@ class TwoVarsModel(Model):
         for var in nddistr.Vars: #self.free_rvs:
             self.vars.append(var)
             self.symvars.append(var.getSymname()) 
-        print "=====", self.vars
-        print self.symvars
-        print self.dep_rvs
-        print self.rv_to_equation
+        #print "=====", self.vars
+        #print self.symvars
+        #print self.dep_rvs
+        #print self.rv_to_equation
         self.symop = self.rv_to_equation[d]
         
         if len(self.vars) != 2:
