@@ -20,20 +20,6 @@ from pacal.distr import demo_distr
 #! Inverse of r.v. 
 #! ---------------
 
-U = UniformDistr(-pi/2,3*pi/2)#2 *pi)
-U2 = UniformDistr(0.0,2.0*pi)
-U.summary()
-S = sin(U)
-C = cos(U2)
-S.summary()
-S.plot(color="k")
-S.hist()
-C.summary()
-C.plot(color="r")
-        
-
-show()
-0/0
 N = NormalDistr(0,1)
 d = 1/(N**2)**0.5
 #d.summary()
@@ -121,4 +107,38 @@ demo_distr(U_shifted, theoretical = None, histogram = True)
 #figure()
 #L.plot()
 #L.hist()
+
+U = UniformDistr(-pi/2,3*pi/2)#2 *pi)
+U2 = UniformDistr(0.0,2.0*pi)
+#U = UniformDistr(1,3)
+#U2 = UniformDistr(1,3)
+
+#! ------------------------------------------------
+#! Sin, cos dosen't handle singularities properly
+#! ------------------------------------------------
+figure()
+U.summary()
+S = sin(U)
+C = cos(U2)
+S.summary()
+S.plot(color="k")
+S.hist()
+C.summary()
+C.hist()
+C.plot(color="r")
+show()
+#! Let consider norlam distribution using Box–Muller transform
+N = sqrt(-2*log(UniformDistr()))*C
+N.summary(show_moments=True)
+Norg = NormalDistr()
+Norg.summary(show_moments=True)
+r = N.get_piecewise_pdf() - Norg.get_piecewise_pdf()
+figure()
+r.plot()
+show()
+figure()
+# TODO tu trzeba jeszcze popracowac 
+Norg.plot(linewidth=2, color='r')
+N.plot()
+
 show()
