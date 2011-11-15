@@ -686,8 +686,8 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     #    have_3d = False
     #have_3d = True
     a, b = f.a, f.b
-    a, b = getRanges(f.Vars)
-    #a, b = getRanges(f.Vars, ci=0.01)
+    #a, b = getRanges(f.Vars)
+    a, b = getRanges(f.Vars, ci=0.01)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
@@ -722,7 +722,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         minV = max(0, numpy.min(Z))
         dV = (maxV-minV)/nc
         V = numpy.round(linspace(minV + dV/8, maxV-dV/2, nc)*100)/100.0
-        print "max=", maxV, V
+        #print "max=", maxV, V
         C = ax.contour(X, Y, Z, V, colors="k")
         #C.clabel()
         fig.colorbar(C)
