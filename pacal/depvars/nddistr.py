@@ -66,12 +66,14 @@ class NDFun(object):
     def fun(self, *X):
         pass
     def __call__(self, *X):
-        mask = (X[0] >= self.a[0]) & (X[0] <= self.b[0])
-        #print mask, self.a, self.b, X[0]
-        for i in xrange(1, len(X)):
-            mask &= ((X[i] >= self.a[i]) & (X[i] <= self.b[i]))
-        y = self.fun(*X)
-        y[~mask] = 0
+        if len(X) == 0:
+            y = self.fun(*X)
+        else:
+            mask = (X[0] >= self.a[0]) & (X[0] <= self.b[0])
+            for i in xrange(1, len(X)):
+                mask &= ((X[i] >= self.a[i]) & (X[i] <= self.b[i]))
+            y = zeros_like(X[0])
+            y[mask] = self.fun(*[xi[mask] for xi in X])
         if self.safe:
             y = nan_to_num(y)
         if self.abs:
@@ -678,7 +680,7 @@ class IJthOrderStatsNDDistr(NDDistr):
 
 
     
-def plot_2d_distr(f, theoretical=None, have_3d = True, cont_levels=20):
+def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     # plot distr in 3d
     from mpl_toolkits.mplot3d import axes3d
     import matplotlib.pyplot as plt
