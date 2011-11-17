@@ -461,8 +461,10 @@ class Distr(RV):
         """Overload or: Conditional distribution """        
         if isinstance(restriction, Condition):
             if isinstance(restriction, Lt):
+                assert self.range()[0]<restriction.U, "Upper value out of range"
                 return CondLtDistr(self, restriction.U)
             if isinstance(restriction, Gt):
+                assert self.range()[1]>restriction.L, "Lower value out of range" 
                 return CondGtDistr(self, restriction.L)
             if isinstance(restriction, Between):
                 return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
@@ -1121,11 +1123,11 @@ class Condition(object):
     pass
 class Gt(Condition):
     def __init__(self, L):
-        super(Gt, self).__init__()
+        super(Gt, self).__init__()        
         self.L = L                
 class Lt(Condition):
     def __init__(self, U):
-        super(Gt, self).__init__()
+        super(Lt, self).__init__()
         self.U = U   
 class Between(Condition):
     def __init__(self, L, U):
