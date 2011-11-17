@@ -7,7 +7,7 @@ from pacal.utils import convergence_monitor
 import pacal.params as params
 
 from numpy import array, ones, atleast_1d
-from numpy import newaxis, squeeze, exp, subtract, where, zeros_like, sum, dot
+from numpy import newaxis, squeeze, exp, subtract, where, zeros_like, sum, dot, floor, linspace
 
 # import faster Cython versions if possible
 try:
@@ -141,7 +141,15 @@ class AdaptiveSparseGridInterpolator(object):
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
         given points."""
-        errs = abs(self.interp_at(*new_Xs) - new_Ys)
+        N_samp = 100
+        if N_samp == -1 or N_samp >= len(new_Xs[0]):
+            errs = abs(self.interp_at(*new_Xs) - new_Ys)
+        else:
+            ns = [int(i) for i in floor(linspace(0, len(new_Xs[0])-1, N_samp))]
+            print ns, len(new_Xs[0])
+            test_Xs = [X[ns] for X in new_Xs]
+            test_Ys = new_Ys[ns]
+            errs = abs(self.interp_at(*test_Xs) - test_Ys)
         err = errs.max()
         return err
     
