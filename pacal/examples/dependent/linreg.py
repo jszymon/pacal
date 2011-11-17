@@ -1,15 +1,17 @@
-from pacal import *
-from pylab import figure, show
+from numpy import concatenate, polyfit
 
+from pylab import figure, show, plot, subplot
+
+
+from pacal import *
 from pacal.depvars.copulas import *
 from pacal.depvars.models import Model
-import numpy as _np
 import time
 
 from scipy.optimize import fmin
 
 
-params.interpolation_nd.maxn = 7
+#params.interpolation_nd.maxn = 7
 
 n = 10
 X = []
@@ -62,12 +64,12 @@ plot()
 print ar, br
 print Xobs, Yobs
 print X + Y
-print _np.concatenate((Xobs, Yobs))
+print concatenate((Xobs, Yobs))
 
 print M
-MAB = M.inference([A,B]+E, X + Y,  _np.concatenate((Xobs, Yobs)))
+MAB = M.inference([A,B]+E, X + Y,  concatenate((Xobs, Yobs)))
 print MAB
-MAB = MAB.inference([A,B], X + Y,  _np.concatenate((Xobs, Yobs)))
+MAB = MAB.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
 MA = MAB.inference([A],[],[])
 MB = MAB.inference([B],[],[])
 
