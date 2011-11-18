@@ -702,7 +702,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     #have_3d = True
     a, b = f.a, f.b
     #a, b = getRanges(f.Vars)
-    a, b = getRanges(f.Vars, ci=0.01)
+    a, b = getRanges(f.Vars, ci=0.001)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
@@ -738,7 +738,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         dV = (maxV-minV)/nc
         V = numpy.round(linspace(minV + dV/8, maxV-dV/2, nc)*100)/100.0
         #print "max=", maxV, V
-        C = ax.contour(X, Y, Z, V, colors="k")
+        C = ax.contour(X, Y, Z, V)#, colors="k")
         #C.clabel()
         fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
@@ -799,8 +799,6 @@ class NDNoisyFun(NDDistr):
         if isscalar(X[0]):
             z = X[-1]
             fy = self.f(*X[:-1])
-            print "Q"
-            print self.noise_a, z, fy, self.noise_b, X,X[:-1]
             if self.noise_a <= z - fy <= self.noise_b:
                 y = self.noise_distr(z - fy)
             else:

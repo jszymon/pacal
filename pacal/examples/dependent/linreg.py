@@ -10,14 +10,12 @@ import time
 
 from scipy.optimize import fmin
 
-
-#params.interpolation_nd.maxn = 7
-
 from numpy.random import seed
 seed(10)
 
+#params.interpolation_nd.maxn = 8
 
-n = 10
+n = 20
 X = []
 E = []
 Y = []
@@ -27,13 +25,16 @@ t0 = time.time()
 
 Ei = MollifierDistr(0.4)
 Ei.summary()
-Ei.plot()
+#Ei.plot()
 #show()
-A = UniformDistr(0,1, sym = "A")
-B = UniformDistr(0,1, sym = "B")
+
+#A = UniformDistr(0,1, sym = "A")
+#B = UniformDistr(0,1, sym = "B")
+A = BetaDistr(3,3, sym = "A")
+B = BetaDistr(3,3, sym = "B")
 for i in range(n):
-    X.append(UniformDistr(0, 1, sym = "X{}".format(i)))
-    #X.append(BetaDistr(3, 3, sym = "X{}".format(i)))
+    #X.append(UniformDistr(0, 1, sym = "X{}".format(i)))
+    X.append(BetaDistr(3, 3, sym = "X{}".format(i)))
     E.append(MollifierDistr(0.4, sym = "E{}".format(i)))    
     Y.append(A * X[i]  + B + E[i])
     Y[i].setSym("Y{}".format(i))
@@ -52,8 +53,9 @@ b = 0.7
 Yobs = a*Xobs+0.7 + Ei.rand(n)
 print "a=", a
 (ar,br)=polyfit(Xobs,Yobs,1)
-figure()
-plot(Xobs, Yobs, 'o')
+#figure()
+#plot(Xobs, Yobs, 'o')
+
 
 #M.eliminate_other(X + Y)
 MXY = M.inference([X[0], Y[0]], [B], [0.7])
@@ -63,7 +65,6 @@ plot([0.0, 1.0], [0.7, 0.7+a], "k-", linewidth=2.0)
 plot(Xobs, Yobs, "ko")
 plot()
 show()
-
 
 print ar, br
 print Xobs, Yobs
