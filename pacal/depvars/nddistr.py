@@ -68,6 +68,14 @@ class NDFun(object):
     def __call__(self, *X):
         if len(X) == 0:
             y = self.fun(*X)
+        elif isscalar(X[0]):
+            mask = (X[0] >= self.a[0]) and (X[0] <= self.b[0])
+            for i in xrange(1, len(X)):
+                mask = mask or ((X[i] >= self.a[i]) and (X[i] <= self.b[i]))
+            if mask:
+                y = self.fun(*X)
+            else:
+                y = 0
         else:
             mask = (X[0] >= self.a[0]) & (X[0] <= self.b[0])
             for i in xrange(1, len(X)):

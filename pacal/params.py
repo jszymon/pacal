@@ -100,11 +100,11 @@ class interpolation_pole(interpolation):
     maxn = 200
 
 class interpolation_nd(interpolation):
-    maxn = 7
+    maxn = 8
     class convergence(interpolation.convergence):
         abstol = 1e-4
         reltol = 1e-4
-    debug_info = False
+    debug_info = True
     debug_plot = False
     
 # integration in arithmetic operations for target value in

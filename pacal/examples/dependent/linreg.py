@@ -13,6 +13,10 @@ from scipy.optimize import fmin
 
 #params.interpolation_nd.maxn = 7
 
+from numpy.random import seed
+seed(10)
+
+
 n = 10
 X = []
 E = []
@@ -35,7 +39,7 @@ for i in range(n):
     Y[i].setSym("Y{}".format(i))
 
 M = Model(X + E + [A, B], Y)
-M.eliminate_other(X + E + [A, B] + Y)
+#M.eliminate_other(X + E + [A, B] + Y)
 M.toGraphwiz()
 
 
@@ -51,14 +55,14 @@ print "a=", a
 figure()
 plot(Xobs, Yobs, 'o')
 
-
-M.eliminate_other(X + Y)
+#M.eliminate_other(X + Y)
 MXY = M.inference([X[0], Y[0]], [B], [0.7])
 figure()
 MXY.plot()
 plot([0.0, 1.0], [0.7, 0.7+a], "k-", linewidth=2.0)
 plot(Xobs, Yobs, "ko")
 plot()
+show()
 
 
 print ar, br
