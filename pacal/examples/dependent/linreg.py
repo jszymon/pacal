@@ -11,7 +11,7 @@ import time
 from scipy.optimize import fmin
 
 from numpy.random import seed
-seed(10)
+seed(1)
 
 #params.interpolation_nd.maxn = 8
 
@@ -57,24 +57,25 @@ print "a=", a
 #plot(Xobs, Yobs, 'o')
 
 
-#M.eliminate_other(X + Y)
-MXY = M.inference([X[0], Y[0]], [B], [0.7])
-figure()
-MXY.plot()
-plot([0.0, 1.0], [0.7, 0.7+a], "k-", linewidth=2.0)
-plot(Xobs, Yobs, "ko")
-plot()
-show()
+# #M.eliminate_other(X + Y)
+# MXY = M.inference([X[0], Y[0]], [B], [0.7])
+# figure()
+# MXY.plot()
+# plot([0.0, 1.0], [0.7, 0.7+a], "k-", linewidth=2.0)
+# plot(Xobs, Yobs, "ko")
+# plot()
+# show()
 
 print ar, br
 print Xobs, Yobs
 print X + Y
 print concatenate((Xobs, Yobs))
 
-print M
-MAB = M.inference([A,B]+E, X + Y,  concatenate((Xobs, Yobs)))
-print MAB
-MAB = MAB.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
+#print M
+#MAB = M.inference([A,B]+E, X + Y,  concatenate((Xobs, Yobs)))
+#print MAB
+#MAB = MAB.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
+MAB = M.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
 MA = MAB.inference([A],[],[])
 MB = MAB.inference([B],[],[])
 
