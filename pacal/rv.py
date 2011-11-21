@@ -1,20 +1,14 @@
 """Random Variable class"""
 
 import numbers
-from functools import partial
 
 import numpy
-from numpy import array, zeros_like, unique, concatenate, isscalar, isfinite
+from numpy import zeros_like, unique, isscalar
 from numpy import sqrt, pi, arctan, tan, asfarray
-from numpy.random import uniform
-from numpy import minimum, maximum, add, subtract, divide, prod, multiply
+from numpy import add, subtract, divide, prod, multiply
 
-from numpy.lib.function_base import histogram
-from numpy import hstack
-from pylab import bar
-
-from sympy import var, log, exp
 import sympy
+from sympy import var, log, exp
 
 from pacal.utils import Inf
 
@@ -38,9 +32,18 @@ class RV(object):
             self.symname = sympy.Symbol("X{0}".format(id(self)))
     def __str__(self):
         return "RV(" + str(self.sym) + ")"
-    
     def __repr__(self):
         return self.__str__()   
+
+    def getAncestorIDs(self, anc = None):
+        """Get ID's of all ancestors"""
+        if anc is None:
+            anc = set()
+        for p in self.parents:
+            if id(p) not in anc:
+                anc.update(p.getAncestorIDs(anc))
+        anc.add(id(self))
+        return anc
     
     def range(self):
         return self.a, self.b
@@ -261,17 +264,15 @@ class RV(object):
 
     
 class OpRV(RV):
-    """Base class for operations on distributions.
-
-    Currently only does caching for random number generation."""
+    """Base class for operations on RVs."""
     def __str__(self):
-        #return "min(#{0}, #{1})".format(id(self.d1), id(self.d2))
         if len(self.parents)==2:
             if isinstance(self.getSym(), sympy.Add):
                 op = "+"
             if isinstance(self.getSym(), sympy.Mul):
                 op = "*"
-            else: self.getSym().__class__
+            else:
+                op = str(self.getSym().__class__)
             return "({0}{2}{1})".format(self.parents[0], self.parents[1], op)
 class FuncRV(OpRV):
     """Injective function of random variable"""
@@ -296,11 +297,10 @@ class ShiftedScaledRV(OpRV):
         assert(scale != 0)
         self.shift = shift
         self.scale = scale
-        self.a = d.a*self.scale+self.shift
-        self.b = d.b*self.scale+self.shift
-        super(ShiftedScaledRV, self).__init__([d], sym = (d.getSymname()*self.scale+self.shift))
+        super(ShiftedScaledRV, self).__init__([d], sym = (d.getSymname() * self.scale + self.shift))
+        self.a = d.a * self.scale + self.shift
+        self.b = d.b * self.scale + self.shift
         self.d = d
-        self._1_scale = 1.0 / scale
     def __str__(self):
         if self.shift == 0 and self.scale == 1:
             return str(id(self.d))
@@ -617,9 +617,9 @@ def max(*args):
         raise NotImplemented()
     else:
         return _builtin_max(*args)
+
+
 if __name__ == "__main__":
-    from pylab import *
-    from pacal.distr import Distr
     x = RV(sym="x")
     y = RV(sym="y")
     z = RV(sym="z")

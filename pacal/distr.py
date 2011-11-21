@@ -63,15 +63,6 @@ class Distr(RV):
     def getName(self):
         """return a string representation of PDF."""
         return "D"
-    def getAncestorIDs(self, anc = None):
-        """Get ID's of all ancestors"""
-        if anc is None:
-            anc = set()
-        for p in self.parents:
-            if id(p) not in anc:
-                anc.update(p.getAncestorIDs(anc))
-        anc.add(id(self))
-        return anc
     def get_piecewise_pdf(self):
         """return PDF function as a PiecewiseDistribution object"""
         if self.piecewise_pdf is None:
@@ -524,9 +515,6 @@ class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
     def __init__(self, d, shift = 0, scale = 1):
         assert(scale != 0)
         super(ShiftedScaledDistr, self).__init__(d, shift=shift, scale=scale)
-        self.d = d
-        self.shift = shift
-        self.scale = scale
         if self.scale is 1:
             self._1_scale = 1
         else:
@@ -537,15 +525,6 @@ class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
         return abs(self._1_scale) * self.d.pdf((x - self.shift) * self._1_scale)
     def rand_op(self, n, cache):
         return self.scale * self.d.rand(n, cache) + self.shift
-    def __str__(self):
-        if self.shift == 0 and self.scale == 1:
-            return str(id(self.d))
-        elif self.shift == 0:
-            return "{0}*#{1}".format(self.scale, id(self.d))
-        elif self.scale == 1:
-            return "#{0}{1:+}".format(id(self.d), self.shift)
-        else:
-            return "#{0}*{1}{2:+}".format(id(self.d), self.scale, self.shift)
     def getName(self):
         if self.shift == 0 and self.scale == 1:
             return self.d.getName()
