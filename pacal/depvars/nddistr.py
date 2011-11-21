@@ -15,10 +15,10 @@ import sympy as sympy
 
 #from rv import RV
 from pacal import *
+from pacal.rv import RV
 from pacal.segments import PiecewiseFunction
 from pacal.utils import multinomial_coeff
 from pacal.integration import *
-from pacal.depvars.rv import RV
 from pacal.distr import Distr
 import numpy
 from pylab import linspace

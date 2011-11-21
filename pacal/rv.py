@@ -18,8 +18,6 @@ import sympy
 
 from pacal.utils import Inf
 
-import traceback
-
 class RV(object):
     def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
         self.parents = parents
@@ -47,12 +45,10 @@ class RV(object):
     def range(self):
         return self.a, self.b
     
-    def getId(self):
-        return id(self)
-    
     def getName(self):
         """return, string representation of RV"""
-        return type
+        return "RV"
+    #def getExpr
     def getSym(self):
         """return, symbolic representation of RV"""
         return self.sym              
@@ -63,6 +59,7 @@ class RV(object):
             self.symname = sympy.Symbol(sym) 
         else:
             self.symname = sym                            
+    #def getSymbol
     def getSymname(self):
         return self.symname
                 

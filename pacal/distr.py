@@ -23,7 +23,7 @@ import traceback
 import params
 from pacal.indeparith import conv, convprod, convdiv, convmin, convmax
 from pacal.segments import PiecewiseFunction, PiecewiseDistribution, DiracSegment, ConstSegment
-from pacal.depvars.rv import *
+from pacal.rv import *
 
 #class Distr(object):
 #    def __init__(self, parents = [], indep = None):
@@ -35,7 +35,6 @@ class Distr(RV):
         # X+X != 2X.  This currently only affects random number
         # generation and histograms.  This default will likely change
         # in the future.
-        self.parents = parents
         if indep is not None:            
             self.indep = indep
         else:
@@ -150,23 +149,23 @@ class Distr(RV):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().mean()
     def meanf(self, f):
-        """Mean value of f(X)"""
+        """Mean value of f(X) w.r.t. the distribution."""
         return self.get_piecewise_pdf().meanf(f=f)
     def moment(self, k, c=None):
         """Moment about c of k-th order of distribution. """
-        if c == None:
-            c=self.mean()
+        if c is None:
+            c = self.mean()
         def f(x, c=c, k=k):
             return (x-c)**k
         return self.get_piecewise_pdf().meanf(f=f)
     def skewness(self):
-        if not self.var()==0.0:               
-            return self.moment(3,self.mean())/self.var()**1.5
+        if not self.var() == 0:               
+            return self.moment(3, self.mean()) / self.var()**1.5
         else:
             return NaN
     def kurtosis(self):
-        if not self.var()==0.0:               
-            return self.moment(4,self.mean())/self.var()**2
+        if not self.var() == 0:               
+            return self.moment(4, self.mean()) / self.var()**2
         else:
             return NaN
     def mgf(self):      
