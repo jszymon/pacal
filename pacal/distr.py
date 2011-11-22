@@ -53,13 +53,12 @@ class Distr(RV):
         if params.general.warn_on_dependent:
             anc = set()
             for p in self.parents:
+
                 panc = p.getAncestorIDs()
                 if panc & anc:
                     print "Warning: arguments treated as independent"
                     break
                 anc.update(panc)
-    def __str__(self):
-        return "Distr"
     def getName(self):
         """return a string representation of PDF."""
         return "D"
@@ -483,29 +482,23 @@ class OpDistr(Distr):
             cache[id(self)] = self.rand_op(n, cache)
         return cache[id(self)]
 
-class FuncDistr(OpDistr):
+class FuncDistr(FuncRV, OpDistr):
     """Injective function of random variable"""
-    def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f"):
-        super(FuncDistr, self).__init__([d])
-        self.d = d
+    def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f", sym = None):
+        super(FuncDistr, self).__init__(d, sym = sym)
         self.f = f
         self.f_inv = f_inv
         self.f_inv_deriv = f_inv_deriv
-        self.fname = fname
         self.pole_at_zero = pole_at_zero 
     def pdf(self, x):
-        f = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
+        y = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
         if isscalar(x):
             if not isfinite(f):
-                f = 0
+                y = 0
         else:
-            mask = isfinite(f)
-            f[~mask] = 0
-        return f
-    def __str__(self):
-        return "{0}(#{1})".format(self.fname, id(self.d))
-    def getName(self):
-        return "{0}({1})".format(self.fname, self.d.getName())
+            mask = isfinite(y)
+            y[~mask] = 0
+        return y
     def rand_op(self, n, cache):
         return self.f(self.d.rand(n, cache))
     def init_piecewise_pdf(self):
@@ -548,6 +541,8 @@ def exp(d):
     """Overload the exp function."""
     if isinstance(d, Distr):
         return ExpDistr(d)
+    if isinstance(d, RV):
+        return ExpRV(d)
     return numpy.exp(d)
 
 class LogDistr(FuncDistr):
@@ -564,12 +559,16 @@ def log(d):
     """Overload the log function."""
     if isinstance(d, Distr):
         return LogDistr(d)
+    if isinstance(d, RV):
+        return LogRV(d)
     return numpy.log(d)
 
 def sign(d):
     """Overload sign: distribution of sign(X)."""
     if isinstance(d, Distr):
         return SignDistr(d)
+    if isinstance(d, RV):
+        return SignRV(d)
     return numpy.sign(d)
 
 class AtanDistr(FuncDistr):
@@ -605,6 +604,8 @@ def atan(d):
     """Overload the atan function."""
     if isinstance(d, Distr):
         return AtanDistr(d)
+    if isinstance(d, RV):
+        return AtanRV(d)
     return numpy.arctan(d)
 
 class InvDistr(OpDistr):
@@ -674,9 +675,9 @@ class PowDistr(FuncDistr):
     def rand_op(self, n, cache):
         return self.d.rand(n, cache) ** self.alpha
     def __str__(self):
-        return "#{0}^{1}".format(id(self.d1), self.alpha)
+        return "#{0}**{1}".format(id(self.d1), self.alpha)
     def getName(self):
-        return "{0}^{1}".format(_wrapped_name(self.d), self.alpha)    
+        return "{0}**{1}".format(_wrapped_name(self.d), self.alpha)    
     def f_(self, x):
         if isscalar(x):
             if x != 0:
@@ -913,6 +914,8 @@ def sqrt(d):
         if not d.is_nonneg():
             raise ValueError("logarithm of a nonpositive distribution")
         return d ** 0.5
+    if isinstance(d, RV):
+        return PowRV(d, 0.5)
     return numpy.sqrt(d)
 
 class SumDistr(SumRV, OpDistr):

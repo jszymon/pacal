@@ -3,14 +3,12 @@
 import numbers
 
 import numpy
-from numpy import zeros_like, unique, isscalar
-from numpy import sqrt, pi, arctan, tan, asfarray
+from numpy import unique
 from numpy import add, subtract, divide, prod, multiply
 
 import sympy
 from sympy import var, log, exp
 
-from pacal.utils import Inf
 
 class RV(object):
     def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
@@ -262,6 +260,17 @@ class RV(object):
             return ExpRV(ShiftedScaledRV(self, scale = numpy.log(x)))
         raise NotImplemented()
 
+
+def _wrapped_name(d, incl_classes = None):
+    """Return name of d wrapped in parentheses if necessary"""
+    d_name = d.getName()
+    if incl_classes is not None:
+        if isinstance(d, tuple(incl_classes)):
+            d_name = "(" + d_name + ")"
+    elif isinstance(d, OpDistr) and not isinstance(d, (FuncDistr, SquareDistr)):
+        d_name = "(" + d_name + ")"
+    return d_name
+
     
 class OpRV(RV):
     """Base class for operations on RVs."""
@@ -275,16 +284,12 @@ class OpRV(RV):
                 op = str(self.getSym().__class__)
             return "({0}{2}{1})".format(self.parents[0], self.parents[1], op)
 class FuncRV(OpRV):
-    """Injective function of random variable"""
-    def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f", sym = None):
+    """Function of random variable"""
+    def __init__(self, d, fname = "f", sym = None):
         super(FuncRV, self).__init__([d], sym = sym)
         self.d = d
-        self.f = f
-        self.f_inv = f_inv
-        self.f_inv_deriv = f_inv_deriv
         self.fname = fname
     def __str__(self):
-        #return "{0}(#{1})".format(self.fname, id(self.d))
         return "{0}({1})".format(self.fname, self.d)
     def getName(self):
         return "{0}({1})".format(self.fname, self.d.getName())
@@ -323,71 +328,20 @@ class ShiftedScaledRV(OpRV):
 class ExpRV(FuncRV):
     """Exponent of a random variable"""
     def __init__(self, d):
-        super(ExpRV, self).__init__(d, numpy.exp, numpy.log,
-                                       lambda x: 1.0/abs(x), pole_at_zero = True, 
-                                       fname = "exp", sym = sympy.exp(d.getSymname()))
+        super(ExpRV, self).__init__(d, fname = "exp", sym = sympy.exp(d.getSymname()))
     def is_nonneg(self):
         return True
-def exp(d):
-    """Overload the exp function."""
-    if isinstance(d, RV):
-        return ExpRV(d)
-    return numpy.exp(d)
 class LogRV(FuncRV):
     """Natural logarithm of a random variable"""
     def __init__(self, d):
         if not d.is_nonneg():
             raise ValueError("logarithm of a nonpositive distribution")
-        super(LogRV, self).__init__(d, numpy.log, numpy.exp,
-                                       numpy.exp, pole_at_zero= True, 
-                                       fname = "log", sym = sympy.log(d.getSymname()))
+        super(LogRV, self).__init__(d, fname = "log", sym = sympy.log(d.getSymname()))
     
-def log(d):
-    """Overload the log function."""
-    if isinstance(d, RV):
-        return LogRV(d)
-    return numpy.log(d)
-
-def sign(d):
-    """Overload sign: distribution of sign(X)."""
-    if isinstance(d, RV):
-        return SignRV(d)
-    return numpy.sign(d)
 class AtanRV(FuncRV):
     """Arcus tangent of a random variable"""
     def __init__(self, d):
-        super(AtanRV, self).__init__(d, numpy.arctan, self.f_inv,
-                                        self.f_inv_deriv, pole_at_zero= False,
-                                        fname ="atan", sym = sympy.atan(d.getSymname()))
-    @staticmethod
-    def f_inv(x):
-        if isscalar(x):
-            if x <= -pi/2 or x >= pi/2:
-                y = 0
-            else:
-                y = numpy.tan(x)
-        else:
-            mask = (x > -pi/2) & (x < pi/2)
-            y = zeros_like(asfarray(x))
-            y[mask] = numpy.tan(x[mask])
-        return y
-    @staticmethod
-    def f_inv_deriv(x):
-        if isscalar(x):
-            if x <= -pi/2 or x >= pi/2:
-                y = 0
-            else:
-                y = 1 + numpy.tan(x)**2
-        else:
-            mask = (x > -pi/2) & (x < pi/2)
-            y = zeros_like(asfarray(x))
-            y[mask] = 1 + numpy.tan(x[mask])**2
-        return y
-def atan(d):
-    """Overload the atan function."""
-    if isinstance(d, RV):
-        return AtanRV(d)
-    return numpy.arctan(d)
+        super(AtanRV, self).__init__(d, fname ="atan", sym = sympy.atan(d.getSymname()))
 
 class InvRV(OpRV):
     """Inverse of random variable."""
@@ -399,28 +353,6 @@ class InvRV(OpRV):
         return "1/#{0}".format(id(self.d))    
     def getName(self):
         return "1/{0}".format(self.d.getName())    
-    @staticmethod
-    def f_(x):
-        if isscalar(x):
-            if x != 0:
-                y = 1.0 / x
-            else:
-                y = Inf # TODO: put nan here
-        else:
-            mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
-            y[mask] = 1.0 / x[mask]  # to powoduje bledy w odwrotnosci
-            #y = 1.0 / x
-        return y
-    @staticmethod
-    def f_inv_deriv(x):
-        if isscalar(x):
-            y = 1/x**2
-        else:
-            mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
-            y[mask] = 1/(x[mask])**2
-        return y
 
 class PowRV(FuncRV):
     """Inverse of random variable."""
@@ -428,42 +360,10 @@ class PowRV(FuncRV):
         super(PowRV, self).__init__([d],self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow", sym = d.getSymname()**alpha)
         self.d = d
         self.alpha = alpha
-        self.alpha_inv = 1.0 / alpha
-        self.exp_deriv = self.alpha_inv - 1.0
     def __str__(self):
-        return "1/#{0}".format(id(self.d))    
+        return "#{0}**{1}".format(id(self.d1), self.alpha)
     def getName(self):
-        return "{0}^{1}".format(self.d.getName(), self.alpha)    
-    def f_(self, x):
-        if isscalar(x):
-            if x != 0:
-                y = x ** (self.alpha)
-            else:
-                y = 0 # TODO: put nan here
-        else:
-            mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
-            y[mask] = x[mask] ** (self.alpha)
-        return y
-    def f_inv(self, x):
-        if isscalar(x):
-            if x != 0:
-                y = x ** (self.alpha_inv)
-            else:
-                y = 0 # TODO: put nan here
-        else:
-            mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
-            y[mask] = x[mask] ** self.alpha_inv
-        return y
-    def f_inv_deriv(self, x):
-        if isscalar(x):
-            y = self.alpha_inv * x ** self.exp_deriv
-        else:
-            mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
-            y[mask] = self.alpha_inv * x ** self.exp_deriv
-        return y
+        return "{0}**{1}".format(_wrapped_name(self.d), self.alpha)    
     
 class AbsRV(OpRV):
     """Absolute value of a distribution."""
@@ -496,12 +396,6 @@ class SquareRV(OpRV):
     def getName(self):
         return "sqr({0})".format(self.d.getName())
 
-def sqrt(d):
-    if isinstance(d, RV):
-        if not d.is_nonneg():
-            raise ValueError("logarithm of a nonpositive distribution")
-        return d ** 0.5
-    return numpy.sqrt(d)
 
 class SumRV(OpRV):
     """Sum of distributions."""

@@ -12,7 +12,7 @@ from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 
 #A = BetaDistr(1, 1, sym="A")
 #A = UniformDistr(0.5, 1.75, sym="A")
-A = UniformDistr(-1, 7, sym="A")
+A = UniformDistr(-1, 3, sym="A")
 Y0 = BetaDistr(2, 6, sym="Y0")
 n = 4
 h = 1.0/n
@@ -36,7 +36,7 @@ print M
 
 #M.inference2(wanted_rvs = [A, Y[-1]], cond_rvs = [O[-1]], cond_X = [1.1])
 #M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.1])
-M2 = M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
+M2 = M.inference(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
 
 print M2
 M2.plot()
