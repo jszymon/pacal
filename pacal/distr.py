@@ -485,7 +485,7 @@ class OpDistr(Distr):
 class FuncDistr(FuncRV, OpDistr):
     """Injective function of random variable"""
     def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f", sym = None):
-        super(FuncDistr, self).__init__(d, sym = sym)
+        super(FuncDistr, self).__init__(d, sym = sym, fname = fname)
         self.f = f
         self.f_inv = f_inv
         self.f_inv_deriv = f_inv_deriv
@@ -518,17 +518,6 @@ class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
         return abs(self._1_scale) * self.d.pdf((x - self.shift) * self._1_scale)
     def rand_op(self, n, cache):
         return self.scale * self.d.rand(n, cache) + self.shift
-    def getName(self):
-        if self.shift == 0 and self.scale == 1:
-            return self.d.getName()
-        else:
-            d_name = _wrapped_name(self.d)
-            if self.shift == 0:
-                return "{0}*{1}".format(self.scale, d_name)
-            elif self.scale == 1:
-                return "{0}{1:+}".format(d_name, self.shift)
-            else:
-                return "{2}*{0}+{1}".format(d_name, self.shift, self.scale)
 
 class ExpDistr(FuncDistr):
     """Exponent of a random variable"""
@@ -608,11 +597,10 @@ def atan(d):
         return AtanRV(d)
     return numpy.arctan(d)
 
-class InvDistr(OpDistr):
+class InvDistr(InvRV, OpDistr):
     """Inverse of random variable."""
     def __init__(self, d):
-        super(InvDistr, self).__init__([d])
-        self.d = d
+        super(InvDistr, self).__init__(d)
         self.pole_at_zero = False
     def pdf(self, x):
         if isscalar(x):
@@ -624,13 +612,6 @@ class InvDistr(OpDistr):
         return y
     def rand_op(self, n, cache):
         return 1.0/self.d.rand(n, cache)
-    def __str__(self):
-        return "1/#{0}".format(id(self.d))    
-    def getName(self):
-        d_name = self.d.getName()
-        if isinstance(self.d, OpDistr) and not isinstance(self.d, FuncDistr):
-            d_name = "(" + d_name + ")"
-        return "(1/{0})".format(d_name)
     @staticmethod
     def f_(x):
         if isscalar(x):
@@ -659,7 +640,7 @@ class InvDistr(OpDistr):
 class PowDistr(FuncDistr):
     """Inverse of random variable."""
     def __init__(self, d, alpha = 1):
-        super(PowDistr, self).__init__([d],self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow")
+        super(PowDistr, self).__init__([d], self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow")
         self.d = d
         self.alpha = alpha
         self.alpha_inv = 1.0 / alpha
@@ -672,12 +653,12 @@ class PowDistr(FuncDistr):
             mask = x != 0
             y[mask] = y = self.d.pdf(1.0/x[mask])/x[mask]**2
         return y
-    def rand_op(self, n, cache):
-        return self.d.rand(n, cache) ** self.alpha
     def __str__(self):
         return "#{0}**{1}".format(id(self.d1), self.alpha)
     def getName(self):
         return "{0}**{1}".format(_wrapped_name(self.d), self.alpha)    
+    def rand_op(self, n, cache):
+        return self.d.rand(n, cache) ** self.alpha
     def f_(self, x):
         if isscalar(x):
             if x != 0:
@@ -924,10 +905,6 @@ class SumDistr(SumRV, OpDistr):
         super(SumDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
-    def __str__(self):
-        return "#{0}+#{1}".format(id(self.d1), id(self.d2))
-    def getName(self):
-        return "{0}+{1}".format(self.d1.getName(), self.d2.getName())
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -940,11 +917,6 @@ class SubDistr(SubRV, OpDistr):
         super(SubDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
-    def __str__(self):
-        return "#{0}-#{1}".format(id(self.d1), id(self.d2))
-    def getName(self):
-        n2 = _wrapped_name(self.d2, incl_classes = [SumDistr])
-        return "{0}-{1}".format(self.d1.getName(), n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -958,12 +930,6 @@ class MulDistr(MulRV, OpDistr):
         super(MulDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
-    def __str__(self):
-        return "#{0}*#{1}".format(id(self.d1), id(self.d2))
-    def getName(self):
-        n1 = _wrapped_name(self.d1, incl_classes = [SumDistr, SubDistr, ShiftedScaledDistr])
-        n2 = _wrapped_name(self.d2, incl_classes = [SumDistr, SubDistr, ShiftedScaledDistr])
-        return "{0}*{1}".format(n1, n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -977,12 +943,6 @@ class DivDistr(DivRV, OpDistr):
         super(DivDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
-    def __str__(self):
-        return "#{0}/#{1}".format(id(self.d1), id(self.d2))
-    def getName(self):
-        n1 = _wrapped_name(self.d1)
-        n2 = _wrapped_name(self.d2)
-        return "{0}/{1}".format(n1, n2)
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -990,15 +950,11 @@ class DivDistr(DivRV, OpDistr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = convdiv(self.d1.get_piecewise_pdf(),
                                      self.d2.get_piecewise_pdf())
-class MinDistr(OpDistr):
+class MinDistr(MinRV, OpDistr):
     def __init__(self, d1, d2):
-        super(MinDistr, self).__init__([d1, d2])
+        super(MinDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
-    def __str__(self):
-        return "min(#{0}, #{1})".format(id(self.d1), id(self.d2))
-    def getName(self):
-        return "min({0}, {1})".format(self.d1.getName(), self.d2.getName())
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -1006,9 +962,9 @@ class MinDistr(OpDistr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = convmin(self.d1.get_piecewise_pdf(),
                                      self.d2.get_piecewise_pdf())
-class MaxDistr(OpDistr):
+class MaxDistr(MaxRV, OpDistr):
     def __init__(self, d1, d2):
-        super(MaxDistr, self).__init__([d1, d2])
+        super(MaxDistr, self).__init__(d1, d2)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -1036,6 +992,8 @@ def min(*args):
         return MinDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
         raise NotImplemented()
+    elif isinstance(d1, RV) and isinstance(d2, RV):
+        return MinRV(d1, d2)
     else:
         return _builtin_min(*args)
 _builtin_max = max
@@ -1052,6 +1010,8 @@ def max(*args):
         return MaxDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
         raise NotImplemented()
+    elif isinstance(d1, RV) and isinstance(d2, RV):
+        return MaxRV(d1, d2)
     else:
         return _builtin_max(*args)
     

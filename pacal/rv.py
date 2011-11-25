@@ -7,7 +7,7 @@ from numpy import unique
 from numpy import add, subtract, divide, prod, multiply
 
 import sympy
-from sympy import var, log, exp
+from sympy import var
 
 
 class RV(object):
@@ -48,7 +48,7 @@ class RV(object):
     
     def getName(self):
         """return, string representation of RV"""
-        return "RV"
+        return str(self)
     #def getExpr
     def getSym(self):
         """return, symbolic representation of RV"""
@@ -267,7 +267,7 @@ def _wrapped_name(d, incl_classes = None):
     if incl_classes is not None:
         if isinstance(d, tuple(incl_classes)):
             d_name = "(" + d_name + ")"
-    elif isinstance(d, OpDistr) and not isinstance(d, (FuncDistr, SquareDistr)):
+    elif isinstance(d, OpRV) and not isinstance(d, (FuncRV, SquareRV)):
         d_name = "(" + d_name + ")"
     return d_name
 
@@ -318,12 +318,14 @@ class ShiftedScaledRV(OpRV):
     def getName(self):
         if self.shift == 0 and self.scale == 1:
             return self.d.getName()
-        elif self.shift == 0:
-            return "{0}*{1}".format(self.scale, self.d.getName())
-        elif self.scale == 1:
-            return "{0}{1:+}".format(self.d.getName(), self.shift)
         else:
-            return "({2}*{0}+{1})".format(self.d.getName(), self.shift, self.scale)
+            d_name = _wrapped_name(self.d)
+            if self.shift == 0:
+                return "{0}*{1}".format(self.scale, d_name)
+            elif self.scale == 1:
+                return "{0}{1:+}".format(d_name, self.shift)
+            else:
+                return "{2}*{0}+{1}".format(d_name, self.shift, self.scale)
 
 class ExpRV(FuncRV):
     """Exponent of a random variable"""
@@ -346,13 +348,17 @@ class AtanRV(FuncRV):
 class InvRV(OpRV):
     """Inverse of random variable."""
     def __init__(self, d):
-        super(InvRV, self).__init__([d], sym = 1/d.getSymname())
+        super(InvRV, self).__init__([d], sym = 1 / d.getSymname())
         self.d = d
-        self.pole_at_zero = False
     def __str__(self):
         return "1/#{0}".format(id(self.d))    
     def getName(self):
         return "1/{0}".format(self.d.getName())    
+    def getName(self):
+        d_name = self.d.getName()
+        if isinstance(self.d, OpRV) and not isinstance(self.d, FuncRV):
+            d_name = "(" + d_name + ")"
+        return "(1/{0})".format(d_name)
 
 class PowRV(FuncRV):
     """Inverse of random variable."""
@@ -405,9 +411,10 @@ class SumRV(OpRV):
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
+    def __str__(self):
+        return "#{0}+#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        #return "({0}+{1})".format(self.d1.getName(), self.d2.getName())
-        return "({0}+{1})".format(self.d1, self.d2)
+        return "{0}+{1}".format(self.d1.getName(), self.d2.getName())
     def getOperation(self):
         return "+"
 class SubRV(OpRV):
@@ -418,11 +425,11 @@ class SubRV(OpRV):
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
-    def __str(self):
-        # return "#{0}-#{1}".format(id(self.d1), id(self.d2))
-        return "({0}-{1})".format(self.d1, self.d2)
+    def __str__(self):
+        return "#{0}-#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}-{1})".format(self.d1.getName(), self.d2.getName())
+        n2 = _wrapped_name(self.d2, incl_classes = [SumRV])
+        return "{0}-{1}".format(self.d1.getName(), n2)
     def getOperation(self):
         return "-"
 
@@ -433,11 +440,12 @@ class MulRV(OpRV):
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
-    def __str(self):
-        #return "#{0}*#{1}".format(id(self.d1), id(self.d2))
-        return "({0}*{1})".format(self.d1, self.d2)
+    def __str__(self):
+        return "#{0}*#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}*{1})".format(self.d1.getName(), self.d2.getName())
+        n1 = _wrapped_name(self.d1, incl_classes = [SumRV, SubRV, ShiftedScaledRV])
+        n2 = _wrapped_name(self.d2, incl_classes = [SumRV, SubRV, ShiftedScaledRV])
+        return "{0}*{1}".format(n1, n2)
     def getOperation(self):
         return "*"
     
@@ -454,17 +462,18 @@ class DivRV(OpRV):
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
-    def __str(self):
-        # return "#{0}/#{1}".format(id(self.d1), id(self.d2))
-        return "{0}/{1}".format(self.d1, self.d2)
+    def __str__(self):
+        return "#{0}/#{1}".format(id(self.d1), id(self.d2))
     def getName(self):
-        return "({0}/{1})".format(self.d1.getName(), self.d2.getName())
+        n1 = _wrapped_name(self.d1)
+        n2 = _wrapped_name(self.d2)
+        return "{0}/{1}".format(n1, n2)
     def getOperation(self):
         return "/"
 
 class MinRV(OpRV):
     def __init__(self, d1, d2):
-        super(MinRV, self).__init__([d1, d2], sym = None)
+        super(MinRV, self).__init__([d1, d2], sym = sympy.min_(d1.getSymname(), d2.getSymname()))
         self.d1 = d1
         self.d2 = d2
     def __str(self):
@@ -477,7 +486,7 @@ class MinRV(OpRV):
 
 class MaxRV(OpRV):
     def __init__(self, d1, d2):
-        super(MaxRV, self).__init__([d1, d2], sym = None)
+        super(MaxRV, self).__init__([d1, d2], sym = sympy.max_(d1.getSymname(), d2.getSymname()))
         self.d1 = d1
         self.d2 = d2
     def __str(self):
