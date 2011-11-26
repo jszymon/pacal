@@ -127,7 +127,7 @@ C.summary()
 C.hist()
 C.plot(color="r")
 show()
-#! Let consider norlam distribution using Box–Muller transform
+#! Let consider norlam distribution using Box-Muller transform
 N = sqrt(-2*log(UniformDistr()))*C
 N.summary(show_moments=True)
 Norg = NormalDistr()

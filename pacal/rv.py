@@ -363,7 +363,7 @@ class InvRV(OpRV):
 class PowRV(FuncRV):
     """Inverse of random variable."""
     def __init__(self, d, alpha = 1):
-        super(PowRV, self).__init__([d],self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow", sym = d.getSymname()**alpha)
+        super(PowRV, self).__init__([d], fname="pow", sym = d.getSymname()**alpha)
         self.d = d
         self.alpha = alpha
     def __str__(self):
@@ -385,8 +385,6 @@ class SignRV(RV):
     def __init__(self, d):
         self.d = d
         super(SignRV, self).__init__(d, sym = sympy.sign(d.getSymname()))
-    #def getSym(self):
-    #    raise NotImplemented()
     def __str__(self):
         return "sign({0})".format(id(self.d))
     def getName(self):

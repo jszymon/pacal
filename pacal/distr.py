@@ -523,7 +523,8 @@ class ExpDistr(FuncDistr):
     """Exponent of a random variable"""
     def __init__(self, d):
         super(ExpDistr, self).__init__(d, numpy.exp, numpy.log,
-                                       lambda x: 1.0/abs(x), pole_at_zero = True, fname = "exp")
+                                       lambda x: 1.0/abs(x), pole_at_zero = True,
+                                       fname = "exp")
     def is_nonneg(self):
         return True
 def exp(d):
@@ -637,7 +638,7 @@ class InvDistr(InvRV, OpDistr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyProbInverse(pole_at_zero = self.pole_at_zero)
 
-class PowDistr(FuncDistr):
+class PowDistr(PowRV, FuncDistr):
     """Inverse of random variable."""
     def __init__(self, d, alpha = 1):
         super(PowDistr, self).__init__([d], self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow")
@@ -903,8 +904,6 @@ class SumDistr(SumRV, OpDistr):
     """Sum of distributions."""
     def __init__(self, d1, d2):
         super(SumDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -915,8 +914,6 @@ class SubDistr(SubRV, OpDistr):
     """Difference of distributions."""
     def __init__(self, d1, d2):
         super(SubDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -928,8 +925,6 @@ class SubDistr(SubRV, OpDistr):
 class MulDistr(MulRV, OpDistr):
     def __init__(self, d1, d2):
         super(MulDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -941,8 +936,6 @@ class MulDistr(MulRV, OpDistr):
 class DivDistr(DivRV, OpDistr):
     def __init__(self, d1, d2):
         super(DivDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -953,8 +946,6 @@ class DivDistr(DivRV, OpDistr):
 class MinDistr(MinRV, OpDistr):
     def __init__(self, d1, d2):
         super(MinDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
@@ -965,12 +956,6 @@ class MinDistr(MinRV, OpDistr):
 class MaxDistr(MaxRV, OpDistr):
     def __init__(self, d1, d2):
         super(MaxDistr, self).__init__(d1, d2)
-        self.d1 = d1
-        self.d2 = d2
-    def __str__(self):
-        return "max(#{0}, #{1})".format(id(self.d1), id(self.d2))
-    def getName(self):
-        return "max({0}, {1})".format(self.d1.getName(), self.d2.getName())
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
