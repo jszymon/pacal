@@ -13,8 +13,8 @@ for i in xrange(1, 50, 5):
     os.summary()
     os.plot(label = str(i) + "-" + ordinal_ending(i) + " ord. stat.", color = colors[c%len(colors)])
     xlim(0, 1)
-    ylim(ymin = 0)
     c += 1
+ylim(ymin = 0)
 legend(loc = "upper left")
 title("Order statistics from a sample of 50 Beta(3,2) r.v.'s")
 

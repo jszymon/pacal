@@ -41,7 +41,8 @@ M2 = M.inference(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
 print M2
 M2.plot()
 show()
-stop
+import sys
+sys.exit(0)
 
 # or... do the elimination by hand
 M.varschange(A, K)

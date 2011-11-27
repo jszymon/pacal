@@ -1,3 +1,10 @@
+New in version 1.1:
+
+* operations on two dependent random variables
+* joint distribution models: normal, copulas
+* joint distribution of two order statistics
+* PaCal now depends on sympy
+
 New in version 1.0:
 
 * order statistics

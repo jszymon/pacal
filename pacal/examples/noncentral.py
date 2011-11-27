@@ -23,7 +23,7 @@ def plot_nonc(d, titl = "", lim = None):
         ylim(lim[2], lim[3])
     title(titl)
     legend()
-    show()
+    #show()
 
 
 
@@ -55,4 +55,4 @@ plot_nonc(lambda nc: NoncentralBetaDistr(10, 15, nc), titl = "NoncentralBeta(10,
 plot_nonc(lambda nc: NoncentralFDistr(1, 1, nc), titl = "NoncentralF(1, 1, nonc)", lim = [-0.1, 3, 0, 0.9])
 plot_nonc(lambda nc: NoncentralFDistr(10, 20, nc), titl = "NoncentralF(10, 20, nonc)")
 
-#show()
+show()

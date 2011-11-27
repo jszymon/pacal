@@ -1152,4 +1152,4 @@ def demo_distr(d,
     if summary and theoretical:
         print "max. abs. error", maxabserr
         print "max. rel. error", maxrelerr
-    show()
+    #show()
