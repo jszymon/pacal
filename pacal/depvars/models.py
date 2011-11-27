@@ -162,7 +162,7 @@ class Model(object):
 
     def eliminate(self, var):
         var = self.prepare_var(var)
-        print "eliminate variable: ", var.getSymname()
+        #print "eliminate variable: ", var.getSymname()
         if var in self.free_rvs:
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
@@ -182,7 +182,7 @@ class Model(object):
             assert False
     def eliminate_other(self, vars):
         vars_to_eliminate = list(set(self.dep_rvs) - set(vars))
-        print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
+        #print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
         for var in vars_to_eliminate:
             self.eliminate(var)
     def unchain(self, vars, excluded=[]):
@@ -407,8 +407,8 @@ class TwoVarsModel(Model):
         self.lfun_alongx = sympy.lambdify([x, z], self.fun_alongx, "numpy")    
         self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy, "numpy")
         self.Jx = 1 * sympy.diff(self.fun_alongx, z)
-        print "Jx=", self.Jx
-        print "fun_alongx=", self.fun_alongx
+        #print "Jx=", self.Jx
+        #print "fun_alongx=", self.fun_alongx
         self.Jy = 1 * sympy.diff(self.fun_alongy, z)
         self.lJx = sympy.lambdify([x, z], self.Jx, "numpy")
         self.lJy = sympy.lambdify([y, z], self.Jy, "numpy")

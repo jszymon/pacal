@@ -3,7 +3,6 @@
 from pacal.integration import *
 from pacal.interpolation import *
 
-import traceback
 import pacal.distr
 #from pacal import *
 from pacal.segments import PiecewiseDistribution, MInfSegment, PInfSegment, Segment, _segint
@@ -54,17 +53,16 @@ class Copula(NDDistr):
             self.marginals = marginals    
     def pdf(self, *X):
         """joint probability density function with marginals *X"""
-        #[0].__class__,"   ", isinstance(f, pacal.distr.Distr), isinstance(f, Distr)
         if self.marginals is None or len(self.marginals) == 0:
             U = UniformDistr()
-            F = [U.get_piecewise_cdf()(X[i]) for i in range(len(X))]
+            F = [U.get_piecewise_cdf_interp()(X[i]) for i in range(len(X))]
             return self.cpdf(*F)
         else:
             #assert len(self.marginals) >= len(X)
             mi = ones_like(X[0])
             for i in range(len(X)):
                 mi *= self.marginals[i].get_piecewise_pdf()(X[i])
-            F = [self.marginals[i].get_piecewise_cdf()(X[i]) for i in range(len(X))]
+            F = [self.marginals[i].get_piecewise_cdf_interp()(X[i]) for i in range(len(X))]
             return np.nan_to_num(self.cpdf(*F) * mi)
             #return self.cpdf(*F) * mi
     def cdf(self, *X):
@@ -72,13 +70,13 @@ class Copula(NDDistr):
         if self.marginals is None or len(self.marginals) == 0:
             return self.ccdf(*X)
         else:
-            F = [self.marginals[i].get_piecewise_cdf()(X[i]) for i in range(len(X))]
+            F = [self.marginals[i].get_piecewise_cdf_interp()(X[i]) for i in range(len(X))]
             return self.ccdf(*F)
         
     def jpdf_(self, f, g, x, y):
         """joint probability density function with marginals *X"""
         if isinstance(f, Distr):
-            return self.cpdf(f.get_piecewise_cdf()(x), g.get_piecewise_cdf()(y)) * f.get_piecewise_pdf()(x) * g.get_piecewise_pdf()(y) 
+            return self.cpdf(f.get_piecewise_cdf_interp()(x), g.get_piecewise_cdf_interp()(y)) * f.get_piecewise_pdf()(x) * g.get_piecewise_pdf()(y) 
         else:
             return self.cpdf(f.cumint()(x), g.cumint()(y)) * f(x) * g(y)
     def jcdf_(self, f, g, x, y):
@@ -140,57 +138,7 @@ class Copula(NDDistr):
             ax2.set_zlabel('Z')
         except(Exception):
             pass
-    def contour(self, n=100, cdf=False, **kwargs):
-        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
-        #Z = self.jcdf(f, g, X, Y)
-        if self.marginals is not None and len(self.marginals) > 1:
-            f, g = self.marginals[:2]
-            self.setMarginals((f, g))
-        else:
-            f, g = UniformDistr(), UniformDistr()  
-        Lf, Uf = f.ci(0.001)
-        Lg, Ug = g.ci(0.001)
-        deltaf = (Uf - Lf) / n
-        deltag = (Ug - Lg) / n 
-        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
-        if cdf:
-            Z = self.cdf(X, Y)
-        else:
-            Z = self.pdf(X, Y)
-        #Z = self.jpdf_(f, g, X, Y)
-        
-        #fig = figure(figsize=plt.figaspect(0.5))
-        #figure()
-        cset = contour(X, Y, Z, 20, **kwargs)
-        xlabel(f.getSymname())
-        ylabel(g.getSymname())
-    def plot(self, n=50, cdf=False, labels = True, **kwargs):
-        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
-        #Z = self.jcdf(f, g, X, Y)
-        if self.marginals is not None and len(self.marginals) > 1:
-            f, g = self.marginals[:2]
-            self.setMarginals((f, g))
-        else:
-            f, g = UniformDistr(), UniformDistr()  
-        Lf, Uf = f.ci(0.01)
-        Lg, Ug = g.ci(0.01)
-        deltaf = (Uf - Lf) / n
-        deltag = (Ug - Lg) / n 
-        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
-        if cdf:
-            Z = self.cdf(X, Y)
-        else:
-            Z = self.pdf(X, Y)
-        #Z = self.jpdf_(f, g, X, Y)
-        
-        #fig = figure(figsize=plt.figaspect(0.5))
-        #figure()
-        ax = gca(projection='3d')
-        
-        cset = ax.plot_wireframe(X, Y, Z, **kwargs)
-        if labels:
-            xlabel(f.getSymname())
-            ylabel(g.getSymname())
+
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -662,11 +610,11 @@ class FrankCopula2d(Copula):
         return logexp_m1(t * self.theta) - logexp_m1(self.theta) 
     def fi_inv(self, s):
         if expm1(-self.theta) > 0:
-            return -1 / self.theta * logexp_p1(-s, expm1(-self.theta))
+            return -1.0 / self.theta * logexp_p1(-s, expm1(-self.theta))
         elif expm1(-self.theta) < 0:
-            return -1 / self.theta * log_1m_exp(-s, expm1(-self.theta))
+            return -1.0 / self.theta * log_1m_exp(-s, expm1(-self.theta))
         else:
-            return -1 / self.theta * logexp_p1(-s, 0)
+            return -1.0 / self.theta * logexp_p1(-s, 0)
     def cpdf(self, *X):
         si = zeros_like(X[0])
         pi = ones_like(X[0])

@@ -53,7 +53,7 @@ from stats.distr_est import LoglikelihoodEstimator
 
 # dependent variables
 from depvars.copulas import PiCopula, FrankCopula, ClaytonCopula, GumbelCopula
-from depvars.nddistr import IJthOrderStatsNDDistr
+from depvars.nddistr import NDNormalDistr, IJthOrderStatsNDDistr
 from depvars.models import TwoVarsModel
 
 import params

@@ -20,19 +20,22 @@ import distr
 class FunDistr(Distr):
     """General distribution defined as function with
     singularities at given breakPoints."""
-    def __init__(self, fun, breakPoints = None, **kvargs):
-        super(FunDistr, self).__init__(**kvargs)
+    def __init__(self, fun, breakPoints = None, interpolated = False, **kwargs):
+        super(FunDistr, self).__init__(**kwargs)
         self.fun = fun
         self.breakPoints = breakPoints
-        if kvargs.has_key("sym"):
-            kvargs.pop("sym")
-        self.kvargs = kvargs
+        if kwargs.has_key("sym"):
+            kwargs.pop("sym")
+        self.kwargs = kwargs
+        self.interpolated = interpolated
     def pdf(self, x):
         return self.fun(x)
     def getName(self):
         return "FUN({0},{1})".format(self.breakPoints[0], self.breakPoints[-1])
     def init_piecewise_pdf(self):
-        self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints, **self.kvargs)
+        self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints, **self.kwargs)
+        if self.interpolated:
+            self.piecewise_pdf = self.piecewise_pdf.toInterpolated()
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
     

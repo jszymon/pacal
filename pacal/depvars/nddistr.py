@@ -4,25 +4,27 @@ import numbers
 from functools import partial
 from copy import copy
 
+import numpy
 from numpy import asfarray, asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
 from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
+from numpy import linspace, meshgrid
 from numpy.linalg import det
+
+from pylab import plot, contour, xlabel, ylabel, gca
+
+import sympy as sympy
 
 from pacal.depvars.sparse_grids import AdaptiveSparseGridInterpolator
 from pacal.integration import integrate_fejer2_pminf, integrate_fejer2, integrate_iter
 from pacal.segments import PiecewiseFunction
-import sympy as sympy
 
-#from rv import RV
 from pacal import *
 from pacal.rv import RV
 from pacal.segments import PiecewiseFunction
 from pacal.utils import multinomial_coeff
 from pacal.integration import *
 from pacal.distr import Distr
-import numpy
-from pylab import linspace
-numpy.seterr(all="ignore")
+
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def getRanges(vars, ci=None):
@@ -263,6 +265,35 @@ class NDDistr(NDFun):
                     c[i, j] = self.cov(i,j)                                          
             return c
 
+    def _2dplot(self, n=100, cdf=False, tp = "contour", **kwargs):
+        assert len(self.marginals) == 2, "Only 2d distributions can be plotted."
+        if self.marginals is not None and len(self.marginals) > 1:
+            f, g = self.marginals[:2]
+        else:
+            raise NotImplemented("The distribution does not have marginals")
+        Lf, Uf = f.ci(0.001)
+        Lg, Ug = g.ci(0.001)
+        deltaf = (Uf - Lf) / n
+        deltag = (Ug - Lg) / n 
+        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
+        if cdf:
+            Z = self.cdf(X, Y)
+        else:
+            Z = self.pdf(X, Y)
+        xlabel(f.getSymname())
+        ylabel(g.getSymname())
+        if tp == "contour":
+            contour(X, Y, Z, 20, **kwargs)
+        elif tp == "plot":
+            ax = gca(projection='3d')
+            ax.plot_wireframe(X, Y, Z, **kwargs)
+        else:
+            raise RuntimeError("Wrong plot type")
+    def contour(self, n=100, cdf=False, **kwargs):
+        self._2dplot(n, cdf, tp = "contour", **kwargs)
+    def plot(self, n=50, cdf=False, labels = True, **kwargs):
+        self._2dplot(n, cdf, tp = "plot", **kwargs)
+
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -394,10 +425,12 @@ class NDNormalDistr(NDDistr):
         assert len(mu.shape) == 1
         assert len(Sigma.shape) == 2
         assert Sigma.shape[0] == Sigma.shape[1] == d
+        if Vars is None:
+            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in xrange(d)]
         super(NDNormalDistr, self).__init__(d, Vars)
-        self.a = [-5] * self.d # FIX THIS!!!
-        self.b = [5] * self.d # FIX THIS!!!
-           
+        self.marginals = self.Vars
+        self.a = [m-5 for m in mu] # FIX THIS!!!
+        self.b = [m+5 for m in mu] # FIX THIS!!!
         self.mu = mu
         self.Sigma = Sigma
         self.invSigma = array(Sigma.I)
