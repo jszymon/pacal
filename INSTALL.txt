@@ -9,6 +9,7 @@ The following packages are required:
 * Python programming language versions 2.6 or 2.7 (not 3.x)
 * NumPy numerical library
 * Matplotlib plotting package 
+* Sympy symbolic computation package
 
 The following packages are recommended:
 

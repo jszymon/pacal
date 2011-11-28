@@ -5,7 +5,7 @@ from pacal.depvars.copulas import FrankCopula2d, GumbelCopula2d, PiCopula
 
 from pylab import figure
 
-params.interpolation_nd.maxn = 9
+params.interpolation_nd.maxn = 10
 
 X1 = BetaDistr(3,3, sym="X1")
 X2 = BetaDistr(4,3, sym="X2")

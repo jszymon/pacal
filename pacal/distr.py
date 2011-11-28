@@ -261,7 +261,7 @@ class Distr(RV):
         """Summary statistics for a given distribution."""
         print "============= summary ============="
         #print self.get_piecewise_pdf()
-        t0  = time.time()
+        #t0  = time.time()
         summ = self.summary_map()
         print " ", self.getName()
         for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'mode', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
@@ -274,7 +274,7 @@ class Distr(RV):
             for i in range(11):
                 mi = self.moment(i,0)
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(mi)
-        print "=====", time.time() - t0, "sec."
+        #print "=====", time.time() - t0, "sec."
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
 
