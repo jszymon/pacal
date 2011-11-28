@@ -32,6 +32,7 @@ setup(
 
     packages=['pacal', 'pacal.stats', 'pacal.depvars',
               'pacal.examples', 'pacal.examples.springer_book',
+              'pacal.examples.dependent',
               'pacal.examples.dependent.two_variables'],
     **Cython_args
 )
