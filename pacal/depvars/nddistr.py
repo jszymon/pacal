@@ -577,6 +577,11 @@ class NDProductDistr(NDDistr):
             else:
                 kept_factors.append(f)
         return kept_factors, elim_factors
+    def get_n_terms(self, var):
+        var, c_var = self.prepare_var(var)
+        assert len(var) == 1
+        idv = id(self.Vars[var[0]])
+        return len([f for f in self.factors if idv in f.id_to_idx])
     def eliminate(self, var, a=None, b=None):
         var, c_var = self.prepare_var(var)
         if len(var) == 0:
