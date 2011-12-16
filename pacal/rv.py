@@ -9,6 +9,7 @@ from numpy import add, subtract, divide, prod, multiply
 import sympy
 from sympy import var
 
+from sympy_utils import sympy_min, sympy_max, sympy_abs
 
 class RV(object):
     def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
@@ -374,7 +375,7 @@ class PowRV(FuncRV):
 class AbsRV(OpRV):
     """Absolute value of a distribution."""
     def __init__(self, d):
-        super(AbsRV, self).__init__([d], sym = sympy.abs(d.getSymame())) # TODO abs unpleasant in sympy
+        super(AbsRV, self).__init__([d], sym = sympy_abs(d.getSymame())) # TODO abs unpleasant in sympy
         self.d = d
     def __str__(self):
         return "|#{0}|".format(id(self.d))
@@ -484,7 +485,7 @@ class MinRV(OpRV):
 
 class MaxRV(OpRV):
     def __init__(self, d1, d2):
-        super(MaxRV, self).__init__([d1, d2], sym = sympy.max_(d1.getSymname(), d2.getSymname()))
+        super(MaxRV, self).__init__([d1, d2], sym = sympy_max(d1.getSymname(), d2.getSymname()))
         self.d1 = d1
         self.d2 = d2
     def __str(self):

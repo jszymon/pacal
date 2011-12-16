@@ -65,7 +65,7 @@ class AdaptiveSparseGridInterpolator(object):
         self.a = a
         self.b = b
         self.q = self.d   # minimal nesting level
-        self.init_ni = 3  # smallest degree along an axis
+        self.init_ni = 3#11  # smallest degree along an axis
         ni = self.init_ni
         self.exps = [None]
         self.cheb_weights_cache = [None]
