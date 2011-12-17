@@ -359,38 +359,6 @@ class NDDistrWithVarSubst(NDDistr):
         xf[self.substidx] = self.substfun(*xsubst)
         return self.orig_f(*xf)
 
-#class NDDistrWithVarChange(NDDistr):
-#    def __init__(self, nddistr, new_vars):
-#        super(NDDistrWithVarChange, self).__init__(nddistr.d, new_vars)
-#        self.nddistr_orig = nddistr
-#        vari = set(nddistr.Vars)-set(new_vars)
-#        varj = set(new_vars)-set(nddistr.Vars)
-#        vari = vari.pop()
-#        varj = varj.pop()
-#        self.idxVari = self.nddistr_orig.id_to_idx[id(vari)]
-#
-#        # inverve transformation
-#        u = varj.getSymname()
-#        uj = sympy.solve(varj.getSym()-u, vari.getSym())[0]
-#        self.funInvVarj = sympy.lambdify(self.symVars, uj, "numpy")  
-#
-#        # Jacobian
-#        sym_vars_orig = self.nddistr_orig.symVars
-#        sym_vars_change = list(self.symVars)
-#        sym_vars_change[self.idxVari] = uj
-#        n = len(sym_vars_orig)
-#        J = sympy.Matrix(n, n, lambda i,j: sympy.diff(sym_vars_change[i], self.symVars[j]))
-#        dJ = J.det()
-#        self.jaccobian = sympy.lambdify(sym_vars_orig, dJ, "numpy")
-#
-#        if self.Vars is not None:
-#            self.a, self.b = getRanges(self.Vars)
-#
-#    def pdf(self, *X):
-#        x = list(X)
-#        x[self.idxVari] = self.funInvVarj(*x)
-#        y= self.nddistr_orig.pdf(*x)*abs(self.jaccobian(*X))
-#        return y
 
 class Factor1DDistr(NDDistr):
     def __init__(self, distr):

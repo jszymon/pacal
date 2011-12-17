@@ -3,19 +3,19 @@ Created on 07-12-2010
 
 @author: marcin
 '''
-from functools import partial
-from numpy import size, isnan
 import sys
-import time
-import sympy
-import traceback
-from pylab import *
 from copy import copy
+from functools import partial
+import traceback
 
-#from pacal.distr import FunDistr
+from numpy import size, isnan, linspace, zeros, array, unique, isinf, zeros_like
+from numpy import asfarray
+import sympy
+from pylab import legend, figure, plot, axis
+
+from pacal.sympy_utils import eq_solve
 from pacal.standard_distr import FunDistr, PDistr
 from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segment
-#, _segint
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 
@@ -120,7 +120,7 @@ class Model(object):
         dep_var = self.prepare_var(dep_var)
         # inverve transformation
         equation = self.rv_to_equation[dep_var] - dep_var.getSymname()
-        solutions = sympy.solve(equation, free_var.getSymname())
+        solutions = eq_solve(self.rv_to_equation[dep_var], dep_var.getSymname(), free_var.getSymname())
         #print solutions
         var_changes = []
         for uj in solutions:
@@ -401,8 +401,8 @@ class TwoVarsModel(Model):
         x = self.symvars[0]
         y = self.symvars[1]
         z = sympy.Symbol("z")
-        self.fun_alongx = sympy.solve(self.symop - z, y)[0]
-        self.fun_alongy = sympy.solve(self.symop - z, x)[0]
+        self.fun_alongx = eq_solve(self.symop, z, y)[0]
+        self.fun_alongy = eq_solve(self.symop, z, x)[0]
 
         self.lfun_alongx = sympy.lambdify([x, z], self.fun_alongx, "numpy")    
         self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy, "numpy")
@@ -414,17 +414,17 @@ class TwoVarsModel(Model):
         self.lJy = sympy.lambdify([y, z], self.Jy, "numpy")
         self.z = z
     def solveCutsX(self, fun, ay, by):        
-        axc = sympy.solve(fun - ay, self.symvars[0])[0]
-        bxc = sympy.solve(fun - by, self.symvars[0])[0]
+        axc = eq_solve(fun, ay, self.symvars[0])[0]
+        bxc = eq_solve(fun, by, self.symvars[0])[0]
         return (axc, bxc)
     def solveCutsY(self, fun, ax, bx):        
-        #ayc = sympy.solve(fun - ay, self.z)[0]
-        #byc = sympy.solve(fun - by, self.z)[0]
+        #ayc = eq_solve(fun - ay, self.z)[0]
+        #byc = eq_solve(fun - by, self.z)[0]
         ayc = fun.subs(self.symvars[0], ax)
         byc = fun.subs(self.symvars[0], bx)
         return (ayc, byc)
     def getUL(self, ax, bx, ay, by, z):
-        axcz, bxcz = self.solveCutsX(self.fun_alongx , ay, by)
+        axcz, bxcz = self.solveCutsX(self.fun_alongx, ay, by)
         axc = axcz.subs(self.z, z)
         bxc = bxcz.subs(self.z, z)
         if not axc.is_real:
@@ -457,9 +457,9 @@ class TwoVarsModel(Model):
         return max(ax, L), min(bx, U) 
     
     def plotFrame(self, ax, bx, ay, by):
-        plt.figure()
+        figure()
         h = 0.1
-        plt.axis((ax - h, bx + h, ay - h, by + h))
+        axis((ax - h, bx + h, ay - h, by + h))
         #print self.symvars         
         #print self.d.getSym()
         #print self.symop
@@ -497,7 +497,7 @@ class TwoVarsModel(Model):
         plot([bx, bx], [ay, by], "k:")
         plot([ax, bx], [ay, ay], "k:")
         plot([ax, bx], [by, by], "k:")
-        plt.plot()
+        plot()
         pass
         
         
@@ -596,7 +596,7 @@ class TwoVarsModel(Model):
                 #print segi, segj
                 if segi.isSegment() and segj.isSegment():
                     L, U = self.getUL(segi.a, segi.b, segj.a, segj.b, zj)
-                    L, U  = sort([U, L])
+                    L, U  = min(U, L), max(U, L)
                     if L < U:
                         i, e = self._segint(fun, float(L), float(U), debug_info=False)            
                     else:  
