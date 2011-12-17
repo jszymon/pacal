@@ -42,7 +42,6 @@ def sympify(x):
 # our own improvements
 _eq_cache = {}
 def eq_solve(lhs, rhs, x):
-    #print lhs, rhs, x
     key = (lhs, rhs, x)
     rhs = sympify(rhs)
     if key in _eq_cache:
@@ -55,6 +54,4 @@ def eq_solve(lhs, rhs, x):
         else:
             solutions = sympy.solve(lhs - rhs, x)
         _eq_cache[key] = solutions
-    #print solutions
-    #print
     return solutions
