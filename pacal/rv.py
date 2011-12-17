@@ -32,7 +32,7 @@ class RV(object):
     def __str__(self):
         return "RV(" + str(self.sym) + ")"
     def __repr__(self):
-        return self.__str__()   
+        return str(self)   
 
     def getAncestorIDs(self, anc = None):
         """Get ID's of all ancestors"""
@@ -472,7 +472,7 @@ class DivRV(OpRV):
 
 class MinRV(OpRV):
     def __init__(self, d1, d2):
-        super(MinRV, self).__init__([d1, d2], sym = sympy.min_(d1.getSymname(), d2.getSymname()))
+        super(MinRV, self).__init__([d1, d2], sym = sympy_min(d1.getSymname(), d2.getSymname()))
         self.d1 = d1
         self.d2 = d2
     def __str(self):

@@ -21,21 +21,6 @@ for i, theta in enumerate([-0.9, -0.5, 0.5, 0.9]):
 legend()
 
 figure()
-Y2 = NormalDistr(sym="Y2")
-U2 = X + Y2
-U2.setSym("U2")
-title("GumbelCopula - inf")
-for i, theta in enumerate([1, 5, 10, 15]):
-    print "theta=", theta
-    ci = GumbelCopula(marginals=[X, Y2], theta=theta)
-    Mi = TwoVarsModel(ci, U2)
-    funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
-    funi.summary()
-legend()
-show()
-
-figure()
 title("GumbelCopula")
 for i, theta in enumerate([1, 5, 10, 15]):
     print "theta=", theta
@@ -63,6 +48,20 @@ for i, theta in enumerate([1, 5, 10, 15]):
     print "theta=", theta
     ci = ClaytonCopula(marginals=[X, Y], theta=theta)
     Mi = TwoVarsModel(ci, U)
+    funi = Mi.eval()
+    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.summary()
+legend()
+
+figure()
+Y2 = NormalDistr(sym="Y2")
+U2 = X + Y2
+U2.setSym("U2")
+title("FrankCopula - infinite domain")
+for i, theta in enumerate([1, 5, 10, 15]):
+    print "theta=", theta
+    ci = FrankCopula(marginals=[X, Y2], theta=theta)
+    Mi = TwoVarsModel(ci, U2)
     funi = Mi.eval()
     funi.plot(label = "theta={}".format(theta), color = colors[i])
     funi.summary()
