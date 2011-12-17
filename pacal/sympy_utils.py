@@ -28,22 +28,33 @@ except:
 def is_sympy(x):
     return isinstance(x, _sympy_base_class)
 
+# converting to sympy taking into account infinities
+def sympify(x):
+    if x == -sympy.oo:
+        sx = -sympy.oo
+    elif x == sympy.oo:
+        sx = sympy.oo
+    else:
+        sx = sympy.sympify(x)
+    return sx
+
 # incompatibilities in equation solving semantics
 # our own improvements
 _eq_cache = {}
 def eq_solve(lhs, rhs, x):
-    print lhs, rhs, x
+    #print lhs, rhs, x
     key = (lhs, rhs, x)
+    rhs = sympify(rhs)
     if key in _eq_cache:
         solutions = _eq_cache[key]
     else:
-        if (is_sympy(rhs) and sympy_abs(rhs) == sympy.oo) or (not is_sympy(rhs) and not isfinite(rhs)):
+        if sympy_abs(rhs) == sympy.oo:
             tmp_rhs = sympy.Symbol("__tmp_rhs_" + str(id(rhs)))
             solutions = sympy.solve(lhs - tmp_rhs, x)
-            solutions = [sympy.simplify(sympy.limit(s, tmp_rhs, sympy.S(rhs))) for s in solutions]
+            solutions = [sympy.simplify(sympy.limit(s, tmp_rhs, rhs)) for s in solutions]
         else:
             solutions = sympy.solve(lhs - rhs, x)
         _eq_cache[key] = solutions
-    print solutions
-    print
+    #print solutions
+    #print
     return solutions
