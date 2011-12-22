@@ -10,7 +10,7 @@ from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
 from numpy import linspace, meshgrid
 from numpy.linalg import det
 
-from pylab import plot, contour, xlabel, ylabel, gca
+from pylab import plot, contour, xlabel, ylabel, gca, mean
 
 import sympy as sympy
 
@@ -21,7 +21,7 @@ from pacal.segments import PiecewiseFunction
 from pacal import *
 from pacal.rv import RV
 from pacal.segments import PiecewiseFunction
-from pacal.utils import multinomial_coeff
+from pacal.utils import multinomial_coeff, maxprob
 from pacal.integration import *
 from pacal.distr import Distr
 
@@ -264,6 +264,10 @@ class NDDistr(NDFun):
                     #print self.cov(i,j)   
                     c[i, j] = self.cov(i,j)                                          
             return c
+    def mode(self):
+        #print array(getRanges(self.Vars))
+        m = mean(array(getRanges(self.Vars)), axis=0)         
+        return maxprob(self, m*1.01, array(getRanges(self.Vars)).T)
 
     def _2dplot(self, n=100, cdf=False, tp = "contour", **kwargs):
         assert len(self.marginals) == 2, "Only 2d distributions can be plotted."
@@ -409,6 +413,62 @@ class NDNormalDistr(NDDistr):
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
             Xa = asfarray(X)
+            Xa = Xa.transpose(range(1, len(X[0].shape) + 1) + [0])
+            Xa -= self.mu
+            Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
+            return self.nrm * exp(-0.5 * Z)
+
+    def eliminate(self, var):
+        var, c_var = self.prepare_var(var)
+        # assume var is a dimension number here
+        m_mu = delete(self.mu, var)
+        m_Sigma = delete(delete(self.Sigma, var, 0), var, 1)
+        if len(m_mu) == 0:
+            return NDOneFactor()
+        return NDNormalDistr(m_mu, m_Sigma, [self.Vars[i] for i in c_var])
+    def condition(self, var, *X, **kwargs):
+        var, c_var = self.prepare_var(var)
+        if len(c_var) == 0:
+            return NDOneFactor()
+        Sigma_11 = self.Sigma[c_var, c_var]
+        Sigma_12 = self.Sigma[c_var, var]
+        Sigma_21 = self.Sigma[var, c_var]
+        Sigma_22 = self.Sigma[var, var]
+        c_mu = self.mu[c_var] + Sigma_12 * Sigma_22.I * (X - self.mu[var])
+        c_mu = array(c_mu)[0]
+        c_Sigma = Sigma_11 - Sigma_12 * Sigma_22.I * Sigma_21
+        return NDNormalDistr(c_mu, c_Sigma, [self.Vars[i] for i in c_var])
+
+class GausianCopula(NDDistr): # TODO
+    def __init__(self, mu, Sigma, marginals=None):
+        mu = asfarray(mu)
+        Sigma = asmatrix(asfarray(Sigma))
+        d = mu.shape[0]
+        assert len(mu.shape) == 1
+        assert len(Sigma.shape) == 2
+        assert Sigma.shape[0] == Sigma.shape[1] == d
+        Vars = marginals
+        self.marginals = marginals
+        if Vars is None:
+            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in xrange(d)]
+        super(NDNormalDistr, self).__init__(d, Vars)
+        self.marginals = self.Vars
+        self.a = [m-5 for m in mu] # FIX THIS!!!
+        self.b = [m+5 for m in mu] # FIX THIS!!!
+        self.mu = mu
+        self.Sigma = Sigma
+        self.invSigma = array(Sigma.I)
+        self.nrm = 1.0 / sqrt(det(self.Sigma) * (2 * pi) ** self.d)
+    def pdf(self, *X):
+        if isscalar(X) or isscalar(X[0]):
+            X = asfarray(X) - self.mu
+            return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
+        else:
+            print X
+            X = [self.marginals[i].get_piecewise_cdfinv_interp()(X[i]) for i in range(len(X))]
+            Xa = asfarray(X)
+            print Xa
+            
             Xa = Xa.transpose(range(1, len(X[0].shape) + 1) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
