@@ -1623,7 +1623,8 @@ class PiecewiseFunction(object):
         if (x is None): # It means
             print "ASSERT x is None y=", y, self.__str__()
             print "ASSERT x is None vals=", vals
-            assert(False)
+            #assert(False)
+            x = NaN
         return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
 
     def invfun(self, use_end_poles = True, use_interpolated=True):
