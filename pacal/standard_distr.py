@@ -52,7 +52,8 @@ class PDistr(Distr):
             for seg in self.segs:
                 self.piecewise_pdf.addSegment(seg)
     def getName(self):
-        return "PDISTR({0})".format(self.get_piecewise_pdf())
+        #return "PDISTR({0})".format(self.get_piecewise_pdf())
+        return "PDISTR({0},{1})".format(self.get_piecewise_pdf().segments[0].a, self.get_piecewise_pdf().segments[-1].b)
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
 
