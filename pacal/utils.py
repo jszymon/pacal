@@ -19,11 +19,12 @@ from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar, asfarray
-from pylab import plot, loglog, show, semilogx, sqrt
+from pylab import plot, loglog, show, semilogx, sqrt, figure
 from pylab import real
 
 from scipy.fftpack.basic import fft
-
+from scipy.optimize import fmin_cg,fmin, fmin_tnc
+ 
 import params
 
 # safe infinity
@@ -335,6 +336,22 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
     else:
         return 0
     
+def maxprob(pdf, x0, lub=None):
+    print lub
+    def fun(x):
+        #print x, lub
+        if lub is not None:
+            for i in range(len(x)):
+                if x[i]<lub[i][0]:
+                    x[i]=lub[i][0]
+                if x[i]>lub[i][1]:
+                    x[i]=lub[i][1]
+        
+        f = -pdf(*[x[i] for i in range(len(x))])
+        #print x, f
+        return f 
+    #return fmin_tnc(fun, x0,bounds=lub)
+    return fmin(fun, x0)
 
 try:
     from math import lgamma
