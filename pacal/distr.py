@@ -493,7 +493,7 @@ class FuncDistr(FuncRV, OpDistr):
     def pdf(self, x):
         y = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
         if isscalar(x):
-            if not isfinite(f):
+            if not isfinite(self.f):
                 y = 0
         else:
             mask = isfinite(y)
@@ -1017,7 +1017,7 @@ class CondGtDistr(Distr):
     def __init__(self, d, L=None, **kwargs):
         self.L = L
         self.d = d
-        super(CondGtDistr, self).__init__([d], **kwargs)
+        super(CondGtDistr, self).__init__([], **kwargs)
     def init_piecewise_pdf(self):
         Z = MaxDistr(ConstDistr(self.L), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(0)
@@ -1033,7 +1033,7 @@ class CondLtDistr(Distr):
     def __init__(self, d, U=None, **kwargs):
         self.U = U
         self.d = d
-        super(CondLtDistr, self).__init__([d], **kwargs)
+        super(CondLtDistr, self).__init__([], **kwargs)
     def init_piecewise_pdf(self):
         Z = MinDistr(ConstDistr(self.U), self.d)    
         diracB = Z.get_piecewise_pdf().segments.pop(-1)
