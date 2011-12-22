@@ -16,10 +16,10 @@ for i, theta in enumerate([-0.9, -0.5, 0.5, 0.9]):
     ci = NDNormalDistr([0, 0], [[1, theta],[theta, 1]])
     Mi = TwoVarsModel(ci, ci.Vars[0] + ci.Vars[1])
     funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.plot(label = "theta={0}".format(theta), color = colors[i])
     funi.summary()
 legend()
-
+show()
 figure()
 title("GumbelCopula")
 for i, theta in enumerate([1, 5, 10, 15]):
@@ -27,10 +27,10 @@ for i, theta in enumerate([1, 5, 10, 15]):
     ci = GumbelCopula(marginals=[X, Y], theta=theta)
     Mi = TwoVarsModel(ci, U)
     funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.plot(label = "theta={0}".format(theta), color = colors[i])
     funi.summary()
 legend()
-
+show()
 figure()
 title("FrankCopula")
 for i, theta in enumerate([-15, -5, 5, 15]):
@@ -38,10 +38,10 @@ for i, theta in enumerate([-15, -5, 5, 15]):
     ci = FrankCopula(marginals=[X, Y], theta=theta)
     Mi = TwoVarsModel(ci, U)
     funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.plot(label = "theta={0}".format(theta), color = colors[i])
     funi.summary()
 legend()
-
+show()
 figure()
 title("ClaytonCopula")
 for i, theta in enumerate([1, 5, 10, 15]):
@@ -49,10 +49,10 @@ for i, theta in enumerate([1, 5, 10, 15]):
     ci = ClaytonCopula(marginals=[X, Y], theta=theta)
     Mi = TwoVarsModel(ci, U)
     funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.plot(label = "theta={0}".format(theta), color = colors[i])
     funi.summary()
 legend()
-
+show()
 figure()
 Y2 = NormalDistr(sym="Y2")
 U2 = X + Y2
@@ -63,7 +63,7 @@ for i, theta in enumerate([1, 5, 10, 15]):
     ci = FrankCopula(marginals=[X, Y2], theta=theta)
     Mi = TwoVarsModel(ci, U2)
     funi = Mi.eval()
-    funi.plot(label = "theta={}".format(theta), color = colors[i])
+    funi.plot(label = "theta={0}".format(theta), color = colors[i])
     funi.summary()
 legend()
 
