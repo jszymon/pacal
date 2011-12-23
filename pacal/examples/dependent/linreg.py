@@ -3,17 +3,14 @@
 #!===================================================
 
 from pacal import *
-from pacal.depvars.copulas import *
-from pacal.depvars.models import Model
-import time
-from pacal.utils import maxprob
 
 from pylab import figure, show, plot, subplot, title
 from scipy.optimize import fmin
 from numpy.random import seed
 from numpy import concatenate, polyfit
 seed(1)
-
+import time
+t0 = time.time()
 params.interpolation_nd.maxn = 7
 params.interpolation.maxn = 20
 params.interpolation_pole.maxn = 20
@@ -34,7 +31,6 @@ for i in range(len(Xobs)):
 X = []
 E = []
 Y = []
-t0 = time.time()
 A = UniformDistr(0,1, sym = "A")
 B = UniformDistr(0,1, sym = "B")
 for i in range(n):
@@ -73,7 +69,7 @@ MB.plot()
 title("Marginalized distribution of B")
 show()
 #!
-#! Estimation coefficients
+#! Estimation of coefficients
 #!
 print "original coefficients a=", a, "b=", b
 print "mean   est. A=", MA.as1DDistr().mean(),   "est. B=", MB.as1DDistr().mean()
@@ -82,7 +78,12 @@ print "mode   est. A=", MA.as1DDistr().mode(),   "est. B=", MB.as1DDistr().mode(
 MAB.nddistr(1, 3)
 abopt = MAB.nddistr.mode()
 (ar,br)=polyfit(Xobs,Yobs,1)
+#!
+#! Least squares estimates are maximum log-likelihood estimates 
+#! (are equal to maximum a posteriori in this case, because of uniform a priori distribution of coefficients) 
+#!
 print "              MAP  a=", abopt[0], "b=", abopt[1]
 print "polyfit (LSE) est. a=", ar, "b=", br
+
 print "time of doing=", time.time() - t0
 
