@@ -1,31 +1,38 @@
 """Simple differential equation."""
 
 from pacal import *
-from pylab import figure, show
+from pylab import figure, show, subplot
 
 from pacal.depvars.models import Model
 from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 
+params.interpolation_nd.maxn = 3
+params.interpolation.maxn = 5
+params.interpolation_pole.maxn = 5
+params.interpolation_nd.debug_info = True
 
 # y' = ay  Euler's method
 
 
 #A = BetaDistr(1, 1, sym="A")
 #A = UniformDistr(0.5, 1.75, sym="A")
-A = UniformDistr(-1, 3, sym="A")
-Y0 = BetaDistr(2, 6, sym="Y0")
-n = 4
+A = BetaDistr(1, 1, sym="A")
+Y0 = BetaDistr(2, 2, sym="Y0")
+n = 5
 h = 1.0/n
 
 
 K = (1 + h*A)
 K.setSym("K") 
 Y = [Y0]
+E = []
 for i in xrange(n):
     Y.append(Y[i] * K)
     Y[i+1].setSym("Y" + str(i+1))  
-E = [BetaDistr(3,4,sym="E"+str(i)) for i in xrange(n+1)]
-O = [Y[i] + E[i] for i in xrange(n+1)]
+    ei = NormalDistr(0.0,0.3) | Between(-1,1)
+    ei.setSym("E{0}".format(i))
+    E.append(ei)
+O = [Y[i+1] + E[i] for i in xrange(n)]
 for i, o in enumerate(O):
     o.setSym("O"+str(i))
 P = NDProductDistr([A, Y[0]] + E)
@@ -36,10 +43,14 @@ print M
 
 #M.inference2(wanted_rvs = [A, Y[-1]], cond_rvs = [O[-1]], cond_X = [1.1])
 #M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.1])
-M2 = M.inference(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.5])
+i=0
+for yend in [0.5, 1.0, 1.5]:
+    M2 = M.inference(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [yend])
+    print M2
+    i+=1
+    subplot(1,3,i)
+    M2.plot()
 
-print M2
-M2.plot()
 show()
 import sys
 sys.exit(0)
