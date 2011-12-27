@@ -1,95 +1,87 @@
-"""Simple differential equation."""
-
+#! ============================
+#! Simple differential equation
+#! ============================
 from pacal import *
-from pylab import figure, show, subplot
+from pylab import figure, show, subplot, title, plot, xlabel, ylabel
 
 from pacal.depvars.models import Model
 from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
-
-params.interpolation_nd.maxn = 3
-params.interpolation.maxn = 5
-params.interpolation_pole.maxn = 5
-params.interpolation_nd.debug_info = True
-
-# y' = ay  Euler's method
-
-
-#A = BetaDistr(1, 1, sym="A")
-#A = UniformDistr(0.5, 1.75, sym="A")
-A = BetaDistr(1, 1, sym="A")
-Y0 = BetaDistr(2, 2, sym="Y0")
-n = 5
-h = 1.0/n
+from numpy import array, zeros
+import time
+t0 = time.time()
+params.interpolation_nd.maxn = 6
+params.interpolation.maxn = 3
+params.interpolation_pole.maxn =3
+params.interpolation_nd.debug_info = False
 
 
-K = (1 + h*A)
+#!
+#! Euler's method applied to equation y' = ay, with noised observations 
+#!
+#! Y(i+1) = A * Y(i) 
+#!
+#! O(i) = Y(i+1) + E(i), i=0,...,n-1
+#!
+
+A = BetaDistr(3, 3, sym="A")    # parameter of equation
+Y0 = BetaDistr(2, 2, sym="Y0")  # initial value
+n = 5                           # number time points
+h = 1.0 / n
+K = (1 + h * A)
 K.setSym("K") 
-Y = [Y0]
-E = []
+Y = [Y0]                        # list of states
+O, E = [], []                   # lists of observations and errors
 for i in xrange(n):
     Y.append(Y[i] * K)
-    Y[i+1].setSym("Y" + str(i+1))  
-    ei = NormalDistr(0.0,0.3) | Between(-1,1)
+    Y[i + 1].setSym("Y" + str(i + 1))  
+    ei = NormalDistr(0.0, 0.2) | Between(-1, 1)
     ei.setSym("E{0}".format(i))
     E.append(ei)
-O = [Y[i+1] + E[i] for i in xrange(n)]
-for i, o in enumerate(O):
-    o.setSym("O"+str(i))
+    O.append(Y[-1] + E[-1])
+    O[-1].setSym("O{0}".format(i))
+#! 
+#! Model
+#! -----
 P = NDProductDistr([A, Y[0]] + E)
 M = Model(P, O)
-M.eliminate_other([K] + E + O + Y)
 print M
+M.toGraphwiz(f=open('bn.dot', mode="w+"))
+M.eliminate_other(E + Y + O + [A])
 
-
-#M.inference2(wanted_rvs = [A, Y[-1]], cond_rvs = [O[-1]], cond_X = [1.1])
-#M.inference2(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [1.1])
-i=0
-for yend in [0.5, 1.0, 1.5]:
-    M2 = M.inference(wanted_rvs = [A, Y[0]], cond_rvs = [O[-1]], cond_X = [yend])
-    print M2
-    i+=1
-    subplot(1,3,i)
-    M2.plot()
-
-show()
-import sys
-sys.exit(0)
-
-# or... do the elimination by hand
-M.varschange(A, K)
-print M
-print M.nddistr
-for i in xrange(n):
-    M.varschange(E[i], O[i])
-    M.eliminate(E[i])
-    M.varschange(Y[i], Y[i+1])
-    M.eliminate(Y[i])
-    print M.nddistr
-M.varschange(E[-1], O[-1])
-M.eliminate(E[-1])
-print M
-print M.nddistr
-#M.eliminate(O[-1])
-#print M
-#print M.nddistr
-for i in xrange(n):
-    M.eliminate(O[i])
-    print M.nddistr
-M.condition(O[-1], 1.1)
-M.varschange(K, A)
-M.eliminate(K)
-M.plot()
-#M.eliminate(Y[-1])
-M.eliminate(A)
-#M.condition(A, 0.8)
+#!
+#! Joint distribution of initial condition and parameter of equation
+#! -----------------------------------------------------------------
 figure()
-M.plot()
+i = 0
+ay0 = []
+for yend in [0.5, 1.5]:
+    M2 = M.inference(wanted_rvs=[A, Y[0]], cond_rvs=[O[-1]], cond_X=[yend])
+    subplot(1, 2, i + 1)
+    title("given that observation O[{0}]={1}".format(n-1, yend))
+    M2.plot()
+    ay0.append(M2.nddistr.mode())           # "most probable" state
+    print "yend=", yend, ",  MAP  est. of A, Y0 =", ay0[i]
+    i += 1
 show()
-0/0
+#!
+#! Trajectory
+#! ----------
+figure()
+for j in range(len(ay0)):
+    ymean, ystd = [], []
+    for i in range(n):
+        M.eliminate_other(O+ [A, Y[0]] + E)   # Szymon, bez tego  w inference(...) petla jest nieskonczona
+        Myi = M.inference([O[i]], [A, Y[0]], ay0[j])
+        ymean.append(Myi.as1DDistr().mean())
+        ystd.append(Myi.as1DDistr().std())
+    subplot(1, 2, j + 1)
+    title("A, Y[0] = {0}".format(ay0[j]))
+    plot(range(0, 5, 1), ymean, 'k')
+    plot(range(0, 5, 1), array(ymean) + ystd, 'k--')
+    plot(range(0, 5, 1), array(ymean) - ystd, 'k--')
+    ylabel("O[i]")
+    xlabel("i")
+show()
+print "time of doing=", time.time() - t0
 
-show()
-#M.varschange(X3, S3)
-#print M
-#M.condition(S3, 0.8)
-#M.varschange(S2, X3)
-#M.varschange(X3, X1)
+
