@@ -4,13 +4,14 @@ import time
 
 from numpy import sin, cos, pi, exp
 from numpy import linspace
-from numpy import finfo, double
+from numpy import finfo, double, unique, isnan, maximum, isfinite, diff
 
 #from distr import *
 from pacal.integration import *
 from pacal.interpolation import ChebyshevInterpolator, ChebyshevInterpolator_PMInf
 from pacal.interpolation import ChebyshevInterpolator_PInf, ChebyshevInterpolator_MInf
 
+from pacal.segments import PiecewiseFunction
 from pacal import *
 
 eps = finfo(double).eps
@@ -288,50 +289,84 @@ class TestVarTransform(unittest.TestCase):
         y = self.vt.apply_with_inv_transform(lambda x: x+1, 1, def_val = 3)
         self.assert_(abs(y - 3) <= eps)
 
+class TestInterpolators(unittest.TestCase):
+    def setUp(self):
+        #print """====Test starting============================="""        
+        self. ts = time.time()     
+    def tearDown(self):
+        te = time.time()
+        print 'test done,   time=%7.5f s' % (te - self.ts) 
+    def testChebcoef(self):
+        S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
+        S.plot(color="r")
+        D = S.diff()
+        D.plot(color="k")
+        show()
+        self.assert_(0 < 1)
+    def testTrim(self):
+        S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
+        S.plot(color="r")
+        D = S.trimInterpolators()
+        D.plot(color="k")
+        show()
+        self.assert_(0 < 1)
+    def testDiff(self):
+        S = UniformDistr(1,2) + UniformDistr(1,2) + UniformDistr(1,2)+ UniformDistr(1,2)# + UniformDistr(1,2)
+        S.plot(color="r")
+        D = S.get_piecewise_pdf().diff()
+        D.plot(color="b")
+        D = D.diff()
+        D.plot(color="k")
+        show()
+        self.assert_(0 < 1)
+        
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(TestBasicstat("testNormal"))
-    suite.addTest(TestBasicstat("testChi2"))
-    suite.addTest(TestBasicstat("testUniform"))
-
-    suite.addTest(TestIntegral("testClenshaw"))
-    suite.addTest(TestIntegral("testFejer2"))
-    suite.addTest(TestIntegral("testFejer2inv"))
-    suite.addTest(TestIntegral("testFejer2empty"))
-    suite.addTest(TestIntegral("testFejer2empty2"))
-    ###suite.addTest(TestIntegral("testCauchyPMInf"))
-    suite.addTest(TestIntegral("testCauchyPInf"))
-    suite.addTest(TestIntegral("testCauchyMInf"))
-    #suite.addTest(TestIntegral("testNormPMInf"))
-    suite.addTest(TestIntegral("testNormPInf"))
-    suite.addTest(TestIntegral("testNormMInf"))
-    #suite.addTest(TestIntegral("testNormPMInfFejer2"))
-    suite.addTest(TestIntegral("testNormPInfFejer2"))
-    suite.addTest(TestIntegral("testNormMInfFejer2"))
-
-    suite.addTest(TestInterpolation("testBasicInterp"))
-    #suite.addTest(TestInterpolation("testPMInfInterp"))
-    #suite.addTest(TestInterpolation("testCauchyPMInf"))
-    suite.addTest(TestInterpolation("testInterpPInf"))
-    suite.addTest(TestInterpolation("testInterpMInf"))
-    #suite.addTest(TestInterpolation("testNormalPMInf"))
-    
-    suite.addTest(TestVectorisation("testNormal"))
-    suite.addTest(TestVectorisation("testUniform"))    
-    suite.addTest(TestVectorisation("testUniformFor"))
-    suite.addTest(TestVectorisation("testChi2"))
-    suite.addTest(TestVectorisation("testChebFor"))
-    suite.addTest(TestVectorisation("testCheb"))
-    suite.addTest(TestVectorisation("testChebMat"))
-    
-    suite.addTest(TestVarTransform("testVarChangeWMask1"))
-    suite.addTest(TestVarTransform("testVarChangeWMask2"))
-    suite.addTest(TestVarTransform("testVarChangeWMask3"))
-    suite.addTest(TestVarTransform("testVarChangeWMask4"))
-    suite.addTest(TestVarTransform("testVarChangeWMask5"))
-    suite.addTest(TestVarTransform("testApplyWithTransform1"))
-    suite.addTest(TestVarTransform("testApplyWithTransform2"))
-    suite.addTest(TestVarTransform("testApplyWithTransform3"))
+    suite.addTest(TestInterpolators("testChebcoef"))
+    suite.addTest(TestInterpolators("testTrim"))
+    suite.addTest(TestInterpolators("testDiff"))
+#    suite.addTest(TestBasicstat("testNormal"))
+#    suite.addTest(TestBasicstat("testChi2"))
+#    suite.addTest(TestBasicstat("testUniform"))
+#
+#    suite.addTest(TestIntegral("testClenshaw"))
+#    suite.addTest(TestIntegral("testFejer2"))
+#    suite.addTest(TestIntegral("testFejer2inv"))
+#    suite.addTest(TestIntegral("testFejer2empty"))
+#    suite.addTest(TestIntegral("testFejer2empty2"))
+#    ###suite.addTest(TestIntegral("testCauchyPMInf"))
+#    suite.addTest(TestIntegral("testCauchyPInf"))
+#    suite.addTest(TestIntegral("testCauchyMInf"))
+#    #suite.addTest(TestIntegral("testNormPMInf"))
+#    suite.addTest(TestIntegral("testNormPInf"))
+#    suite.addTest(TestIntegral("testNormMInf"))
+#    #suite.addTest(TestIntegral("testNormPMInfFejer2"))
+#    suite.addTest(TestIntegral("testNormPInfFejer2"))
+#    suite.addTest(TestIntegral("testNormMInfFejer2"))
+#
+#    suite.addTest(TestInterpolation("testBasicInterp"))
+#    #suite.addTest(TestInterpolation("testPMInfInterp"))
+#    #suite.addTest(TestInterpolation("testCauchyPMInf"))
+#    suite.addTest(TestInterpolation("testInterpPInf"))
+#    suite.addTest(TestInterpolation("testInterpMInf"))
+#    #suite.addTest(TestInterpolation("testNormalPMInf"))
+#    
+#    suite.addTest(TestVectorisation("testNormal"))
+#    suite.addTest(TestVectorisation("testUniform"))    
+#    suite.addTest(TestVectorisation("testUniformFor"))
+#    suite.addTest(TestVectorisation("testChi2"))
+#    suite.addTest(TestVectorisation("testChebFor"))
+#    suite.addTest(TestVectorisation("testCheb"))
+#    suite.addTest(TestVectorisation("testChebMat"))
+#    
+#    suite.addTest(TestVarTransform("testVarChangeWMask1"))
+#    suite.addTest(TestVarTransform("testVarChangeWMask2"))
+#    suite.addTest(TestVarTransform("testVarChangeWMask3"))
+#    suite.addTest(TestVarTransform("testVarChangeWMask4"))
+#    suite.addTest(TestVarTransform("testVarChangeWMask5"))
+#    suite.addTest(TestVarTransform("testApplyWithTransform1"))
+#    suite.addTest(TestVarTransform("testApplyWithTransform2"))
+#    suite.addTest(TestVarTransform("testApplyWithTransform3"))
 
     return suite;
    
