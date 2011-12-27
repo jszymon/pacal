@@ -20,9 +20,12 @@ from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar, asfarray
 from pylab import plot, loglog, show, semilogx, sqrt, figure
-from pylab import real
+from pylab import real, ones_like
 
-from scipy.fftpack.basic import fft
+from numpy.fft.fftpack import fft, ifft
+from numpy import real, concatenate
+
+#from scipy.fftpack.basic import fft
 from scipy.optimize import fmin_cg,fmin, fmin_tnc
  
 import params
@@ -74,7 +77,7 @@ def cheb_nodes_log(n, a = 1, b = 10):
     cs[-1] = b
     return cs
 
-def chebspace(a, b, n):
+def chebspace(a, b, n, returnWeights=False):
     """Chebyshev nodes for given degree n"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
@@ -82,7 +85,14 @@ def chebspace(a, b, n):
     # ensure that endpoints are exact
     cs[0] = a
     cs[-1] = b
-    return cs
+    if returnWeights:  
+        weights = ones_like(cs)
+        weights[::2] = -1
+        weights[0] /= 2
+        weights[-1] /= 2
+        return cs, weights
+    else:
+        return cs
 
 def incremental_cheb_nodes(n, a = -1, b = 1):
     """Extra Chebyshev nodes added by moving from degree m to n=2*m-1"""
@@ -110,6 +120,53 @@ def incremental_cheb_nodes1(n, a = -1, b = 1):
     ind = arange(0, n)  
     return apb - bma * cos((2*ind[((ind % 3) != 1)] + 1)* pi / (2*n))
 
+def chebt2(f):
+    """chebyshev transformation, coefficients in expansion using 
+    Chebyshev polynomials T_n(x), see chebfun for details"""
+    n = len(f)
+    oncircle = concatenate((f[-1::-1], f[1:-1]))
+    fftcoef = real(fft(oncircle))/(2*n-2)
+    #print n, len(fftcoef)
+    #print fftcoef[n-1:]
+    #print fftcoef[n-1:0:-1]
+    fftcoef[n-1:0:-1] += fftcoef[n-1:] # z+conj(z)  
+    return fftcoef[n-1::-1] 
+    #return c
+def ichebt2(c):
+    """inverse chebyshev transformation, values of function in Chebyshev 
+    nodes of the second kind, see chebfun for details"""
+    n = len(c)
+    oncircle = concatenate(([c[-1]],c[-2:0:-1]/2, c[0:-1]/2));
+    print "v=", oncircle, n
+    v = real(ifft(oncircle));
+    print "v=", v
+    
+    f = (n-1)*concatenate(([2*v[0]], v[1:n-1]+v[-1:n-1:-1], [2*v[n-1]] ))
+    print f
+    print "================"
+    return f
+
+def chebt1(f): 
+    #TODO
+    """chebyshev transformation, see chebfun"""
+    n = len(f)
+    oncircle = concatenate((f[-1::-1], f[1:-1]))
+    fftcoef = real(fft(oncircle))/(2*n-2)
+    return fftcoef[n-1::-1] 
+def ichebt1(c):
+    #TODO
+    """inverse chebyshev transformation, see chebfun"""
+    n = len(c)
+    print "tam===", n
+    oncircle = concatenate((c[-1::-1], c[1:-1]));
+    print "v=", oncircle, n
+    v = real(ifft(oncircle));
+    print v
+    print v[-2:n:-1]
+    print "|", v[1:-1]
+    f = (n-1)*concatenate(([2*v(1)], v[-2:n:-1]+v[1:-1], 2*v[-1]));
+    print "|", f
+    return f
 def epsunique(tab, eps = params.segments.unique_eps):
     ub = unique(tab[isnan(tab)==False])
     return ub[~isfinite(ub) | hstack((True, (diff(ub)/maximum(1,abs(ub[1:])))>eps))]
@@ -337,7 +394,6 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
         return 0
     
 def maxprob(pdf, x0, lub=None):
-    print lub
     def fun(x):
         #print x, lub
         if lub is not None:

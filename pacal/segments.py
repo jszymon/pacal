@@ -69,11 +69,15 @@ class Segment(object):
             b=self.b
         #i,e = integrate_fejer2(self, self.a, self.b, debug_plot = False)
         i,e = integrate_fejer2(self, a, b, debug_plot = False)
-        return i    
+        return i
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
+    def diff(self):
+        return self.toInterpolatedSegment().diff()    
+    def trim(self):
+        return self            
     
     def _segIntegral(self, x):
         if isscalar(x):
@@ -634,7 +638,11 @@ class InterpolatedSegment(Segment):
         xi = linspace(xmin, xmax, numberOfPoints)
         yi = self.f(xi)  
         semilogx(xi, yi, '-', **args) #label='interp', linewidth=1)
-
+    def diff(self):
+        return InterpolatedSegment(self.a, self.b, self.f.diff())
+    def trim(self):
+        return InterpolatedSegment(self.a, self.b, self.f.trim())
+    
 class SegmentWithPole(Segment):
     """Segment with pole on interval (a, b) 
     """    
@@ -1029,6 +1037,19 @@ class PiecewiseFunction(object):
         if not integralPFun.segments[0].isMInf():
             integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: x * 0.0))
         return integralPFun
+    def diff(self):
+        diffPFun = PiecewiseFunction([])        
+        for seg in self.segments:
+            segi = seg.diff()
+            diffPFun.addSegment(segi)            
+        return diffPFun
+    def trimInterpolators(self):
+        diffPFun = PiecewiseFunction([])        
+        for seg in self.segments:
+            segi = seg.trim()
+            diffPFun.addSegment(segi)            
+        return diffPFun
+
     def ccumint(self):
         """TODO complementary cumint i.e int_x^Inf f(x) dx"""
         integralPFun = CumulativePiecewiseFunction([])
