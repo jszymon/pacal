@@ -75,6 +75,7 @@ class Segment(object):
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
     def diff(self):
+        print self.__str__()
         return self.toInterpolatedSegment().diff()    
     def roots(self):
         return self.toInterpolatedSegment().roots()    

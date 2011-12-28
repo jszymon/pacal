@@ -54,6 +54,7 @@ class Interpolator(object):
     def __init__(self, Xs, Ys):
         self.Xs = array(Xs)
         self.Ys = array(Ys)
+        self.n = len(self.Xs)
     def add_nodes(self, new_Xs, new_Ys):
         """Add new interpolation nodes."""
         self.Xs, self.Ys = combine_interpolation_nodes(self.Xs, self.Ys, new_Xs, new_Ys)
@@ -158,7 +159,10 @@ class BarycentricInterpolator(Interpolator):
             f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
             return f 
         else:
-            return None
+            Xs, Ws = chebspace(self.a, self.b, self.n+2, returnWeights=True)
+            Ys = self.interp_at(Xs)
+            return BarycentricInterpolator(Xs, Ys, Ws).diff()
+            
     def roots(self, use_2nd=True):
         if use_2nd:
             cs = flipud(chebt2(self.Ys))
@@ -169,7 +173,16 @@ class BarycentricInterpolator(Interpolator):
             roots = roots[unit]
             return (roots*(self.Xs[-1]-self.Xs[0])+(self.Xs[0]+self.Xs[-1]))*0.5
         else:
-            raise NotImplementedError()
+            Ys = self.interp_at(chebspace(self.Xs[0], self.Xs[-1], self.n))
+            cs = flipud(chebt2(Ys))
+            roots = chebroots(cs)
+            reals = abs(imag(roots)) < params.interpolation.convergence.abstol
+            roots = real(roots[reals])
+            unit = (roots>-1.0) & (roots < 1.0)        
+            roots = roots[unit]
+            return (roots*(self.Xs[-1]-self.Xs[0])+(self.Xs[0]+self.Xs[-1]))*0.5
+    def trim(self, abstol=None):
+        return self
 class AdaptiveInterpolator(object):
     """Mix-in class for adaptive interpolators.
 
@@ -246,6 +259,8 @@ class ChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         Xs, Ws = chebspace(self.a, self.b, len(Ydiffvals), returnWeights=True)
         f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
         return f 
+    def diff(self):
+        return super(ChebyshevInterpolator, self).diff(use_2nd=True)
     def roots(self):
         return super(ChebyshevInterpolator, self).roots(use_2nd=True)
     
@@ -287,6 +302,10 @@ class ChebyshevInterpolatorNoL(ChebyshevInterpolator):
         """Add new interpolation nodes. A faster version assuming nesting is possible here."""
         self.Xs, self.Ys = combine_interpolation_nodes_fast(new_Xs, new_Ys, self.Xs, self.Ys)
         self.init_weights(self.Xs)
+    def diff(self):
+        return super(ChebyshevInterpolator1, self).diff(use_2nd=False)
+    def roots(self):
+        return super(ChebyshevInterpolator1, self).roots(use_2nd=False)            
 class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
     """Adaptive Chebyshev interpolator without rightmost point"""
     def init_weights(self, Xs):
@@ -304,7 +323,11 @@ class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
         """Add new interpolation nodes. A faster version assuming nesting is possible here."""
         self.Xs, self.Ys = combine_interpolation_nodes_fast(self.Xs, self.Ys, new_Xs, new_Ys)
         self.init_weights(self.Xs)
-
+    def diff(self):
+        return super(ChebyshevInterpolator1, self).diff(use_2nd=False)
+    def roots(self):
+        return super(ChebyshevInterpolator1, self).roots(use_2nd=False)
+    
 class AdaptiveInterpolator1(object):
     """Mix-in class for adaptive interpolators with 3*n rule"""
     def adaptive_init(self, f, interp_class):
@@ -336,6 +359,7 @@ class AdaptiveInterpolator1(object):
             old_err = err
             n = new_n
             self.add_nodes(new_Xs, new_Ys)
+        self.n = n
         if par.debug_plot and n >= maxn:
             debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
@@ -368,7 +392,10 @@ class ChebyshevInterpolator1(BarycentricInterpolator, AdaptiveInterpolator1):
         """Add new interpolation nodes. A faster version assuming nesting is possible here."""
         self.Xs, self.Ys = combine_interpolation_nodes(self.Xs, self.Ys, new_Xs, new_Ys)
         self.init_weights(self.Xs)
-
+    def diff(self):
+        return super(ChebyshevInterpolator1, self).diff(use_2nd=False)
+    def roots(self):
+        return super(ChebyshevInterpolator1, self).roots(use_2nd=False)
 def _find_zero(f, a, ymax=1e-120, ymin=1e-150):
     """Find where a function achieves very small values (but greater
     than zero)."""
@@ -496,8 +523,11 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
     def getNodes(self):
         xs, ys = super(LogTransformInterpolator, self).getNodes()
         return self.xt(xs), exp(ys)
-        #return self.xt(self.Xs), exp(self.Ys)
-
+    def diff(self):
+        dp = super(LogTransformInterpolator, self).diff()
+        fun = lambda x: self.interp_at(x) * dp(self.xtinv(x)) / (1+x+self.offset)
+        return LogTransformInterpolator(fun, self.a, self.b, self.offset)
+    
 #from numpy import polyval, polyfit
 #class PolyInterpolator(object):
 #    """Explicit polynomial interpolation.
