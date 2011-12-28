@@ -6,6 +6,7 @@ from numpy import sin, cos, pi, exp
 from numpy import linspace
 from numpy import finfo, double, unique, isnan, maximum, isfinite, diff
 
+from pylab import figure, subplot, plot
 #from distr import *
 from pacal.integration import *
 from pacal.interpolation import ChebyshevInterpolator, ChebyshevInterpolator_PMInf
@@ -13,6 +14,7 @@ from pacal.interpolation import ChebyshevInterpolator_PInf, ChebyshevInterpolato
 
 from pacal.segments import PiecewiseFunction
 from pacal import *
+from pacal.utils import chebt2, ichebt2
 
 eps = finfo(double).eps
 
@@ -298,33 +300,80 @@ class TestInterpolators(unittest.TestCase):
         print 'test done,   time=%7.5f s' % (te - self.ts) 
     def testChebcoef(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
+        seg = S.segments[0]
+        Xs, Ys = seg.f.Xs, seg.f.Ys
+        print "Xs=", Xs
+        print "Ys=", Ys
+        print "Cs=", chebt2(Ys)
+        print "Xs=", ichebt2(chebt2(Ys))
+        figure()
         S.plot(color="r")
         D = S.diff()
         D.plot(color="k")
-        show()
+        #show()
         self.assert_(0 < 1)
     def testTrim(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
+        I = S.trimInterpolators(abstol=1e-16)
+        figure()
+        subplot(211)
         S.plot(color="r")
-        D = S.trimInterpolators()
-        D.plot(color="k")
-        show()
+        I.plot(color="k")
+        r = S-I
+        subplot(212)
+        r.plot()
+        #show()
         self.assert_(0 < 1)
     def testDiff(self):
-        S = UniformDistr(1,2) + UniformDistr(1,2) + UniformDistr(1,2)+ UniformDistr(1,2)# + UniformDistr(1,2)
-        S.plot(color="r")
+        n=7
+        S = UniformDistr(0,2)
+        for i in range (n):
+            S += UniformDistr(0,2)
+        figure()
+        S.plot(color='r')
         D = S.get_piecewise_pdf().diff()
-        D.plot(color="b")
-        D = D.diff()
         D.plot(color="k")
-        show()
-        self.assert_(0 < 1)
+        for i in range (n-1):
+            D = D.diff()
+            D.plot(color="k")        
+        #show()
+    def testRoots(self):
+        n=7
+        S = UniformDistr(0,2)
+        for i in range (n):
+            S += UniformDistr(0,2)
+        D = S.get_piecewise_pdf().diff().diff()
         
+        r = D.roots()
+        mi, xi = D.characteristicPoints()
+        figure()
+        D.plot()
+        D.diff().plot()
+        plot(xi,mi, 'bo')
+        plot(r,D(r), 'ro')
+        self.assert_(0 < 1)
+    def testMinmax(self):
+        n=7
+        S = UniformDistr(0,2)
+        for i in range (n):
+            S += UniformDistr(0,2)
+        D = S.get_piecewise_pdf()
+        figure()
+        for i in range (n):
+            D=D.diff()
+            maxi, xmaxi = D.max()
+            mini, xmini = D.min()
+            D.plot()
+            plot(xmaxi,maxi,  'ko')
+            plot(xmini,mini,  'ro')
+        self.assert_(0 < 1)
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestInterpolators("testChebcoef"))
     suite.addTest(TestInterpolators("testTrim"))
     suite.addTest(TestInterpolators("testDiff"))
+    suite.addTest(TestInterpolators("testRoots"))
+    suite.addTest(TestInterpolators("testMinmax"))
 #    suite.addTest(TestBasicstat("testNormal"))
 #    suite.addTest(TestBasicstat("testChi2"))
 #    suite.addTest(TestBasicstat("testUniform"))
@@ -376,6 +425,6 @@ if __name__ == "__main__":
     runner = unittest.TextTestRunner()
     test = suite()
     runner.run(test)
-    #show()
+    show()
 
     #unittest.main()
