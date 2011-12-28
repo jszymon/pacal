@@ -84,6 +84,5 @@ abopt = MAB.nddistr.mode()
 #!
 print "              MAP  a=", abopt[0], "b=", abopt[1]
 print "polyfit (LSE) est. a=", ar, "b=", br
-
 print "time of doing=", time.time() - t0
 
