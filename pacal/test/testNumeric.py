@@ -325,7 +325,7 @@ class TestInterpolators(unittest.TestCase):
         #show()
         self.assert_(0 < 1)
     def testDiff(self):
-        n=7
+        n=8
         S = UniformDistr(0,2)
         for i in range (n):
             S += UniformDistr(0,2)
@@ -338,7 +338,7 @@ class TestInterpolators(unittest.TestCase):
             D.plot(color="k")        
         #show()
     def testRoots(self):
-        n=7
+        n=8
         S = UniformDistr(0,2)
         for i in range (n):
             S += UniformDistr(0,2)
@@ -353,7 +353,7 @@ class TestInterpolators(unittest.TestCase):
         plot(r,D(r), 'ro')
         self.assert_(0 < 1)
     def testMinmax(self):
-        n=7
+        n=8
         S = UniformDistr(0,2)
         for i in range (n):
             S += UniformDistr(0,2)
@@ -367,13 +367,22 @@ class TestInterpolators(unittest.TestCase):
             plot(xmaxi,maxi,  'ko')
             plot(xmini,mini,  'ro')
         self.assert_(0 < 1)
+    def testDiffInf(self):
+        S = BetaDistr(3,4)* BetaDistr(3,4)
+        S.summary()
+        S.plot()
+        print S.get_piecewise_pdf()
+        D = S.get_piecewise_pdf().diff()
+        D.plot(color="k")
+        show()
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(TestInterpolators("testChebcoef"))
-    suite.addTest(TestInterpolators("testTrim"))
-    suite.addTest(TestInterpolators("testDiff"))
-    suite.addTest(TestInterpolators("testRoots"))
-    suite.addTest(TestInterpolators("testMinmax"))
+#    suite.addTest(TestInterpolators("testChebcoef"))
+#    suite.addTest(TestInterpolators("testTrim"))
+#    suite.addTest(TestInterpolators("testDiff"))
+#    suite.addTest(TestInterpolators("testRoots"))
+#    suite.addTest(TestInterpolators("testMinmax"))
+    suite.addTest(TestInterpolators("testDiffInf"))
 #    suite.addTest(TestBasicstat("testNormal"))
 #    suite.addTest(TestBasicstat("testChi2"))
 #    suite.addTest(TestBasicstat("testUniform"))
