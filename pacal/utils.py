@@ -137,13 +137,8 @@ def ichebt2(c):
     nodes of the second kind, see chebfun for details"""
     n = len(c)
     oncircle = concatenate(([c[-1]],c[-2:0:-1]/2, c[0:-1]/2));
-    print "v=", oncircle, n
     v = real(ifft(oncircle));
-    print "v=", v
-    
     f = (n-1)*concatenate(([2*v[0]], v[1:n-1]+v[-1:n-1:-1], [2*v[n-1]] ))
-    print f
-    print "================"
     return f
 
 def chebt1(f): 

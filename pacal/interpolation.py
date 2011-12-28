@@ -23,7 +23,9 @@ from numpy import finfo, size, double
 from numpy import isnan, isinf
 from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 
-from numpy import cumsum, flipud
+from numpy import cumsum, flipud, real, imag
+from numpy.linalg import eigvals
+from numpy.polynomial.chebyshev import chebroots
 import params
 
 from utils import cheb_nodes_log, incremental_cheb_nodes_log
@@ -157,6 +159,17 @@ class BarycentricInterpolator(Interpolator):
             return f 
         else:
             return None
+    def roots(self, use_2nd=True):
+        if use_2nd:
+            cs = flipud(chebt2(self.Ys))
+            roots = chebroots(cs)
+            reals = abs(imag(roots)) < params.interpolation.convergence.abstol
+            roots = real(roots[reals])
+            unit = (roots>-1.0) & (roots < 1.0)        
+            roots = roots[unit]
+            return (roots*(self.Xs[-1]-self.Xs[0])+(self.Xs[0]+self.Xs[-1]))*0.5
+        else:
+            raise NotImplementedError()
 class AdaptiveInterpolator(object):
     """Mix-in class for adaptive interpolators.
 
@@ -222,15 +235,20 @@ class ChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         """Add new interpolation nodes. A faster version assuming nesting is possible here."""
         self.Xs, self.Ys = combine_interpolation_nodes_fast(self.Xs, self.Ys, new_Xs, new_Ys)
         self.init_weights(self.Xs)
-    def trim(self):
+    def trim(self, abstol=None):
         c = chebt2(self.Ys)
-        while c[0]<params.integration.convergence.abstol:
-            c=c[1:]      
+        if abstol is None:
+            abstol = params.interpolation.convergence.abstol
+        while c[0] < abstol:
+            c = c[1:]      
         Ydiffvals = ichebt2(c) 
         Ydiffvals = flipud(Ydiffvals)
         Xs, Ws = chebspace(self.a, self.b, len(Ydiffvals), returnWeights=True)
         f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
         return f 
+    def roots(self):
+        return super(ChebyshevInterpolator, self).roots(use_2nd=True)
+    
 class LogXChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
     """Adaptive Chebyshev interpolator"""
     def __init__(self, f, a, b, *args, **kwargs):

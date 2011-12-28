@@ -16,7 +16,7 @@ from numpy import Inf, NaN, sign, isinf, isfinite, exp
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
 from numpy import append, nan_to_num
 from numpy.random import uniform
-
+from numpy import argmax, argmin
 import numpy
 from pylab import plot, semilogx, xlabel, ylabel, axis, loglog, figure, subplot
 
@@ -76,6 +76,8 @@ class Segment(object):
         return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
     def diff(self):
         return self.toInterpolatedSegment().diff()    
+    def roots(self):
+        return self.toInterpolatedSegment().roots()    
     def trim(self):
         return self            
     
@@ -640,8 +642,12 @@ class InterpolatedSegment(Segment):
         semilogx(xi, yi, '-', **args) #label='interp', linewidth=1)
     def diff(self):
         return InterpolatedSegment(self.a, self.b, self.f.diff())
-    def trim(self):
-        return InterpolatedSegment(self.a, self.b, self.f.trim())
+    def roots(self):
+        return self.f.roots()
+    def trim(self, abstol=None):
+        if abstol is None:
+            abstol = params.interpolation.convergence.abstol
+        return InterpolatedSegment(self.a, self.b, self.f.trim(abstol=abstol))
     
 class SegmentWithPole(Segment):
     """Segment with pole on interval (a, b) 
@@ -1043,10 +1049,32 @@ class PiecewiseFunction(object):
             segi = seg.diff()
             diffPFun.addSegment(segi)            
         return diffPFun
-    def trimInterpolators(self):
-        diffPFun = PiecewiseFunction([])        
+    def roots(self):
+        r = array([])        
         for seg in self.segments:
-            segi = seg.trim()
+            r = concatenate((r, seg.roots()))
+        return r
+    def characteristicPoints(self):
+        mi, xi = array([]), array([]) 
+        df = self.diff()       
+        xi = self.diff().roots()
+        mi = self(xi); 
+        segVals = self.getSegVals()
+        xi = concatenate((xi, self.getBreaks()[0:-1], self.getBreaks()[1:]))
+        mi = concatenate((mi, [v[0]  for v in segVals], [v[1]  for v in segVals] ))
+        return mi, xi
+    def max(self):
+        mi, xi = self.characteristicPoints()
+        return max(mi), xi[argmax(mi)]
+    def min(self):
+        mi, xi = self.characteristicPoints()
+        return min(mi), xi[argmin(mi)]   
+    def trimInterpolators(self, abstol=None):
+        diffPFun = PiecewiseFunction([])        
+        if abstol is None:
+            abstol = params.interpolation.convergence.abstol
+        for seg in self.segments:
+            segi = seg.trim(abstol=abstol)
             diffPFun.addSegment(segi)            
         return diffPFun
 
@@ -2081,7 +2109,7 @@ if __name__ == "__main__":
     k.addSegment(segf3)
     k.addSegment(segf4)
     print k
-    print k.summary()
+    
     
     k.plot()
     show()
