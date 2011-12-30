@@ -23,7 +23,7 @@ from numpy import finfo, size, double
 from numpy import isnan, isinf
 from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 
-from numpy import cumsum, flipud, real, imag
+from numpy import cumsum, flipud, real, imag, linspace
 from numpy.linalg import eigvals
 from numpy.polynomial.chebyshev import chebroots
 import params
@@ -54,7 +54,7 @@ class Interpolator(object):
     def __init__(self, Xs, Ys):
         self.Xs = array(Xs)
         self.Ys = array(Ys)
-        self.n = len(self.Xs)
+        #self.n = len(self.Xs)
     def add_nodes(self, new_Xs, new_Ys):
         """Add new interpolation nodes."""
         self.Xs, self.Ys = combine_interpolation_nodes(self.Xs, self.Ys, new_Xs, new_Ys)
@@ -131,7 +131,6 @@ class BarycentricInterpolator(Interpolator):
                     num[den == 0] = self.Ys[abs(xdiff[den == 0]).argmin(axis= -1)]
                     den[den == 0] = 1
                 ret = array(num / den)
-
                 if len(ind[0]) > 0:
                     ret[ind[:-1]] = self.Ys[ind[-1]]
                 results.append(ret)
@@ -259,10 +258,10 @@ class ChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         Xs, Ws = chebspace(self.a, self.b, len(Ydiffvals), returnWeights=True)
         f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
         return f 
-    def diff(self):
-        return super(ChebyshevInterpolator, self).diff(use_2nd=True)
-    def roots(self):
-        return super(ChebyshevInterpolator, self).roots(use_2nd=True)
+    def diff(self, use_2nd=True):
+        return super(ChebyshevInterpolator, self).diff(use_2nd=use_2nd)
+    def roots(self, use_2nd=True):
+        return super(ChebyshevInterpolator, self).roots(use_2nd=use_2nd)
     
 class LogXChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
     """Adaptive Chebyshev interpolator"""
@@ -303,9 +302,9 @@ class ChebyshevInterpolatorNoL(ChebyshevInterpolator):
         self.Xs, self.Ys = combine_interpolation_nodes_fast(new_Xs, new_Ys, self.Xs, self.Ys)
         self.init_weights(self.Xs)
     def diff(self):
-        return super(ChebyshevInterpolator1, self).diff(use_2nd=False)
+        return super(ChebyshevInterpolatorNoL, self).diff(use_2nd=False)
     def roots(self):
-        return super(ChebyshevInterpolator1, self).roots(use_2nd=False)            
+        return super(ChebyshevInterpolatorNoL, self).roots(use_2nd=False)            
 class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
     """Adaptive Chebyshev interpolator without rightmost point"""
     def init_weights(self, Xs):
@@ -324,9 +323,9 @@ class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
         self.Xs, self.Ys = combine_interpolation_nodes_fast(self.Xs, self.Ys, new_Xs, new_Ys)
         self.init_weights(self.Xs)
     def diff(self):
-        return super(ChebyshevInterpolator1, self).diff(use_2nd=False)
+        return super(ChebyshevInterpolatorNoR, self).diff(use_2nd=False)
     def roots(self):
-        return super(ChebyshevInterpolator1, self).roots(use_2nd=False)
+        return super(ChebyshevInterpolatorNoR, self).roots(use_2nd=False)
     
 class AdaptiveInterpolator1(object):
     """Mix-in class for adaptive interpolators with 3*n rule"""
@@ -523,10 +522,6 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
     def getNodes(self):
         xs, ys = super(LogTransformInterpolator, self).getNodes()
         return self.xt(xs), exp(ys)
-    def diff(self):
-        dp = super(LogTransformInterpolator, self).diff()
-        fun = lambda x: self.interp_at(x) * dp(self.xtinv(x)) / (1+x+self.offset)
-        return LogTransformInterpolator(fun, self.a, self.b, self.offset)
     
 #from numpy import polyval, polyfit
 #class PolyInterpolator(object):
@@ -607,7 +602,27 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
         errs = abs(self.interp_class.interp_at(self, new_Xs) - new_Ys) * self.xt(new_Ys) / max(self.xt(new_Ys))
         err = errs.max()
         return err
- 
+    def diff(self):
+        #dp = super(PoleInterpolatorP, self).diff()
+        Xs, Ws = chebspace(self.xtinv(self.orig_a), self.xtinv(self.orig_b), self.n, returnWeights=True)
+        print "tu2=", self.a, self.b, self.Xs, self.Ys, self.weights
+        Ys = super(PoleInterpolatorP, self).interp_at(Xs)
+        print self.__class__
+        print self.__str__()   
+        print "tu2", Xs, Ys, Ws
+        dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
+        
+        fun = lambda x: self.interp_at(x) * dp(self.xtinv(x)) / (1+x+self.offset)
+        x=linspace(0,1,10)
+        print fun(x)
+        #print self.xtinv(x)
+        #print self.interp_at(x)
+        #print dp.Xs[0], dp.Xs[-1], dp(self.xtinv(x))
+        print ">", dp.Xs, dp.Ys, dp(dp.Xs)
+        #print  1 / (1+x+self.offset)
+        
+        return PoleInterpolatorP(fun, self.orig_a, self.orig_b, self.offset)
+    
 class PoleInterpolatorN(ChebyshevInterpolatorNoR):
     def xt(self, x):
         return (-exp(x) + self.orig_b) - self.offset
@@ -854,7 +869,16 @@ class MInfInterpolator(PInfInterpolator):
 
 if __name__ == "__main__":
     from pylab import *
-    
+    from pacal import *
+    B= BetaDistr(3,4) * BetaDistr(4,3)
+    B = BetaDistr(2,1) * (UniformDistr(0,2)+UniformDistr(0,1))
+    B.summary(show_moments=True)
+    print B.get_piecewise_pdf()
+    B.plot()
+    D = B.get_piecewise_pdf().diff()
+    D.plot()
+    show()
+    0/0
     #Xs = [-1,0,1]
     #Ys = [0,1,0]
     #i = Interpolator(Xs, Ys)
