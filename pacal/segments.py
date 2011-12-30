@@ -758,7 +758,8 @@ class SegmentWithPole(Segment):
         return not self.left_pole
     def hasPole(self):
         return True
-    
+    def diff(self):
+        return self.toInterpolatedSegment().diff()    
 
 class InterpolatedSegmentWithPole(SegmentWithPole):
     """Segment with pole on interval (a, b) using log(f(exp(x))
@@ -807,7 +808,8 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
             Ys=Ys[Xs<=xmax]
             Xs=Xs[Xs<=xmax]
             plot(Xs, Ys, 'o', markersize = params.segments.plot.nodeMarkerSize)
-
+    def diff(self):
+        return InterpolatedSegmentWithPole(self.a, self.b, self.f.diff())
 # TODO: to remove ???
 class InterpolatedSegmentWithPole2(InterpolatedSegmentWithPole):
     """Segment with pole on interval (a, b) using interpolation f(x)/(x-pole)^exponent
@@ -832,13 +834,15 @@ class MInfInterpolatedSegment(InterpolatedSegment, MInfSegment):
     """
     def __init__(self, b, interpolatorOfF):
         MInfSegment.__init__(self, b, interpolatorOfF)
-    
+    def diff(self):
+        return MInfInterpolatedSegment(self.a, self.f.diff())    
 class PInfInterpolatedSegment(InterpolatedSegment, PInfSegment):    
     """Interpolated Segment on interval [a, inf]
     """
     def __init__(self, a, interpolatorOfF):
         PInfSegment.__init__(self, a, interpolatorOfF)
-
+    def diff(self):
+        return PInfInterpolatedSegment(self.a, self.f.diff())
 class breakPoint(object):
     """Decribe a breakpoint of a piecewise function."""
     def __init__(self, x, negPole, posPole, Cont = True):
