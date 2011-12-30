@@ -31,7 +31,7 @@ import params
 from utils import cheb_nodes_log, incremental_cheb_nodes_log
 from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
 from utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
-from utils import convergence_monitor, chebspace, estimateDegreeOfPole
+from utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
 from utils import debug_plot
 from utils import chebt2, ichebt2, chebt1, ichebt1
 
@@ -588,40 +588,21 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
     def interp_at(self, x):
         y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
         return y
-    #def get_incremental_nodes1(self, new_n):
-    #    return incremental_cheb_nodes1(new_n, self.a, self.b)
-    #def get_nodes(self, n):
-    #    return cheb_nodes1(n, self.a, self.b)
     def getNodes(self):
         return self.xt(self.Xs), self.sign * expm1(self.Ys) 
     def test_accuracy_tmp(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
         given points."""
-        #print self.interp_at(self.xt(new_Xs))
-        #print self.xt(new_Ys)
         errs = abs(self.interp_class.interp_at(self, new_Xs) - new_Ys) * self.xt(new_Ys) / max(self.xt(new_Ys))
         err = errs.max()
         return err
     def diff(self):
-        #dp = super(PoleInterpolatorP, self).diff()
         Xs, Ws = chebspace(self.xtinv(self.orig_a), self.xtinv(self.orig_b), self.n, returnWeights=True)
-        print "tu2=", self.a, self.b, self.Xs, self.Ys, self.weights
-        Ys = super(PoleInterpolatorP, self).interp_at(Xs)
-        print self.__class__
-        print self.__str__()   
-        print "tu2", Xs, Ys, Ws
+        Ys = concatenate(([self.Ys[0]], self.Ys))
         dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
-        
-        fun = lambda x: self.interp_at(x) * dp(self.xtinv(x)) / (1+x+self.offset)
-        x=linspace(0,1,10)
-        print fun(x)
-        #print self.xtinv(x)
-        #print self.interp_at(x)
-        #print dp.Xs[0], dp.Xs[-1], dp(self.xtinv(x))
-        print ">", dp.Xs, dp.Ys, dp(dp.Xs)
-        #print  1 / (1+x+self.offset)
-        
-        return PoleInterpolatorP(fun, self.orig_a, self.orig_b, self.offset)
+        Xs, Ws = chebspace1(self.orig_a, self.orig_b, self.n, returnWeights=True)
+        Ys = exp(super(PoleInterpolatorP, self).interp_at(self.xtinv(Xs))) * dp(self.xtinv(Xs)) /((Xs - self.orig_a) + self.offset)
+        return BarycentricInterpolator(Xs=Xs, Ys=Ys, weights=Ws)
     
 class PoleInterpolatorN(ChebyshevInterpolatorNoR):
     def xt(self, x):
@@ -635,17 +616,13 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
             offset = 1e-50
         else:
             offset = abs(b) * finfo(double).eps
-        self.offset = offset
+        self.offset = offset        
         super(PoleInterpolatorN, self).__init__(lambda x: log1p(f(self.xt(x))),
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
     def interp_at(self, x):
         y = expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
         return y
-    #def get_incremental_nodes1(self, new_n):
-    #    return incremental_cheb_nodes1(new_n, self.a, self.b)
-    #def get_nodes(self, n):
-    #    return cheb_nodes1(n, self.a, self.b)
     def getNodes(self):
         return self.xt(self.Xs), expm1(self.Ys)      
     #def test_accuracy(self, new_Xs, new_Ys):
@@ -654,6 +631,13 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
     #    errs = abs((super(LogTransformInterpolator, self).interp_at(new_Xs)) - new_Ys)
     #    err = errs.max()
     #    return err
+    def diff(self):
+        Xs, Ws = chebspace(self.xtinv(self.orig_a), self.xtinv(self.orig_b), self.n, returnWeights=True)
+        Ys = concatenate((self.Ys, [self.Ys[-1]]))
+        dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
+        Xs, Ws = chebspace1(self.orig_a, self.orig_b, self.n, returnWeights=True)
+        Ys = exp(super(PoleInterpolatorN, self).interp_at(self.xtinv(Xs))) * dp(self.xtinv(Xs)) /(-(Xs - self.orig_b) + self.offset)*(-1)
+        return BarycentricInterpolator(Xs=Xs, Ys=Ys, weights=Ws)
     
 # TODO: unused
 class ZeroNeighborhoodInterpolator(object):
@@ -870,12 +854,16 @@ class MInfInterpolator(PInfInterpolator):
 if __name__ == "__main__":
     from pylab import *
     from pacal import *
-    B= BetaDistr(3,4) * BetaDistr(4,3)
-    B = BetaDistr(2,1) * (UniformDistr(0,2)+UniformDistr(0,1))
+    B= BetaDistr(1,1) * UniformDistr(0,3)
+    B =(UniformDistr(0,3)+UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1)) * (UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1))
+    B = BetaDistr(4,4) *  (UniformDistr(-1,1)+UniformDistr(-1,2))
     B.summary(show_moments=True)
     print B.get_piecewise_pdf()
-    B.plot()
+    
     D = B.get_piecewise_pdf().diff()
+    print D.roots()
+    figure()
+    B.plot()
     D.plot()
     show()
     0/0

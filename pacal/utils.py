@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from numpy import array, arange, empty, cos, abs
+from numpy import array, arange, empty, cos, sin, abs
 from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
 from numpy import isinf, log, exp, logspace, Inf
@@ -90,6 +90,19 @@ def chebspace(a, b, n, returnWeights=False):
         weights[::2] = -1
         weights[0] /= 2
         weights[-1] /= 2
+        return cs, weights
+    else:
+        return cs
+    
+def chebspace1(a, b, n, returnWeights=False):
+    """Chebyshev nodes for given degree n"""
+    apb = 0.5 * (a + b)
+    bma = 0.5 * (b - a)
+    cs = apb - bma * cos(arange(1, 2*n, 2) * pi / (2*n))
+    if returnWeights:  
+        weights = ones_like(cs)
+        weights = sin(arange(1, 2 * n, 2) * pi / (2 * n))
+        weights[1::2] = -1 * weights[1::2] 
         return cs, weights
     else:
         return cs

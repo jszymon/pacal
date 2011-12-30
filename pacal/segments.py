@@ -809,7 +809,7 @@ class InterpolatedSegmentWithPole(SegmentWithPole):
             Xs=Xs[Xs<=xmax]
             plot(Xs, Ys, 'o', markersize = params.segments.plot.nodeMarkerSize)
     def diff(self):
-        return InterpolatedSegmentWithPole(self.a, self.b, self.f.diff())
+        return InterpolatedSegment(self.a, self.b, self.f.diff())
 # TODO: to remove ???
 class InterpolatedSegmentWithPole2(InterpolatedSegmentWithPole):
     """Segment with pole on interval (a, b) using interpolation f(x)/(x-pole)^exponent
@@ -1051,6 +1051,8 @@ class PiecewiseFunction(object):
     def diff(self):
         diffPFun = PiecewiseFunction([])        
         for seg in self.segments:
+            if seg.isMInf() or seg.isPInf():
+                raise NotImplemented("not implemented")
             segi = seg.diff()
             diffPFun.addSegment(segi)            
         return diffPFun
