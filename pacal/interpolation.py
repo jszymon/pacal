@@ -603,6 +603,13 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
         Xs, Ws = chebspace1(self.orig_a, self.orig_b, self.n, returnWeights=True)
         Ys = exp(super(PoleInterpolatorP, self).interp_at(self.xtinv(Xs))) * dp(self.xtinv(Xs)) /((Xs - self.orig_a) + self.offset)
         return BarycentricInterpolator(Xs=Xs, Ys=Ys, weights=Ws)
+    def roots(self):
+        return array([])
+    def roots_in_diff(self):
+        Xs, Ws = chebspace(self.xtinv(self.orig_a), self.xtinv(self.orig_b), self.n, returnWeights=True)
+        Ys = concatenate(([self.Ys[0]], self.Ys))
+        dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
+        return dp.roots()
     
 class PoleInterpolatorN(ChebyshevInterpolatorNoR):
     def xt(self, x):
@@ -638,6 +645,13 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
         Xs, Ws = chebspace1(self.orig_a, self.orig_b, self.n, returnWeights=True)
         Ys = exp(super(PoleInterpolatorN, self).interp_at(self.xtinv(Xs))) * dp(self.xtinv(Xs)) /(-(Xs - self.orig_b) + self.offset)*(-1)
         return BarycentricInterpolator(Xs=Xs, Ys=Ys, weights=Ws)
+    def roots(self):
+        return array([])
+    def roots_in_diff(self):
+        Xs, Ws = chebspace(self.xtinv(self.orig_a), self.xtinv(self.orig_b), self.n, returnWeights=True)
+        Ys = concatenate(([self.Ys[0]], self.Ys))
+        dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
+        return dp.roots()
     
 # TODO: unused
 class ZeroNeighborhoodInterpolator(object):
