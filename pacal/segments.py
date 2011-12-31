@@ -75,7 +75,6 @@ class Segment(object):
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
     def diff(self):
-        print self.__str__()
         return self.toInterpolatedSegment().diff()    
     def roots(self):
         return self.toInterpolatedSegment().roots()    
@@ -591,7 +590,12 @@ class DiracSegment(Segment):
     def isSegment(self):
         return False      
     def isDirac(self):
-        return True         
+        return True     
+    def diff(self):
+        return self 
+    def roots(self):
+        return array([])    
+         
 class InterpolatedSegment(Segment):    
     """Interpolated Segment on interval [a, b]
     """
@@ -1052,14 +1056,17 @@ class PiecewiseFunction(object):
         diffPFun = PiecewiseFunction([])        
         for seg in self.segments:
             if seg.isMInf() or seg.isPInf():
-                raise NotImplemented("not implemented")
-            segi = seg.diff()
-            diffPFun.addSegment(segi)            
+                pass
+                #raise NotImplemented("not implemented")
+            else:
+                segi = seg.diff()
+                diffPFun.addSegment(segi)            
         return diffPFun
     def roots(self):
         r = array([])        
         for seg in self.segments:
-            r = concatenate((r, seg.roots()))
+            if not seg.isDirac():
+                r = concatenate((r, seg.roots()))
         return r
     def characteristicPoints(self):
         mi, xi = array([]), array([]) 
@@ -1070,10 +1077,10 @@ class PiecewiseFunction(object):
         xi = concatenate((xi, self.getBreaks()[0:-1], self.getBreaks()[1:]))
         mi = concatenate((mi, [v[0]  for v in segVals], [v[1]  for v in segVals] ))
         return mi, xi
-    def max(self):
+    def max_(self):
         mi, xi = self.characteristicPoints()
         return max(mi), xi[argmax(mi)]
-    def min(self):
+    def min_(self):
         mi, xi = self.characteristicPoints()
         return min(mi), xi[argmin(mi)]   
     def trimInterpolators(self, abstol=None):
@@ -1380,10 +1387,17 @@ class PiecewiseFunction(object):
             elif seg.isPInf():
                 list = list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
             else:
-                left = seg.f(seg.a)
-                right= seg.f(seg.b)
+                if not isscalar(seg.f):
+                    left = seg.f(seg.a)
+                else:                
+                    left = seg.f
+                if not isscalar(seg.f):
+                    right= seg.f(seg.b)
+                else:
+                    right= seg.f
                 if not isfinite(left):
-                    left  = list[-1][1]
+                    if len(list)>0:
+                        left  = list[-1][1]
                 list = list + [(left, right)]
             i = i + 1
         return list
