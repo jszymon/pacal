@@ -415,7 +415,8 @@ def maxprob(pdf, x0, lub=None):
         #print x, f
         return f 
     #return fmin_tnc(fun, x0,bounds=lub)
-    return fmin(fun, x0)
+    return fmin_cg(fun, x0, gtol=1e-10)
+    #return fmin(fun, x0)
 
 try:
     from math import lgamma
