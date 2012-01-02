@@ -265,9 +265,19 @@ class NDDistr(NDFun):
                     c[i, j] = self.cov(i,j)                                          
             return c
     def mode(self):
-        #print array(getRanges(self.Vars))
-        m = mean(array(getRanges(self.Vars)), axis=0)         
-        return maxprob(self, m*1.01, array(getRanges(self.Vars)).T)
+        mo = mean(array(getRanges(self.Vars)), axis=0)
+        fo = self(*[mo[i] for i in range(len(mo))])
+        r = getRanges(self.Vars)
+        for i in range(20):
+            mi = zeros_like(mo)
+            for j in range(len(r)):
+                mi[j] = float(UniformDistr(r[0][j], r[1][j]).rand(1))                
+            fi = self(*mi)
+            if fo < fi:
+                mo =mi
+                fo = fi
+        return maxprob(self, mo*1.01, array(getRanges(self.Vars)).T)
+
 
     def _2dplot(self, n=100, cdf=False, tp = "contour", **kwargs):
         assert len(self.marginals) == 2, "Only 2d distributions can be plotted."
@@ -936,7 +946,7 @@ if __name__ == "__main__":
     xlim(0,0.7)
     ylim(0,0.65)
     show()
-    stop
+    0/0
 
     params.interpolation.maxn = 10
     params.interpolation.use_cheb_2nd = False
