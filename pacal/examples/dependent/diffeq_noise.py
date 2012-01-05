@@ -62,7 +62,7 @@ for yend in [0.5, 1.5]:
     ay0.append(M2.nddistr.mode())           # "most probable" state
     print "yend=", yend, ",  MAP  est. of A, Y0 =", ay0[i]
     i += 1
-show()
+#show()
 #!
 #! Trajectory
 #! ----------
@@ -70,7 +70,6 @@ figure()
 for j in range(len(ay0)):
     ymean, ystd = [], []
     for i in range(n):
-        M.eliminate_other(O+ [A, Y[0]] + E)   # Szymon, bez tego  w inference(...) petla jest nieskonczona
         Myi = M.inference([O[i]], [A, Y[0]], ay0[j])
         ymean.append(Myi.as1DDistr().mean())
         ystd.append(Myi.as1DDistr().std())

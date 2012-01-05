@@ -160,6 +160,12 @@ class Model(object):
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
         return var_changes, equation
 
+    def subst_for_rv_in_children(self, var, Xsym):
+        """Substitute Xsym for occurrences of var in its children"""
+        for rv, eq in self.rv_to_equation.iteritems():
+            if var.getSymname() in set(eq.atoms(sympy.Symbol)):
+                self.rv_to_equation[rv] = eq.subs(var.getSymname(), Xsym)
+
     def eliminate(self, var):
         var = self.prepare_var(var)
         #print "eliminate variable: ", var.getSymname()
@@ -173,11 +179,9 @@ class Model(object):
         elif var in self.dep_rvs:
             subs_eq = self.rv_to_equation[var]
             del self.rv_to_equation[var]
+            self.subst_for_rv_in_children(var, subs_eq)
             self.dep_rvs.remove(var)
             self.all_vars.remove(var)
-            for rv, eq in self.rv_to_equation.iteritems():
-                if var.getSymname() in set(eq.atoms(sympy.Symbol)):
-                    self.rv_to_equation[rv] = eq.subs(var.getSymname(), subs_eq)
         else:
             assert False
     def eliminate_other(self, vars):
@@ -236,6 +240,16 @@ class Model(object):
                 M.eliminate(v)
             if len(to_remove) > 0:
                 continue
+            # propagate constants
+            to_remove = []
+            for v in M.dep_rvs:
+                if len(M.get_parents(v)) == 0:
+                    to_remove.append(v)
+            for v in to_remove:
+                if v not in wanted_rvs:
+                    M.eliminate(v)
+                else:
+                    M.subst_for_rv_in_children(var, M.rv_to_equation[v])
             # a single itertion below reverses the DAG
             exchanged_vars = set()
             while wanted_rvs | exchanged_vars != set(M.all_vars):
@@ -320,10 +334,7 @@ class Model(object):
         print "condition on variable: ",  var.getSymname(), "=" ,X
         if not self.is_free(var):
             raise RuntimeError("You can only condition on free variables")
-        Xsym = sympy.S(X)
-        for rv, eq in self.rv_to_equation.iteritems():
-            if var.getSymname() in set(eq.atoms(sympy.Symbol)):
-                self.rv_to_equation[rv] = eq.subs(var.getSymname(), Xsym)
+        self.subst_for_rv_in_children(var, sympy.S(X))
         self.free_rvs.remove(var)
         self.all_vars.remove(var)
         self.nddistr = self.nddistr.condition([var], X)
