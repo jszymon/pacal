@@ -7,7 +7,7 @@ from pylab import figure, show, rc
 import numpy as _np
 import time
 
-params.interpolation_nd.maxn = 8
+params.interpolation_nd.maxq = 8
 rc('axes', labelsize=18)
 rc('xtick', labelsize=15.0)
 rc('ytick', labelsize=15.0)
@@ -72,4 +72,4 @@ print MC_X0
 figure()
 MC_X0.plot()
 
-show()
+#show()

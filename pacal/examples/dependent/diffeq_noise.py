@@ -9,14 +9,14 @@ from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 from numpy import array, zeros
 import time
 t0 = time.time()
-params.interpolation_nd.maxn = 6
+params.interpolation_nd.maxq = 7
 params.interpolation.maxn = 3
 params.interpolation_pole.maxn =3
 params.interpolation_nd.debug_info = False
 
 
 #!
-#! Euler's method applied to equation y' = ay, with noised observations 
+#! Euler's method applied to equation y' = ay, with noisy observations 
 #!
 #! Y(i+1) = A * Y(i) 
 #!
@@ -74,13 +74,13 @@ for j in range(len(ay0)):
         ymean.append(Myi.as1DDistr().mean())
         ystd.append(Myi.as1DDistr().std())
     subplot(1, 2, j + 1)
-    title("A, Y[0] = {0}".format(ay0[j]))
+    title("A, Y[0] = {0:.3f},{1:.3f}".format(*ay0[j]))
     plot(range(0, 5, 1), ymean, 'k')
     plot(range(0, 5, 1), array(ymean) + ystd, 'k--')
     plot(range(0, 5, 1), array(ymean) - ystd, 'k--')
     ylabel("O[i]")
     xlabel("i")
 show()
-print "time of doing=", time.time() - t0
+print "computation time=", time.time() - t0
 
 

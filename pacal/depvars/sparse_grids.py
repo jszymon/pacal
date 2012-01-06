@@ -85,15 +85,17 @@ class AdaptiveSparseGridInterpolator(object):
         Xs = [array([self.xroot_cache[j][self.q - self.d + 1][n[j]] for n in self.nodes]) for j in xrange(self.d)]
         self.Ys = atleast_1d(squeeze(self.f(*Xs)))
 
-    def adaptive_interp(self, par = params.interpolation_nd):
-        maxn = par.maxn
+    def adaptive_interp(self, par = None):
+        if par is None:
+            par = params.interpolation_nd
+        maxq = par.maxq
         q = self.q
         max_q = q-self.d+1
         ni = self.ni
         old_err = None
         cm = convergence_monitor(par = par.convergence)
 
-        while max_q <= maxn:
+        while q <= maxq:
             self.exps.append(ni)
             self.cheb_weights_cache.append(cheb_weights(ni))
             for j in xrange(self.d):
@@ -141,7 +143,7 @@ class AdaptiveSparseGridInterpolator(object):
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
         given points."""
-        N_samp = 50
+        N_samp = -1
         if N_samp == -1 or N_samp >= len(new_Xs[0]):
             errs = abs(self.interp_at(*new_Xs) - new_Ys)
         else:
@@ -203,7 +205,8 @@ class AdaptiveSparseGridInterpolator(object):
         full_grid_cache = {}
         for p, subgrid in self.subgrid_map.iteritems():
             c, ni = subgrid
-            yi = self.full_grid_interp(p, self.Ys[ni], X, full_grid_cache)
+            #yi = self.full_grid_interp(p, self.Ys[ni], X, full_grid_cache)
+            yi = self.full_grid_interp_new(p, self.Ys[ni], X, full_grid_cache)
             y += c * yi
         if scalar_x:
             y = squeeze(y)
@@ -252,6 +255,38 @@ class AdaptiveSparseGridInterpolator(object):
         else:
             num = dot(one_over_x_m_xi_grid, fs)
         return num / den
+
+    def full_grid_interp_new(self, p, fs, X, fg_cache):
+        # accept X as a list of arrays
+        first = True
+        for i, e in reversed(list(enumerate(p))):
+            if (i, e) in fg_cache:
+                one_over_x_m_xi, den_factor = fg_cache[(i, e)]
+            else:
+                Xs = self.xroot_cache[i][e]
+                Ws = self.cheb_weights_cache[e]
+                diff = subtract.outer(X[i], Xs)
+                mask = (diff == 0).any(axis=-1)
+                if any(mask):
+                    w = where(diff == 0)
+                    one_over_x_m_xi = zeros_like(diff)
+                    one_over_x_m_xi[w] = 1
+                    one_over_x_m_xi[~mask] = Ws/(diff[~mask])
+                else:
+                    one_over_x_m_xi = Ws/diff
+                den_factor = sum(one_over_x_m_xi, axis=1)
+                fg_cache[(i, e)] = one_over_x_m_xi, den_factor
+
+            if first:
+                fs_r = fs.reshape((-1,one_over_x_m_xi.shape[1]))
+                fs = dot(one_over_x_m_xi, fs_r.T)
+                first = False
+            else:
+                fs_r = fs.reshape((X[0].shape[0], fs.shape[1] / one_over_x_m_xi.shape[1], one_over_x_m_xi.shape[1]))
+                fs = (fs_r * one_over_x_m_xi[:,newaxis,:]).sum(axis=-1)
+            fs /= den_factor[:,newaxis]
+
+        return fs[:,0]
 
 if __name__ == "__main__":
 

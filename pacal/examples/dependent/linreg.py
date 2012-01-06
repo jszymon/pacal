@@ -11,7 +11,7 @@ from numpy import concatenate, polyfit
 seed(1)
 import time
 t0 = time.time()
-params.interpolation_nd.maxn = 7
+#params.interpolation_nd.maxq = 7
 params.interpolation.maxn = 20
 params.interpolation_pole.maxn = 20
 params.interpolation_nd.debug_info = False
@@ -84,5 +84,5 @@ abopt = MAB.nddistr.mode()
 #!
 print "              MAP  a=", abopt[0], "b=", abopt[1]
 print "polyfit (LSE) est. a=", ar, "b=", br
-print "time of doing=", time.time() - t0
+print "computation time=", time.time() - t0
 
