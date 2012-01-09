@@ -18,7 +18,7 @@ from pacal.standard_distr import FunDistr, PDistr
 from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segment
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
-
+from pacal import params
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
         if not isinstance(nddistr, NDFun):
@@ -83,7 +83,8 @@ class Model(object):
     def varschange(self, free_var, dep_var):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
-        print "exchange free variable: ", free_var.getSymname(), "with dependent variable", dep_var.getSymname()
+        if params.models.debug_info:
+            print "exchange free variable: ", free_var.getSymname(), "with dependent variable", dep_var.getSymname()
         if not self.is_free(free_var):
             raise RuntimeError("First exchanged variable must be free")
         if not self.is_dependent(dep_var):
@@ -213,9 +214,7 @@ class Model(object):
     def inference_to_remove(self, vars, condvars, condvals):
         assert len(condvars)==len(condvals), "condvars, condvals must be equal size" 
         self.eliminate_other(set(vars) | set(condvars))
-        print self.__str__()
         self.unchain(set(vars) | set(condvars), excluded=vars)
-        print self.__str__()
         for i in range(len(condvars)):
             self.condition(condvars[i], condvals[i])
         for var in set(self.dep_rvs):
@@ -330,8 +329,8 @@ class Model(object):
                
     def condition(self, var, X, **kwargs):        
         var = self.prepare_var(var)
-        
-        print "condition on variable: ",  var.getSymname(), "=" ,X
+        if params.models.debug_info:
+            print "condition on variable: ",  var.getSymname(), "=" ,X
         if not self.is_free(var):
             raise RuntimeError("You can only condition on free variables")
         self.subst_for_rv_in_children(var, sympy.S(X))
@@ -345,6 +344,13 @@ class Model(object):
         if len(self.free_rvs) != 1:
             raise RuntimeError("Too many free variables")
         pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
+        return pfun
+    
+    def as_const(self):
+        if len(self.dep_rvs) ==1:
+            return float(self.rv_to_equation[self.dep_rvs[0]])
+        else:
+            raise RuntimeError("unimplemented")
         return pfun
     
     def summary(self):
@@ -680,7 +686,7 @@ if __name__ == "__main__":
     print M2
     M.plot()
     show()
-    stop
+    0/0
     
     figure()
     N = X * Y; N.setSym("N")
@@ -691,13 +697,13 @@ if __name__ == "__main__":
     print M
     M2 = M.inference(wanted_rvs = [R])
     M2.plot()
-    stop
+    0/0
     M.varschange(X, N)
     M.eliminate(X)
     print M
     M.plot()
     show()
-    stop
+    0/0
     
     X1 = UniformDistr(1.5, 2.5, sym="x1")
     X2 = UniformDistr(1.5, 2.5, sym="x2")
