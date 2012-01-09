@@ -89,7 +89,7 @@ class integration(params_class):
 # interpolation on finite/infinite/asymptotic/pole segments
 class interpolation_finite(interpolation): pass
 class interpolation_infinite(interpolation): 
-    maxn = 100
+    maxn = 100    
     exponent = 6
 class interpolation_asymp(interpolation):
     maxn = 100
@@ -102,8 +102,8 @@ class interpolation_pole(interpolation):
 class interpolation_nd(interpolation):
     maxq = 7
     class convergence(interpolation.convergence):
-        abstol = 1e-4
-        reltol = 1e-4
+        abstol = 1e-8
+        reltol = 1e-8
     debug_info = True
     debug_plot = False
     
@@ -119,8 +119,6 @@ class integration_asymp(integration):
 class integration_pole(integration):
     exponent = 8
     maxn = 1000
-
-
 
 class segments(params_class):
     abstol = 1e-16
@@ -147,6 +145,10 @@ class segments(params_class):
     class summary(params_class):
         identify = False  # if True it identify summary numbers using mpmath's identify function 
 
+class models(params_class):
+    debug_info = False
+    debug_plot = False
+    
 if __name__ == "__main__":
     print "integration.convergence.reltol=", integration.convergence.reltol
     print str_params()
