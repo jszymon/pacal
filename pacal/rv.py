@@ -406,8 +406,11 @@ class SumRV(OpRV):
     """Sum of distributions."""
     def __init__(self, d1, d2):
         super(SumRV, self).__init__([d1, d2], sym = d1.getSymname() + d2.getSymname())
-        breaks = unique(add.outer(d1.range(), d2.range()))
-        self.a, self.b = min(breaks), max(breaks)
+        #breaks = unique(add.outer(d1.range(), d2.range()))
+        #self.a, self.b = min(breaks), max(breaks)
+        a1, b1 = d1.range()
+        a2, b2 = d2.range()
+        self.a, self.b = a1+a2, b1+b2
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
@@ -420,8 +423,11 @@ class SubRV(OpRV):
     """Difference of distributions."""
     def __init__(self, d1, d2):
         super(SubRV, self).__init__([d1, d2], sym = d1.getSymname() - d2.getSymname())
-        breaks = unique(subtract.outer(d1.range(), d2.range()))
-        self.a, self.b = min(breaks), max(breaks)
+        #breaks = unique(subtract.outer(d1.range(), d2.range()))
+        #self.a, self.b = min(breaks), max(breaks)
+        a1, b1 = d1.range()
+        a2, b2 = d2.range()
+        self.a, self.b = a1-a2, b1-b2
         self.d1 = d1
         self.d2 = d2
     def __str__(self):

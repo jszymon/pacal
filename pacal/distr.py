@@ -194,7 +194,7 @@ class Distr(RV):
         """Median of the distribution."""
         return self.get_piecewise_pdf().L2_distance(other.get_piecewise_pdf())
 #    #TODO fix this to use only rv.range() in all cases
-    def range(self, lazy=True):
+    def range_(self, lazy=True):
         """Range of the distribution."""
         return self.get_piecewise_pdf().range()
         

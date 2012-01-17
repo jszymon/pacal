@@ -124,6 +124,8 @@ class UniformDistr(Distr):
         return "Uniform({0},{1})#{2}".format(self.a, self.b, id(self))
     def getName(self):
         return "U({0},{1})".format(self.a, self.b)
+    def range(self):
+        return self.a, self.b
 
 class CauchyDistr(Distr):
     def __init__(self, gamma = 1.0, center = 0.0, **kwargs):
@@ -348,7 +350,8 @@ class BetaDistr(Distr):
         return "Beta(alpha={0},beta={1})#{2}".format(self.alpha, self.beta, id(self))
     def getName(self):
         return "Beta({0},{1})".format(self.alpha, self.beta)
-
+    def range(self):
+        return 0, 1
 class ParetoDistr(Distr):
     def __init__(self, alpha = 1, xmin = 1, **kwargs):
         assert alpha > 0
@@ -692,7 +695,8 @@ class MollifierDistr(Distr):
         return "MollifierDistr(epsilon={0})#{1}".format(self.epsilon, id(self))
     def getName(self):
         return "Mollifier({0})".format(self.epsilon)
-
+    def range(self):
+        return -self.epsilon, self.epsilon
 
 ### Discrete distributions
 
