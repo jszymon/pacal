@@ -223,6 +223,7 @@ class Distr(RV):
     
     def mode(self):
         """Mode of distribution."""
+        #print "mode=", self.get_piecewise_pdf().max_()[1], self.get_piecewise_pdf().max_()[1]-self.get_piecewise_pdf().maximum()[0]
         return self.get_piecewise_pdf().maximum()[0]
     
     def int_error(self):
@@ -1028,7 +1029,9 @@ class CondGtDistr(Distr):
         return "{0} | X>{1}".format(self.d.getName(), self.L)
     def rand_raw(self, n):
         return self.rand_invcdf(n)
-
+    def range(self):
+        return self.L, self.d.range()[1]
+    
 class CondLtDistr(Distr):
     def __init__(self, d, U=None, **kwargs):
         self.U = U
@@ -1044,7 +1047,9 @@ class CondLtDistr(Distr):
         return "{0} | X<{1}".format(self.d.getName(), self.U)
     def rand_raw(self, n):
         return self.rand_invcdf(n)
-    
+    def range(self):
+        return self.d.range()[0], self.U
+        
 class Condition(object):
     pass
 class Gt(Condition):
