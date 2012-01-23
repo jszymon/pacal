@@ -349,7 +349,42 @@ class Distr(RV):
             width = X.max() * 0.01
         for c, b in zip(counts, binx):
             bar(b, float(c) * w, width = width, alpha = 0.25, **kwargs)
-    
+    def five_number_summary(self):
+        m = self.median()
+        iqr = self.iqrange(0.25)        
+        c = self.ci(0.5)    
+        r = self.range()
+        if isfinite(r[0]) and isfinite(r[1]):
+            return [r[0], c[0], m, c[1], r[1]]
+        elif isfinite(r[0]):
+            return [r[0], c[0], m, c[1], c[1] + 1.5 * iqr]
+        elif isfinite(r[1]):
+            return [c[0] - 1.5 * iqr, c[0], m, c[1], r[1]]
+        else:
+            return [c[0] - 1.5 * iqr, c[0], m, c[1], c[1] + 1.5 * iqr]
+     
+    def boxplot(self, pos=1, width=0.3, useci=None, showMean=True, vertical=True, color="k", label=None, **kwargs):
+        five = self.five_number_summary()
+        if useci is not None:
+            c = self.ci(useci)
+            five[0] = c[0]
+            five[-1] = c[1]
+        #if label is None:
+        #    label = "" + str(self.__class__.__name__)
+        if vertical:
+            plot([pos-width, pos+width], [five[1], five[1]], color=color, label=label, **kwargs)
+            plot([pos-width, pos+width], [five[2], five[2]], color=color, **kwargs)
+            plot([pos-width, pos+width], [five[3], five[3]], color=color, **kwargs)
+            plot([pos-width/2, pos+width/2], [five[0], five[0]], color=color, **kwargs)
+            plot([pos-width/2, pos+width/2], [five[4], five[4]], color=color, **kwargs)
+            plot([pos-width, pos-width], [five[1], five[3]], color=color, **kwargs)
+            plot([pos+width, pos+width], [five[1], five[3]], color=color, **kwargs)
+            plot([pos, pos], [five[0], five[1]], '--', color=color, **kwargs)
+            plot([pos, pos], [five[3], five[4]], '--', color=color, **kwargs)
+            if showMean:
+                m = self.mean()
+                plot([pos-width, pos+width], [m, m], '--', color=color, **kwargs)
+        
     def __call__(self, x):
         """Overload function calls."""
         return self.pdf(x)
