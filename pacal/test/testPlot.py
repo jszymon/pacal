@@ -47,13 +47,13 @@ class TestPlot(unittest.TestCase):
     def testBoxplot(self):
         pos = 1
         col = ['r', 'g', 'b', 'k', 'm', 'y', 'c', 'r', 'g', 'b', 'k', 'm', 'y', 'c']
+        fig = plt.figure()
         for F in [NormalDistr(), UniformDistr(), CauchyDistr(), ChiSquareDistr(),
           ExponentialDistr(), BetaDistr(), ParetoDistr(), LevyDistr(), LaplaceDistr(),
           StudentTDistr(), SemicircleDistr(), FDistr(), DiscreteDistr()]:            
           F.boxplot(pos, color=col[pos], useci=0.01, label=F.__class__.__name__)
           pos += 1        
         legend()
-        show()
         self.assert_(True);
         
 def suite():
