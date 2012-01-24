@@ -314,7 +314,7 @@ class TestInterpolators(unittest.TestCase):
         self.assert_(0 < 1)
     def testTrim(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
-        I = S.trimInterpolators(abstol=1e-16)
+        I = S.trimInterpolators(abstol=1e-15)
         figure()
         subplot(211)
         S.plot(color="r")
@@ -333,7 +333,7 @@ class TestInterpolators(unittest.TestCase):
         S.plot(color='r')
         D = S.get_piecewise_pdf().diff()
         D.plot(color="k")
-        for i in range (n-1):
+        for i in range (n):
             D = D.diff()
             D.plot(color="k")        
         #show()
@@ -370,6 +370,7 @@ class TestInterpolators(unittest.TestCase):
     def testDiffInf(self):
         S = BetaDistr(3,4)* BetaDistr(3,4)
         S.summary()
+        figure()
         S.plot()
         print S.get_piecewise_pdf()
         D = S.get_piecewise_pdf().diff()
@@ -377,11 +378,11 @@ class TestInterpolators(unittest.TestCase):
         show()
 def suite():
     suite = unittest.TestSuite()
-#    suite.addTest(TestInterpolators("testChebcoef"))
-#    suite.addTest(TestInterpolators("testTrim"))
-#    suite.addTest(TestInterpolators("testDiff"))
-#    suite.addTest(TestInterpolators("testRoots"))
-#    suite.addTest(TestInterpolators("testMinmax"))
+    suite.addTest(TestInterpolators("testChebcoef"))
+    suite.addTest(TestInterpolators("testTrim"))
+    suite.addTest(TestInterpolators("testDiff"))
+    suite.addTest(TestInterpolators("testRoots"))
+    suite.addTest(TestInterpolators("testMinmax"))
     suite.addTest(TestInterpolators("testDiffInf"))
 #    suite.addTest(TestBasicstat("testNormal"))
 #    suite.addTest(TestBasicstat("testChi2"))
