@@ -1,6 +1,6 @@
-#! ============================
-#! Simple differential equation
-#! ============================
+#! =================================
+#! Kalman filter with control input
+#! =================================
 from pacal import *
 from pylab import figure, show, zeros, plot, legend, subplot, rc
 
