@@ -28,9 +28,9 @@ params.models.debug_info = False
 
 
 #!
-#! Euler's method applied to equation y' = ay, with noisy observations 
+#! Euler's method applied to equation y' = ay + u, with noisy observations 
 #!
-#! Y(i+1) = Y[i-1] + h * A * Y(i-1) + U[i-1]
+#! Y(i) = Y(i-1) + h * A * Y(i-1) + h * U[i-1]
 #!
 #! O(i) = Y(i) + E(i), i=1,...,n-1
 #!
@@ -46,6 +46,7 @@ for i in xrange(n):
     #Y.append(Y[i] * K)
     #Y[i + 1].setSym("Y" + str(i + 1))  
     U.append(UniformDistr(-0.1,0.1, sym="U{0}".format(i)))
+    # U will be conditioned on, so in effect constant
     if i==0:
         Y.append(Y0 * K+ h*U[i])
     else:
