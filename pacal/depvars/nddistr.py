@@ -268,7 +268,7 @@ class NDDistr(NDFun):
         mo = mean(array(getRanges(self.Vars)), axis=0)
         fo = self(*[mo[i] for i in range(len(mo))])
         r = getRanges(self.Vars)
-        for i in range(20):
+        for i in range(50):
             mi = zeros_like(mo)
             for j in range(len(r)):
                 mi[j] = float(UniformDistr(r[0][j], r[1][j]).rand(1))                
@@ -778,7 +778,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     #have_3d = True
     a, b = f.a, f.b
     #a, b = getRanges(f.Vars)
-    a, b = getRanges(f.Vars, ci=0.001)
+    a, b = getRanges(f.Vars, ci=0.0001)
     #print "a, b = ", a, b
     X = np.linspace(a[0], b[0], 100)
     Y = np.linspace(a[1], b[1], 100)
@@ -814,7 +814,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         dV = (maxV-minV)/nc
         V = numpy.round(linspace(minV + dV/8, maxV-dV/2, nc)*100)/100.0
         #print "max=", maxV, V
-        C = ax.contour(X, Y, Z, V)#, colors="k")
+        C = ax.contour(X, Y, Z, V(#), colors="k")
         #C.clabel()
         fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
