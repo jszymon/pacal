@@ -7,7 +7,7 @@ from pylab import figure, show, rc
 import numpy as _np
 import time
 
-params.interpolation_nd.maxq = 9
+params.interpolation_nd.maxq = 4
 rc('axes', labelsize=18)
 rc('xtick', labelsize=15.0)
 rc('ytick', labelsize=15.0)
