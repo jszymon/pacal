@@ -122,7 +122,6 @@ class Model(object):
         # inverve transformation
         equation = self.rv_to_equation[dep_var] - dep_var.getSymname()
         solutions = eq_solve(self.rv_to_equation[dep_var], dep_var.getSymname(), free_var.getSymname())
-        #print solutions
         var_changes = []
         for uj in solutions:
             # remove complex valued solutions
@@ -131,7 +130,6 @@ class Model(object):
             for v in vj: 
                 #print self.sym_to_rv[v].range()
                 hvj[v]=self.sym_to_rv[v].range()[1]                
-            #print "---->>>>", hvj, uj, sympy.im(uj.subs(hvj))==0, uj.subs(hvj)
             if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
                 continue
             uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
@@ -169,7 +167,8 @@ class Model(object):
 
     def eliminate(self, var):
         var = self.prepare_var(var)
-        #print "eliminate variable: ", var.getSymname()
+        if params.models.debug_info:
+            print "eliminate variable: ", var.getSymname()
         if var in self.free_rvs:
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
@@ -229,7 +228,7 @@ class Model(object):
         for v, x in zip(cond_rvs, cond_X):
             cond[v] = x
         while wanted_rvs != set(M.all_vars):
-            #print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
+            # print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
             # eliminate all dangling variables
             to_remove = []
             for v in M.dep_rvs:
@@ -248,13 +247,12 @@ class Model(object):
                 if v not in wanted_rvs:
                     M.eliminate(v)
                 else:
-                    M.subst_for_rv_in_children(var, M.rv_to_equation[v])
+                    M.subst_for_rv_in_children(v, M.rv_to_equation[v])
             # a single itertion below reverses the DAG
             exchanged_vars = set()
             while wanted_rvs | exchanged_vars != set(M.all_vars):
                 #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
                 #print M
-                #print
                 # find a free var to eliminate
                 to_remove = []
                 for v in M.free_rvs:
