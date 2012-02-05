@@ -16,6 +16,8 @@ from pacal.depvars.models import *
 from pacal.segments import *
 from pacal import *
  
+from pylab import figure, show, rc, ylim, title, legend, subplot
+
 params.interpolation.maxn = 100
 params.interpolation.use_cheb_2nd = False
 
@@ -148,7 +150,7 @@ def regmean(x, F=F, type=2):
     if type == 2: return distr.median()
     if type == 3: return distr.mode()     
     if type == 4: return distr.quantile(0.975)   
-    if type == 5: return distr.quantile(0.025);      
+    if type == 5: return distr.quantile(0.025);     
 xx = linspace(0.01, 1.99, 20)
 cols = ["r", "g", "b", "k", "k"]
 labels = ["mean", "median", "mode", "ci_U", "ci_L"]
