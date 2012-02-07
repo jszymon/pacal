@@ -814,9 +814,9 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         dV = (maxV-minV)/nc
         V = numpy.round(linspace(minV + dV/8, maxV-dV/2, nc)*100)/100.0
         #print "max=", maxV, V
-        C = ax.contour(X, Y, Z, V(#), colors="k")
+        C = ax.contour(X, Y, Z, V)#), colors="k")
         #C.clabel()
-        fig.colorbar(C)
+        fig.colorbar(C) 
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
