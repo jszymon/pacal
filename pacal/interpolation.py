@@ -25,7 +25,7 @@ from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 
 from numpy import cumsum, flipud, real, imag, linspace
 from numpy.linalg import eigvals
-from numpy.polynomial.chebyshev import chebroots
+#from numpy.polynomial.chebyshev import chebroots
 import params
 
 from utils import cheb_nodes_log, incremental_cheb_nodes_log
@@ -33,7 +33,7 @@ from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_c
 from utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
 from utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
 from utils import debug_plot
-from utils import chebt2, ichebt2, chebt1, ichebt1
+from utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
 
 from vartransforms import *
 
@@ -146,11 +146,11 @@ class BarycentricInterpolator(Interpolator):
         if use_2nd:
             c = chebt2(self.Ys)
             n = len(c);
-            cdiff = zeros(n + 1);                # initialize vector {c_r}
-            v = concatenate(([0, 0], 2 * arange(n - 1, 0, -1) * c[0:-1])); # temporal vector
-            cdiff[0::2] = cumsum(v[0::2]); # compute c_{n-2}, c_{n-4},...
-            cdiff[1::2] = cumsum(v[1::2]); # compute c_{n-3}, c_{n-5},...
-            cdiff[-1] = .5 * cdiff[-1];           # rectify the value for c_0
+            cdiff = zeros(n + 1);
+            v = concatenate(([0, 0], 2 * arange(n - 1, 0, -1) * c[0:-1]));
+            cdiff[0::2] = cumsum(v[0::2]);
+            cdiff[1::2] = cumsum(v[1::2]);
+            cdiff[-1] = .5 * cdiff[-1];
             cdiff = cdiff[2:];
             Ydiffvals = ichebt2(cdiff) / ((self.Xs[-1] - self.Xs[0]) * 0.5) 
             Ydiffvals = flipud(Ydiffvals)
@@ -158,9 +158,9 @@ class BarycentricInterpolator(Interpolator):
             f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
             return f 
         else:
-            Xs, Ws = chebspace(self.a, self.b, self.n+2, returnWeights=True)
+            Xs, Ws = chebspace(self.Xs[0], self.Xs[-1], len(self.Xs)+2, returnWeights=True)
             Ys = self.interp_at(Xs)
-            return BarycentricInterpolator(Xs, Ys, Ws).diff()
+            return BarycentricInterpolator(Xs, Ys, Ws).diff(use_2nd=True)
             
     def roots(self, use_2nd=True):
         if use_2nd:
@@ -868,17 +868,33 @@ class MInfInterpolator(PInfInterpolator):
 if __name__ == "__main__":
     from pylab import *
     from pacal import *
-    B= BetaDistr(1,1) * UniformDistr(0,3)
-    B =(UniformDistr(0,3)+UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1)) * (UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1))
-    B = BetaDistr(4,4) *  (UniformDistr(-1,1)+UniformDistr(-1,2))
-    B.summary(show_moments=True)
-    print B.get_piecewise_pdf()
+#    B= BetaDistr(1,1) * UniformDistr(0,3)
+#    B =(UniformDistr(0,3)+UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1)) * (UniformDistr(0,1)+UniformDistr(0,1)+UniformDistr(0,1))
+#    B = BetaDistr(4,4) *  (UniformDistr(-1,1)+UniformDistr(-1,2))
+#    B.summary(show_moments=True)
+#    print B.get_piecewise_pdf()
+    from pacal.segments import PiecewiseFunction
+    B = PiecewiseFunction(fun=lambda x:sin(3*x), breakPoints=[-1,0,1])
     
-    D = B.get_piecewise_pdf().diff()
+    B = B.toInterpolated()
+    print B.segments[0].f.__class__
+    #B = B.trimInterpolators(abstol=1e-15)
+    print B.segments[0].f.Ys, B.segments[0].f.__class__
+    D = B.diff()
+    D2 = D.diff()
+    D3 = D2.diff()
+    D4 = D3.diff()
+    D5 = D4.diff()
+    print D.segments[0].f.Ys, D.segments[0].f.__class__ 
+    print D2.segments[0].f.Ys
     print D.roots()
     figure()
     B.plot()
     D.plot()
+    D2.plot()
+    D3.plot()
+    D4.plot()
+    D5.plot()
     show()
     0/0
     #Xs = [-1,0,1]
