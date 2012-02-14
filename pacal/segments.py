@@ -109,7 +109,9 @@ class Segment(object):
     def getSegmentSpace(self, 
              xmin = None,
              xmax = None,
-             numberOfPoints = params.segments.plot.numberOfPoints):
+             numberOfPoints = None):
+        if numberOfPoints is None:
+            numberOfPoints = params.segments.plot.numberOfPoints
         leftRightEpsilon = params.segments.plot.leftRightEpsilon
         if (xmin == None):
             xmin = self.findLeftpoint()
@@ -712,8 +714,10 @@ class SegmentWithPole(Segment):
              xmax = None,
              show_nodes = True, 
              show_segments = True, 
-             numberOfPoints = params.segments.plot.numberOfPoints, **args):
+             numberOfPoints = None, **args):
         leftRightEpsilon = params.segments.plot.leftRightEpsilon
+        if numberOfPoints is None:
+            numberOfPoints = params.segments.plot.numberOfPoints
         if (xmin == None):
             xmin = self.a
         if (xmax == None):
@@ -1169,10 +1173,18 @@ class PiecewiseFunction(object):
     def plot(self,
              xmin = None,
              xmax = None,
-             cl = params.segments.plot.ciLevel,
-             show_nodes = params.segments.plot.showNodes, 
-             show_segments = params.segments.plot.showSegments, 
-             numberOfPoints = params.segments.plot.numberOfPoints, **args):
+             cl = None,
+             show_nodes = None, 
+             show_segments = None, 
+             numberOfPoints = None, **args):
+        if cl is None:
+            cl = params.segments.plot.ciLevel        
+        if show_nodes is None:
+            show_nodes = params.segments.plot.showNodes        
+        if show_segments is None:
+            show_segments = params.segments.plot.showSegments        
+        if numberOfPoints is None:
+            numberOfPoints = params.segments.plot.numberOfPoints        
         if not params.segments.plot.showSegments and "color" not in args:
             args["color"] = "k"
         if cl is not None and xmin is None and xmax is None:
@@ -1209,7 +1221,9 @@ class PiecewiseFunction(object):
     def getPiecewiseSpace(self, 
              xmin = None,
              xmax = None,
-             numberOfPoints = params.segments.plot.numberOfPoints, **args):
+             numberOfPoints = None, **args):
+        if numberOfPoints is None:
+            numberOfPoints = params.segments.plot.numberOfPoints        
         xi =array([])
         for seg in self.segments:
             xi = concatenate([xi,seg.getSegmentSpace(xmin = xmin,
