@@ -21,9 +21,11 @@ from numpy import isinf, log, exp, logspace, Inf
 from numpy import finfo, double, isscalar, asfarray
 from pylab import plot, loglog, show, semilogx, sqrt, figure
 from pylab import real, ones_like
-
+from numpy import zeros, sort
+from numpy.linalg import eigvals
 from numpy.fft.fftpack import fft, ifft
 from numpy import real, concatenate
+
 
 #from scipy.fftpack.basic import fft
 from scipy.optimize import fmin_cg,fmin, fmin_tnc
@@ -175,6 +177,21 @@ def ichebt1(c):
     f = (n-1)*concatenate(([2*v(1)], v[-2:n:-1]+v[1:-1], 2*v[-1]));
     print "|", f
     return f
+
+def cheb1companion(c):
+    """s_n[f] = sum_{i=0}^n c_i T_i(x)"""
+    n = len(c)
+    CT = zeros((n-1, n-1))
+    CT[0,1] = 1
+    i=arange(1,n-2)
+    CT[i, i-1] = 0.5
+    CT[i, i+1] = 0.5
+    i=arange(0,n-1)
+    CT[-1, i] = -.5*c[0:-1]/c[-1]
+    CT[-1, -2] = CT[-1, -2] + .5
+    return CT
+def chebroots(c):
+    return sort(eigvals(cheb1companion(c)))
 def epsunique(tab, eps = params.segments.unique_eps):
     ub = unique(tab[isnan(tab)==False])
     return ub[~isfinite(ub) | hstack((True, (diff(ub)/maximum(1,abs(ub[1:])))>eps))]
@@ -415,7 +432,7 @@ def maxprob(pdf, x0, lub=None):
         #print x, f
         return f 
     #return fmin_tnc(fun, x0,bounds=lub)
-    return fmin_cg(fun, x0, gtol=1e-10)
+    return fmin_cg(fun, x0, gtol=1e-14)
     #return fmin(fun, x0)
 
 try:
@@ -496,6 +513,14 @@ def ordinal_ending(n):
 if __name__ == "__main__":
     from pacal import *
     import time
+    import numpy.polynomial.chebyshev as ch    
+    c = array([1, 2, 3, 1])
+    CT =cheb1companion(array([1, 2, 3, 1]))
+    print CT
+    print chebroots(c)
+    print ch.chebroots(c)
+    print chebroots(c) - ch.chebroots(c)
+    0/0
     #print taylor_coeff(lambda x:exp(x), 30) 
     N = NormalDistr()
     fun  = N.mgf()
