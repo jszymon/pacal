@@ -886,7 +886,7 @@ class PiecewiseFunction(object):
             self.rpoles = rpoles      
         self.breaks=[]
         if fun is not None:
-            assert(len(breakPoints)>1 and breakPoints[0]<breakPoints[1]<=breakPoints[-1])
+            assert(len(breakPoints)>1 and breakPoints[0]<breakPoints[1]<=breakPoints[-1]), breakPoints
             assert(len(breakPoints) == len(self.rpoles) == len(self.lpoles))
             self.breaks = breakPoints
             self.segments = []

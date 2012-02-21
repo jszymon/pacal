@@ -304,8 +304,9 @@ class ShiftedScaledRV(OpRV):
         self.shift = shift
         self.scale = scale
         super(ShiftedScaledRV, self).__init__([d], sym = (d.getSymname() * self.scale + self.shift))
-        self.a = d.a * self.scale + self.shift
-        self.b = d.b * self.scale + self.shift
+        a = d.a * self.scale + self.shift
+        b = d.b * self.scale + self.shift
+        self.a, self.b = min(a, b), max(a, b)
         self.d = d
     def __str__(self):
         if self.shift == 0 and self.scale == 1:
