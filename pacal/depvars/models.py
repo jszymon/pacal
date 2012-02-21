@@ -53,7 +53,7 @@ class Model(object):
         s += "free_vars:\n"
         for rv in self.free_rvs:
             s += "   " + str(rv.getSymname()) + " ~ " + str(rv.getName()) + "\n" 
-        s += "dep vars:  " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.dep_rvs) + "\n"
+        s += "dep vars:  " + ", ".join(str(rv.getSymname()) for rv in self.dep_rvs) + "\n"
         s += "Equations:\n"
         for rv, eq in self.rv_to_equation.iteritems():
             s += str(rv.getSymname()) + " = " + str(eq) + "(" + str(self.eval_var(rv)) + ")\n"
@@ -363,7 +363,6 @@ class Model(object):
             pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
             pfun.plot(label = str(self.nddistr.Vars[0].getSymname()), **kwargs)
             legend()
-            pfun.summary()
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 2:
             plot_2d_distr(self.nddistr, **kwargs)
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
