@@ -150,8 +150,8 @@ class RV(object):
         if len(var.parents)==0:
             if not var in lista:
                 lista.add(var)
-        for p in var.parents:            
-            self.getParentsDep(p, lista) 
+        for p in var.parents:    
+            self.getParentsFree(p, lista) 
         return lista
     def getParentsDep(self, var=None, lista=set()):
         if var is None:
@@ -354,8 +354,8 @@ class InvRV(OpRV):
         self.d = d
     def __str__(self):
         return "1/#{0}".format(id(self.d))    
-    def getName(self):
-        return "1/{0}".format(self.d.getName())    
+    #def getName(self):
+    #    return "1/{0}".format(self.d.getName())    
     def getName(self):
         d_name = self.d.getName()
         if isinstance(self.d, OpRV) and not isinstance(self.d, FuncRV):
@@ -534,6 +534,7 @@ if __name__ == "__main__":
     z = RV(sym="z")
     u = x + y
     print ">>", u.getParentsAll()
+    print ">>", u.getParentsFree()
     u.setSym("u")
     print u.getEquations()
     v = u + z 
