@@ -24,7 +24,7 @@ from pylab import real, ones_like
 from numpy import zeros, sort
 from numpy.linalg import eigvals
 from numpy.fft.fftpack import fft, ifft
-from numpy import real, concatenate
+from numpy import real, concatenate, linspace, argmin
 
 
 #from scipy.fftpack.basic import fft
@@ -434,6 +434,17 @@ def maxprob(pdf, x0, lub=None):
     #return fmin_tnc(fun, x0,bounds=lub)
     return fmin_cg(fun, x0, gtol=1e-14)
     #return fmin(fun, x0)
+def fmin2(fc, L, U, **kwargs):
+    xx = linspace(L,U,20)   
+    y = [fc(x) for x in xx]
+    ind = argmin(y)
+    xopt = fmin_cg(fc, xx[ind], maxiter=20, disp=0)
+    if xopt>U:
+        return U
+    if xopt<L:
+        return L
+    return xopt
+        
 
 try:
     from math import lgamma
