@@ -12,20 +12,21 @@ from pacal.distr import Distr
 from pacal.standard_distr import *
 #from pacal.nddistr import NDDistr, NDInterpolatedDistr, NDFun
 
-from pacal.utils import epsunique, bisect
+from pacal.utils import epsunique, bisect, fmin2
 
 from pacal.indeparith import _findSegList, convdiracs
 from pacal.integration import integrate_fejer2, integrate_iter
 
 from pacal.depvars.nddistr import NDDistr, NDFun
-#import pylab
+import pylab as plt
 
 import sympy
 import numpy as np
 from sympy import Symbol, diff, pprint, simplify
 
-from pylab import meshgrid, contour, xlabel, ylabel, gca
+from pylab import meshgrid, contour, xlabel, ylabel, gca, figure
 import mpl_toolkits.mplot3d.axes3d as p3
+
 
 try:
     from scipy.optimize.optimize import fminbound
@@ -114,7 +115,7 @@ class Copula(NDDistr):
         #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
         ax = fig.add_subplot(121, projection='3d')
         #ax = p3.Axes3D(fig)
-        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', cmap=cm.jet, antialiased=True)
+        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
         cset = ax.contour(X, Y, Z, zdir='z', offset=0)
         cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
         cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
@@ -296,9 +297,56 @@ class MCopula(Copula):
         return mi
     def _segmin(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
             debug_info = False, debug_plot = False):   
-        xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
-        return max(xopt), 0 #fun(xopt), 0
-    
+        xopt = fmin2(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
+        print ">>>", xopt, fun(xopt)
+        return xopt, 0#fun(xopt), 0
+    def debug_plot(self, n=50):
+        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
+        #Z = self.jcdf(f, g, X, Y)
+        if self.marginals is not None and len(self.marginals) > 1:
+            f, g = self.marginals[:2]
+            self.setMarginals((f, g))
+        else:
+            f, g = UniformDistr(), UniformDistr()
+            
+        Lf, Uf = f.ci(0.01)
+        Lg, Ug = g.ci(0.01)
+        deltaf = (Uf - Lf) / n
+        deltag = (Ug - Lg) / n
+           
+        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
+        Z = self.cdf(X, Y)
+        #Z2_ = self.jpdf_(f, g, X, Y)
+        Z2 = self.pdf(X, Y)
+        fig = figure(figsize=plt.figaspect(0.5))
+        #cs = ax.contour3D(X,Y, Z, n)
+        #ax.clabel(cs)
+        #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
+        ax = fig.add_subplot(121, projection='3d')
+        #ax = p3.Axes3D(fig)
+        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
+        cset = ax.contour(X, Y, Z, zdir='z', offset=0)
+        cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
+        cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
+        ax.set_xlabel('X')
+        ax.set_xlim3d(Lf, Uf)
+        ax.set_ylabel('Y')
+        ax.set_ylim3d(Lg, Ug)
+        ax.set_zlabel('Z')
+        #ax.set_zlim3d(0, 1)
+        # wykres F(x)=G(Y)
+        F = f.get_piecewise_cdf()
+        G = g.get_piecewise_cdf()
+        t = linspace(0.01, 0.99,100)
+        
+        ax = fig.add_subplot(122,  projection='3d')
+        X = f.quantile(t)
+        Y = g.quantile(t)
+        Z = f(X)*g(Y)
+        ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
+                    cstride = 1, rstride = 1,# cmap=cm.jet,
+                    linewidth = -1, edgecolor="b", color = "b", alpha=1, antialiased = False)
+
 class WCopula(Copula):
     def __init__(self, marginals=None):
         super(WCopula, self).__init__(marginals)
@@ -317,10 +365,59 @@ class WCopula(Copula):
         else:
             si[ind] = 0
         return si
+    def debug_plot(self, n=50):
+        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
+        #Z = self.jcdf(f, g, X, Y)
+        if self.marginals is not None and len(self.marginals) > 1:
+            f, g = self.marginals[:2]
+            self.setMarginals((f, g))
+        else:
+            f, g = UniformDistr(), UniformDistr()
+            
+        Lf, Uf = f.ci(0.01)
+        Lg, Ug = g.ci(0.01)
+        deltaf = (Uf - Lf) / n
+        deltag = (Ug - Lg) / n
+           
+        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
+        Z = self.cdf(X, Y)
+        #Z2_ = self.jpdf_(f, g, X, Y)
+        Z2 = self.pdf(X, Y)
+        fig = figure(figsize=plt.figaspect(0.5))
+        #cs = ax.contour3D(X,Y, Z, n)
+        #ax.clabel(cs)
+        #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
+        ax = fig.add_subplot(121, projection='3d')
+        #ax = p3.Axes3D(fig)
+        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
+        cset = ax.contour(X, Y, Z, zdir='z', offset=0)
+        cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
+        cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
+        ax.set_xlabel('X')
+        ax.set_xlim3d(Lf, Uf)
+        ax.set_ylabel('Y')
+        ax.set_ylim3d(Lg, Ug)
+        ax.set_zlabel('Z')
+        #ax.set_zlim3d(0, 1)
+        
+        # wykres F(x)=G(Y)
+        t = linspace(0.01, 0.99,100)
+        ax = fig.add_subplot(122, projection='3d')
+        X = f.quantile(t)
+        Y = g.quantile(1-t)
+        xlabel(f.getSymname())
+        ylabel(g.getSymname())
+        Z = f(X)*g(Y)
+        ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
+                    cstride = 1, rstride = 1,# cmap=cm.jet,
+                    linewidth = -1, edgecolor="b", color = "b", alpha=1, antialiased = False)
+    
     def _segmax(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
             debug_info = False, debug_plot = False):
-        xopt = fminbound(fun, L, U, xtol = 1e-16)
-        return fun(xopt), 0
+        #xopt = fminbound(fun, L, U, xtol = 1e-16)
+        #xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
+        xopt = fmin2(lambda x: 1-fun(float(x)), L, U, xtol = 1e-16)
+        return xopt, 0
 class ArchimedeanCopula(Copula):
     # TODO 
     def __init__(self, fi=log, fi_deriv=lambda s: 1 / s,
