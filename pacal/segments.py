@@ -1676,7 +1676,8 @@ class PiecewiseFunction(object):
             # coinituaous part of cumilative function
             for i in range(len(vals)):
                 segi = self.segments[i]
-                if (vals[i][0]<=y<=vals[i][1]):   
+                #if (vals[i][0]<=y<=vals[i][1]):   
+                if (vals[i][0]<=y<=vals[i][1] or vals[i][0]>=y>=vals[i][1]):   
                     if segi.isMInf():
                         x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
                     elif segi.isPInf():
@@ -1693,7 +1694,8 @@ class PiecewiseFunction(object):
             # coinituaous part of cumilative function
             for i in range(len(vals)):
                 segi = self.segments[i]
-                ind = where((vals[i][0]<=y) & (y<=vals[i][1]))                   
+                #ind = where((vals[i][0]<=y) & (y<=vals[i][1]) )                   
+                ind = where(((vals[i][0]<=y) & (y<=vals[i][1]) ) | ((vals[i][0]>=y) & (y>=vals[i][1])))                   
                 if segi.isMInf():
                     x[ind] = [findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
                 elif segi.isPInf():
@@ -1711,21 +1713,43 @@ class PiecewiseFunction(object):
             x = NaN
         return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
 
-    def invfun(self, use_end_poles = True, use_interpolated=True):
+    def invfun(self, use_end_poles = True, use_interpolated=True, rangeY=[0,1]):
         """
         return inverse of cumulative distribution function as piecewise function
         """
-        def _tmp_inv(x):
-            return self.inverse(x)
-        vals = self.getSegVals()
+        
         breakvals = []
         rpoles = []
         lpoles = []
-        for i in range(len(vals)):
-            breakvals.extend(vals[i])
-        breakvals[0] = 0
-        breakvals[-1] = 1
+        
+
+        # only for distribution
+        if rangeY is None:
+            vals = self.getSegVals()
+            print "vals=", vals
+            for i in range(len(vals)):
+                breakvals.extend(vals[i])
+            breakvals[0] = vals[0][0]
+            breakvals[-1] = vals[-1][1]
+        else:
+            
+            #breakvals[0] = rangeY[0]
+            #breakvals[-1] = rangeY[1]
+            breakvals=rangeY
+        
+#        if vals[0]>=0 and vals[0]<1:
+#            breakvals[0] = 0
+#        if vals[-1]>0 and vals[-1]<=1: 
+#            breakvals[-1] = 1
+        print ">>>", breakvals
+        def _tmp_inv(x):
+            return self.inverse(x)
+
+        
         breakvals = epsunique(array(breakvals),0.0001)    
+        print ">>>", breakvals
+
+        
         for i in breakvals:
             lpoles.append(False)
             rpoles.append(False)
