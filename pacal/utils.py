@@ -438,7 +438,8 @@ def fmin2(fc, L, U, **kwargs):
     xx = linspace(L,U,20)   
     y = [fc(x) for x in xx]
     ind = argmin(y)
-    xopt = fmin_cg(fc, xx[ind], maxiter=20, disp=0)
+    #xopt = fmin_cg(fc, xx[ind], maxiter=20, disp=0)
+    xopt = fmin(fc, xx[ind], maxiter=20, disp=0)
     if xopt>U:
         return U
     if xopt<L:
