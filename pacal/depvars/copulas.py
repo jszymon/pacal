@@ -2,6 +2,7 @@
 
 from pacal.integration import *
 from pacal.interpolation import *
+from matplotlib.collections import PolyCollection
 
 import pacal.distr
 #from pacal import *
@@ -24,7 +25,7 @@ import sympy
 import numpy as np
 from sympy import Symbol, diff, pprint, simplify
 
-from pylab import meshgrid, contour, xlabel, ylabel, gca, figure
+from pylab import meshgrid, contour, xlabel, ylabel, gca, figure, axis
 import mpl_toolkits.mplot3d.axes3d as p3
 
 
@@ -73,7 +74,12 @@ class Copula(NDDistr):
         else:
             F = [self.marginals[i].get_piecewise_cdf_interp()(X[i]) for i in range(len(X))]
             return self.ccdf(*F)
-        
+    
+    def dualcdf(self, *X):
+        si = zeros_like(X[0])
+        for i in range(len(X)):
+            si += self.marginals[i].get_piecewise_cdf_interp()(X[i]) 
+        return si - self.ccdf(*X)    
     def jpdf_(self, f, g, x, y):
         """joint probability density function with marginals *X"""
         if isinstance(f, Distr):
@@ -91,7 +97,7 @@ class Copula(NDDistr):
     def ccdf(self, *X):
         """Copula, joint cumulative distribution function  with uniform  U[0,1] marginals"""
         pass
-    def debug_plot(self, n=50):
+    def debug_plot(self, n=30, show_pdf=False):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -104,41 +110,46 @@ class Copula(NDDistr):
         Lg, Ug = g.ci(0.01)
         deltaf = (Uf - Lf) / n
         deltag = (Ug - Lg) / n
-           
         X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
-        Z = self.cdf(X, Y)
-        #Z2_ = self.jpdf_(f, g, X, Y)
-        Z2 = self.pdf(X, Y)
-        fig = figure(figsize=plt.figaspect(0.5))
-        #cs = ax.contour3D(X,Y, Z, n)
-        #ax.clabel(cs)
-        #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
-        ax = fig.add_subplot(121, projection='3d')
-        #ax = p3.Axes3D(fig)
-        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
-        cset = ax.contour(X, Y, Z, zdir='z', offset=0)
-        cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
-        cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
-        ax.set_xlabel('X')
-        ax.set_xlim3d(Lf, Uf)
-        ax.set_ylabel('Y')
-        ax.set_ylim3d(Lg, Ug)
-        ax.set_zlabel('Z')
-        #ax.set_zlim3d(0, 1)
-        try:
+        if not show_pdf:
+            Z = self.cdf(X, Y)
+            fig = figure(figsize=plt.figaspect(1))
+            ax = fig.add_subplot(111, projection='3d')
+            #ax = p3.Axes3D(fig)
+            xf = arange(Lf, Uf, deltaf)
+            xg = arange(Lg, Ug, deltag)
+            cf = f.cdf(xf)
+            cg = g.cdf(xg)
+            ax.plot(xf, cf, zs=Ug, zdir='y', linewidth=3.0, color="k")
+            ax.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
+            ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
+            cset = ax.contour(X, Y, Z, zdir='z', color='k', offset=0)
+            ax.set_xlabel('X')
+            ax.set_xlim3d(Lf, Uf)
+            ax.set_ylabel('Y')
+            ax.set_ylim3d(Lg, Ug)
+            ax.set_zlabel('Z')
+            ax.set_zlim3d(0, 1)
+        else:
+            fig = figure(figsize=plt.figaspect(1))
             ax2 = fig.add_subplot(122, projection='3d')
-            #ax2 = p3.Axes3D(fig)
-            ax2.plot_wireframe(X, Y, Z2, rstride=1, cstride=1, color='k')
-            cset = ax2.contour(X, Y, Z2, zdir='z', offset=0)
-            cset = ax2.contour(X, Y, Z2, zdir='x', offset=Lf)
-            cset = ax2.contour(X, Y, Z2, zdir='y', offset=Ug)
+            Z2 = self.pdf(X, Y)
+            xf = arange(Lf, Uf, deltaf)
+            xg = arange(Lg, Ug, deltag)
+            cf = f.pdf(xf)
+            cg = g.pdf(xg)
+            ax2.plot(xf, cf, zs=Ug, zdir='y', linewidth=3.0, color="k")
+            ax2.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
+            ax2.plot_wireframe(X, Y, Z2, rstride=1, cstride=1, color='k', antialiased=True)
+            cset = ax2.contour(X, Y, Z2, color='k', zdir='z', offset=0)
             ax2.set_xlabel('X')
             ax2.set_xlim3d(Lf, Uf)
             ax2.set_ylabel('Y')
             ax2.set_ylim3d(Lg, Ug)
             ax2.set_zlabel('Z')
-        except(Exception):
-            pass
+            zlim = 1.01*np.max(array([np.max(Z2), max(cf), max(cg)]))
+            ax2.set_zlim3d(0,zlim)
+
 
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
@@ -297,10 +308,9 @@ class MCopula(Copula):
         return mi
     def _segmin(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
             debug_info = False, debug_plot = False):   
-        xopt = fmin2(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
-        print ">>>", xopt, fun(xopt)
+        xopt = fmin2(lambda x: fun(float(x)), L, U, xtol = 1e-16)
         return xopt, 0#fun(xopt), 0
-    def debug_plot(self, n=50):
+    def debug_plot(self, n=40, show_pdf=False):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -315,39 +325,47 @@ class MCopula(Copula):
         deltag = (Ug - Lg) / n
            
         X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
-        Z = self.cdf(X, Y)
-        #Z2_ = self.jpdf_(f, g, X, Y)
-        Z2 = self.pdf(X, Y)
-        fig = figure(figsize=plt.figaspect(0.5))
-        #cs = ax.contour3D(X,Y, Z, n)
-        #ax.clabel(cs)
-        #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
-        ax = fig.add_subplot(121, projection='3d')
-        #ax = p3.Axes3D(fig)
-        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
-        cset = ax.contour(X, Y, Z, zdir='z', offset=0)
-        cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
-        cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
-        ax.set_xlabel('X')
-        ax.set_xlim3d(Lf, Uf)
-        ax.set_ylabel('Y')
-        ax.set_ylim3d(Lg, Ug)
-        ax.set_zlabel('Z')
-        #ax.set_zlim3d(0, 1)
-        # wykres F(x)=G(Y)
-        F = f.get_piecewise_cdf()
-        G = g.get_piecewise_cdf()
-        t = linspace(0.01, 0.99,100)
-        
-        ax = fig.add_subplot(122,  projection='3d')
-        X = f.quantile(t)
-        Y = g.quantile(t)
-        Z = f(X)*g(Y)
-        ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
-                    cstride = 1, rstride = 1,# cmap=cm.jet,
-                    linewidth = -1, edgecolor="b", color = "b", alpha=1, antialiased = False)
-
-class WCopula(Copula):
+        if not show_pdf:
+            Z = self.cdf(X, Y)
+            Z2 = self.pdf(X, Y)
+            fig = figure(figsize=plt.figaspect(1))
+            ax = fig.add_subplot(111, projection='3d')
+            #ax = p3.Axes3D(fig)
+            xf = arange(Lf, Uf, deltaf)
+            xg = arange(Lg, Ug, deltag)
+            cf = f.cdf(xf)
+            cg = g.cdf(xg)
+            ax.plot(xf, cf, zs=Ug, zdir='y', linewidth=3.0, color="k")
+            ax.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
+            cset = ax.contour(X, Y, Z, zdir='z', offset=0)
+            ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
+            ax.set_xlabel('X')
+            ax.set_xlim3d(Lf, Uf)
+            ax.set_ylabel('Y')
+            ax.set_ylim3d(Lg, Ug)
+            ax.set_zlabel('Z')
+            ax.set_zlim3d(0, 1)
+            # wykres F(x)=G(Y)  
+        else:      
+            fig = figure(figsize=plt.figaspect(1))
+            ax = fig.add_subplot(111, projection='3d')
+            #ax = fig.add_subplot(122,  projection='3d')
+            t = linspace(0.01, 0.99,40)
+            X = f.quantile(t)
+            Y = g.quantile(t)
+            Z = f(X)*g(Y)
+            cf = f.pdf(xf)
+            cg = g.pdf(xg)
+            ax.plot(xf, cf, zs=Ug, zdir='y', linewidth=3.0, color="k")
+            ax.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
+            ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
+                        cstride = 1, rstride = 1,# cmap=cm.jet,
+                        linewidth = -1, edgecolor="k", color = "c", alpha=0.7, antialiased = True)
+            ax.axis((Lf, Uf, Lg, Ug))
+            zlim = 1.01*np.max(array([max(Z), max(cf), max(cg)]))
+            ax.set_zlim3d(0,zlim)
+            
+class WCopula(MCopula):
     def __init__(self, marginals=None):
         super(WCopula, self).__init__(marginals)
         self._segint = self._segmax
@@ -364,60 +382,20 @@ class WCopula(Copula):
                 si = 0.0            
         else:
             si[ind] = 0
-        return si
-    def debug_plot(self, n=50):
-        #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
-        #Z = self.jcdf(f, g, X, Y)
-        if self.marginals is not None and len(self.marginals) > 1:
-            f, g = self.marginals[:2]
-            self.setMarginals((f, g))
-        else:
-            f, g = UniformDistr(), UniformDistr()
-            
-        Lf, Uf = f.ci(0.01)
-        Lg, Ug = g.ci(0.01)
-        deltaf = (Uf - Lf) / n
-        deltag = (Ug - Lg) / n
-           
-        X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
-        Z = self.cdf(X, Y)
-        #Z2_ = self.jpdf_(f, g, X, Y)
-        Z2 = self.pdf(X, Y)
-        fig = figure(figsize=plt.figaspect(0.5))
-        #cs = ax.contour3D(X,Y, Z, n)
-        #ax.clabel(cs)
-        #ax.plot_surface(X, Y, Z, rstride=2, cstride=2, alpha=0.1)
-        ax = fig.add_subplot(121, projection='3d')
-        #ax = p3.Axes3D(fig)
-        ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
-        cset = ax.contour(X, Y, Z, zdir='z', offset=0)
-        cset = ax.contour(X, Y, Z, zdir='x', offset=Uf)
-        cset = ax.contour(X, Y, Z, zdir='y', offset=Ug)
-        ax.set_xlabel('X')
-        ax.set_xlim3d(Lf, Uf)
-        ax.set_ylabel('Y')
-        ax.set_ylim3d(Lg, Ug)
-        ax.set_zlabel('Z')
-        #ax.set_zlim3d(0, 1)
-        
-        # wykres F(x)=G(Y)
-        t = linspace(0.01, 0.99,100)
-        ax = fig.add_subplot(122, projection='3d')
-        X = f.quantile(t)
-        Y = g.quantile(1-t)
-        xlabel(f.getSymname())
-        ylabel(g.getSymname())
-        Z = f(X)*g(Y)
-        ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
-                    cstride = 1, rstride = 1,# cmap=cm.jet,
-                    linewidth = -1, edgecolor="b", color = "b", alpha=1, antialiased = False)
-    
+        return si        
     def _segmax(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
             debug_info = False, debug_plot = False):
         #xopt = fminbound(fun, L, U, xtol = 1e-16)
         #xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
         xopt = fmin2(lambda x: 1-fun(float(x)), L, U, xtol = 1e-16)
         return xopt, 0
+    def _segmin(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
+            debug_info = False, debug_plot = False):
+        #xopt = fminbound(fun, L, U, xtol = 1e-16)
+        #xopt = fminbound(lambda x: 100-fun(float(x)), L, U, xtol = 1e-16)
+        xopt = fmin2(lambda x: fun(float(x)), L, U, xtol = 1e-16)
+        return xopt, 0
+
 class ArchimedeanCopula(Copula):
     # TODO 
     def __init__(self, fi=log, fi_deriv=lambda s: 1 / s,
@@ -727,6 +705,7 @@ class FrankCopula2d(Copula):
             pi *= -expm1(-self.theta * xi)         
         yi = -self.one_over_theta * np.log1p(-pi / self.eta)
         return yi
+    
     
 def logexp_p1(x, a=1.0):
     """return log(a*exp(x) + 1)"""
