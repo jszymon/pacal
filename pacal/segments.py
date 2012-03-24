@@ -1717,39 +1717,27 @@ class PiecewiseFunction(object):
         """
         return inverse of cumulative distribution function as piecewise function
         """
-        
         breakvals = []
         rpoles = []
         lpoles = []
-        
-
         # only for distribution
         if rangeY is None:
             vals = self.getSegVals()
-            print "vals=", vals
             for i in range(len(vals)):
                 breakvals.extend(vals[i])
             breakvals[0] = vals[0][0]
             breakvals[-1] = vals[-1][1]
         else:
-            
             #breakvals[0] = rangeY[0]
             #breakvals[-1] = rangeY[1]
-            breakvals=rangeY
-        
+            breakvals=rangeY    
 #        if vals[0]>=0 and vals[0]<1:
 #            breakvals[0] = 0
 #        if vals[-1]>0 and vals[-1]<=1: 
 #            breakvals[-1] = 1
-        print ">>>", breakvals
         def _tmp_inv(x):
             return self.inverse(x)
-
-        
         breakvals = epsunique(array(breakvals),0.0001)    
-        print ">>>", breakvals
-
-        
         for i in breakvals:
             lpoles.append(False)
             rpoles.append(False)
