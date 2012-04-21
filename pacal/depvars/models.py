@@ -19,6 +19,7 @@ from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segm
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
+
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
         if not isinstance(nddistr, NDFun):

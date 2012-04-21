@@ -65,7 +65,11 @@ class RV(object):
     def getSymname(self):
         return self.symname
                 
-    def getEquations(self, node=None, l=[], r=[]):
+    def getEquations(self, node=None, l=None, r=None):
+        if l is None:
+            l = []
+        if r is None:
+            r = []
         if node is None:
             node = self
         p = node.parents
@@ -136,32 +140,25 @@ class RV(object):
         return len(self.parents)==0
     def isLinked(self):
         return len(self.parents)>0
-    def getParentsAll(self, var=None, lista=set()):
-        if var is None:
-            var=self
-        if not var in lista:
-                lista.add(var)
-        for p in var.parents:            
-            self.getParentsDep(p, lista) 
-        return lista
-    def getParentsFree(self, var=None, lista=set()):
-        if var is None:
-            var=self
-        if len(var.parents)==0:
-            if not var in lista:
-                lista.add(var)
-        for p in var.parents:    
-            self.getParentsFree(p, lista) 
-        return lista
-    def getParentsDep(self, var=None, lista=set()):
-        if var is None:
-            var=self
-        if len(var.parents)>0:
-            if var not in lista:
-                lista.add(var)
-        for p in var.parents:            
-            self.getParentsDep(p, lista) 
-        return lista
+    def getParentsAll(self):
+        l = set([self])
+        for p in self.parents:            
+            l.update(p.getParentsDep())
+        return l
+    def getParentsFree(self):
+        l = set()
+        if len(self.parents) == 0:
+            l.add(self)
+        for p in self.parents:    
+            l.update(p.getParentsFree())
+        return l
+    def getParentsDep(self):
+        l = set()
+        if len(self.parents) > 0:
+            l.add(self)
+        for p in self.parents:    
+            l.update(p.getParentsDep())
+        return l
     
     # overload arithmetic operators
     def __neg__(self):
