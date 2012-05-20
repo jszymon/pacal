@@ -97,7 +97,7 @@ class Copula(NDDistr):
     def ccdf(self, *X):
         """Copula, joint cumulative distribution function  with uniform  U[0,1] marginals"""
         pass
-    def debug_plot(self, n=30, show_pdf=False):
+    def debug_plot(self, n=40, show_pdf=False, azim=210, elev=30):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -114,7 +114,7 @@ class Copula(NDDistr):
         if not show_pdf:
             Z = self.cdf(X, Y)
             fig = figure(figsize=plt.figaspect(1))
-            ax = fig.add_subplot(111, projection='3d')
+            ax = fig.add_subplot(111, projection='3d', azim=azim, elev=elev)
             #ax = p3.Axes3D(fig)
             xf = arange(Lf, Uf, deltaf)
             xg = arange(Lg, Ug, deltag)
@@ -124,15 +124,15 @@ class Copula(NDDistr):
             ax.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
             ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
             cset = ax.contour(X, Y, Z, zdir='z', color='k', offset=0)
-            ax.set_xlabel('X')
+            ax.set_xlabel('$X$')
             ax.set_xlim3d(Lf, Uf)
-            ax.set_ylabel('Y')
+            ax.set_ylabel('$Y$')
             ax.set_ylim3d(Lg, Ug)
-            ax.set_zlabel('Z')
+            ax.set_zlabel('$Z$')
             ax.set_zlim3d(0, 1)
         else:
             fig = figure(figsize=plt.figaspect(1))
-            ax2 = fig.add_subplot(122, projection='3d')
+            ax2 = fig.add_subplot(111, projection='3d', azim=azim, elev=elev)
             Z2 = self.pdf(X, Y)
             xf = arange(Lf, Uf, deltaf)
             xg = arange(Lg, Ug, deltag)
@@ -142,11 +142,11 @@ class Copula(NDDistr):
             ax2.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
             ax2.plot_wireframe(X, Y, Z2, rstride=1, cstride=1, color='k', antialiased=True)
             cset = ax2.contour(X, Y, Z2, color='k', zdir='z', offset=0)
-            ax2.set_xlabel('X')
+            ax2.set_xlabel('$X$')
             ax2.set_xlim3d(Lf, Uf)
-            ax2.set_ylabel('Y')
+            ax2.set_ylabel('$Y$')
             ax2.set_ylim3d(Lg, Ug)
-            ax2.set_zlabel('Z')
+            ax2.set_zlabel('$Z$')
             zlim = 1.01*np.max(array([np.max(Z2), max(cf), max(cg)]))
             ax2.set_zlim3d(0,zlim)
 
@@ -199,6 +199,7 @@ class Copula(NDDistr):
             gmean = g.mean()           
             f0, f1 = f.get_piecewise_pdf().range()
             g0, g1 = g.get_piecewise_pdf().range() 
+            print fmean, gmean, var, c_var, f0, f1, g0, g1
             if i == j:
                 c, e = c, e = integrate_fejer2(lambda x: (x - fmean) ** 2 * f.pdf(x), f0, f1)                  
             else:
@@ -211,14 +212,17 @@ class Copula(NDDistr):
                     c[i, j] = self.cov(i, j)                                          
             return c
     def corrcoef(self, i=None, j=None):    
-        c = self.cov()
-        vi = sqrt(np.diag(c))            
-        vij = np.multiply.outer(vi, vi)
-        cc = c / vij
         if i is not None and j is not None:
-            return cc[i, j]
+            var, c_var = self.prepare_var([i, j])
+            dij = self.eliminate(c_var)                
+            f, g = dij.marginals[0], self.marginals[1]
+            return self.cov(i, j)/f.std()/g.std()
         else:
-            return cc  
+            c = zeros((self.d, self.d))
+            for i in range(self.d):
+                for j in range(self.d):
+                    c[i, j] = self.corrcoef(i, j)                                          
+            return c  
     def tau(self, i=None, j=None):
         """Kendall's tau: 4*\int C(x,y) dC(x,y)-1
         """
@@ -240,6 +244,10 @@ class Copula(NDDistr):
                 for j in range(self.d):
                     c[i, j] = self.ctau(i, j)                                          
             return c  
+    def beta(self, i=None, j=None):
+        """Blomqvist's beta: 4 * C(0.5, 0.5) - 1  
+        """                               
+        return 4*self.ccdf(0.5,0.5)-1  
     def rho_s(self, i=None, j=None):
         """Spearmans rho: 12*\int x*y dC(x,y)-3 = 12 \int C(d,y)dxdy - 3
         """
@@ -310,7 +318,7 @@ class MCopula(Copula):
             debug_info = False, debug_plot = False):   
         xopt = fmin2(lambda x: fun(float(x)), L, U, xtol = 1e-16)
         return xopt, 0#fun(xopt), 0
-    def debug_plot(self, n=40, show_pdf=False):
+    def debug_plot(self, n=40, show_pdf=False, azim=210, elev=30):
         #Z = self.cdf(f.get_piecewise_cdf()(X), g.get_piecewise_cdf()(Y))
         #Z = self.jcdf(f, g, X, Y)
         if self.marginals is not None and len(self.marginals) > 1:
@@ -329,7 +337,7 @@ class MCopula(Copula):
             Z = self.cdf(X, Y)
             Z2 = self.pdf(X, Y)
             fig = figure(figsize=plt.figaspect(1))
-            ax = fig.add_subplot(111, projection='3d')
+            ax = fig.add_subplot(111, projection='3d', azim=azim, elev=elev)
             #ax = p3.Axes3D(fig)
             xf = arange(Lf, Uf, deltaf)
             xg = arange(Lg, Ug, deltag)
@@ -339,11 +347,11 @@ class MCopula(Copula):
             ax.plot(xg, cg, zs=Uf, zdir='x', linewidth=3.0, color="k")
             cset = ax.contour(X, Y, Z, zdir='z', offset=0)
             ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)#cmap=cm.jet
-            ax.set_xlabel('X')
+            ax.set_xlabel('$X$')
             ax.set_xlim3d(Lf, Uf)
-            ax.set_ylabel('Y')
+            ax.set_ylabel('$Y$')
             ax.set_ylim3d(Lg, Ug)
-            ax.set_zlabel('Z')
+            ax.set_zlabel('$Z$')
             ax.set_zlim3d(0, 1)
             # wykres F(x)=G(Y)  
         else:      
