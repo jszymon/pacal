@@ -13,6 +13,7 @@ from distr import exp, log, atan, min, max, sqrt, sign, sin, cos, tan
 from standard_distr import FunDistr
 from standard_distr import NormalDistr
 from standard_distr import UniformDistr
+from standard_distr import TrapezoidalDistr
 from standard_distr import CauchyDistr
 from standard_distr import ChiSquareDistr
 from standard_distr import ExponentialDistr

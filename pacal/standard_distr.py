@@ -78,7 +78,8 @@ class MixDistr(Distr):
         for i in range(1,len(self.probs)):
             mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
             mixdistr.piecewise_pdf = mixdistr.get_piecewise_pdf() + mixi.get_piecewise_pdf()  
-        self.piecewise_pdf = mixdistr.piecewise_pdf        
+        self.piecewise_pdf = mixdistr.piecewise_pdf 
+        #self.piecewise_pdf = PiecewiseDistribution(fun=mixdistr.piecewise_pdf, breakPoints = mixdistr.piecewise_pdf.getBreaks())              
     def getName(self):
         return "MIX()".format()
     
@@ -86,6 +87,7 @@ class MixDistr(Distr):
     #    return self.fun(x)
     #def init_piecewise_pdf(self):
     #    self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints)
+
 
 class NormalDistr(Distr):
     def __init__(self, mu=0.0, sigma=1.0, **kwargs):
@@ -132,6 +134,29 @@ class UniformDistr(Distr):
         return "U({0},{1})".format(self.a, self.b)
     def range(self):
         return self.a, self.b
+    
+class TrapezoidalDistr(Distr):
+    def __init__(self, a=0.0, b=0.0, c=1.0, d=1.0, **kwargs):
+        super(TrapezoidalDistr, self).__init__(**kwargs)
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+        self.u = 2.0 / float(d+c-(b + a))
+    def init_piecewise_pdf(self):
+        self.piecewise_pdf = PiecewiseDistribution([])
+        if self.a<self.b:
+            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u*(x - self.a)/(self.b - self.a)))
+        if self.b<self.c:
+            self.piecewise_pdf.addSegment(ConstSegment(self.b, self.c, self.u))
+        if self.c<self.d:
+            self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u*(self.d  - x)/(self.d - self.c)))
+    def rand_raw(self, n=None):
+        return  self.rand_invcdf(n) # TODO !to improve it! 
+    def __str__(self):
+        return "Trapz({0},{1},{2},{3})#{4}".format(self.a, self.b,self.c, self.d, id(self))
+    def getName(self):
+        return "Trapz({0},{1},{2},{3})".format(self.a, self.b,self.c, self.d)
 
 class CauchyDistr(Distr):
     def __init__(self, gamma = 1.0, center = 0.0, **kwargs):

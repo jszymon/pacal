@@ -1037,8 +1037,8 @@ def max(*args):
         return _builtin_max(*args)
     
 class ConstDistr(DiscreteDistr):
-    def __init__(self, c = 0.0, **kwargs):
-        super(ConstDistr, self).__init__([c], [1.0], **kwargs)
+    def __init__(self, c = 0.0,  p=1.0, **kwargs):
+        super(ConstDistr, self).__init__([c], [p], **kwargs)
         self.c = c
     def rand_raw(self, n = None):
         r = zeros(n)
