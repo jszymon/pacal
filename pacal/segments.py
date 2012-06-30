@@ -27,7 +27,6 @@ except ImportError:
     have_Scipy_optimize = False
 
 
-import traceback
 
 class Segment(object):
     """Segment of piecewise continuous function, 
@@ -36,7 +35,8 @@ class Segment(object):
     def __init__(self, a, b, f, safe_a = None, safe_b = None):
         self.a = float(a)
         self.b = float(b)
-        self.f = f
+        if f is not None:
+            self.f = f
         # useful e.g. for singularities at ends
         if safe_a is None:
             safe_a = a
@@ -407,9 +407,9 @@ class Segment(object):
 class ConstSegment(Segment): 
     """constant function over finite interval 
     """    
-    def __init__(self, a, b, f):    
-        self.const = f
-        super(ConstSegment, self).__init__(a, b, lambda x: 0.0*x + f)
+    def __init__(self, a, b, c):
+        self.const = c
+        super(ConstSegment, self).__init__(a, b, None)
     def __call__(self, x):
         if size(x) == 1:
             x=asfarray(x)
@@ -425,7 +425,7 @@ class ConstSegment(Segment):
             b=self.b
         return self.const*(b-a)
     def f(self, x):
-        return self.const
+        return 0.0*x + self.const
 class MInfSegment(Segment):
     """Segment on the range [-inf, b)."""    
     def __init__(self, b, f):

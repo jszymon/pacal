@@ -34,7 +34,8 @@ class general(params_class):
     warn_on_dependent = True
     class distr(params_class):
         independent = True
-        
+    parallel = True
+    nprocs = None
 
 class pole_detection(params_class):
     max_pole_exponent = -1e-2 # exponents above this value are treated as poles

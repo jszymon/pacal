@@ -1,13 +1,14 @@
 """Probabilistic arithmetic on independent random variables."""
 
+import itertools
+from functools import partial
+import bisect
+
 from numpy import asfarray
 from numpy import multiply, add, divide
 from numpy import unique, isnan, isscalar, size
 from numpy import sign, isinf, isfinite
 from numpy import minimum, maximum, pi
-
-from functools import partial
-import bisect
 
 from matplotlib.mlab import find
 
@@ -154,124 +155,147 @@ def conv(f, g):
     fg_discr = convdiracs(f, g, fun = lambda x,y : x+y)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
-    
     return fg
+
+# The actual convolution:
+
+# Integrand for convolution along X axis
+fun_c1 = lambda segi, segj, x, t : segi.f(t)*segj.f(x-t)
+# Integrand for convolution along Y axis
+fun_c2 = lambda segi, segj, x, t : segi.f(x-t)*segj.f(t)
+# top wrapper
+
+
 def convx(segList, integration_par, xx):
     """convolution of f and g  
     """
     if isscalar(xx):
         xx=asfarray([xx])
-    wyn = zeros_like(xx)
-    
-    # Integrand for convolution along X axis
-    fun1 = lambda t : segi.f(t)*segj.f(x-t)
-    # Integrand for convolution along Y axis
-    fun2 = lambda t : segi.f(x-t)*segj.f(t)
-    
-    for j in xrange(len(xx)):
-        x = xx[j]
-        I = 0
-        err = 0
-        for segi, segj in segList:
-            if segi.isSegment() and segj.isSegment():
-                Lx = max(segi.safe_a, x-segj.safe_b)
-                Ux = min(segi.safe_b, x-segj.safe_a)
-                Ly = max(segj.safe_a, x-segi.safe_b)
-                Uy = min(segj.safe_b, x-segi.safe_a)
 
-                if not isinf(segi.a) and not isinf(segj.a) and not isinf(segi.b) and not isinf(segj.b):
-                    # both segments finite, check poles
-                    poleLi, poleRi = _testConvPole(segi, Lx, Ux)
-                    poleLj, poleRj = _testConvPole(segj, Ly, Uy)
-                    poleL = poleLi or poleRj
-                    poleU = poleRi or poleLj
-                    if poleL and poleU:
-                        Mx = (Lx + Ux)/2
-                        My = (Ly + Uy)/2
-                        if x > 0:
-                            i1, e1 = _segint(fun1, Lx, Mx, force_poleL = True)
-                            i2, e2 = _segint(fun2, Ly, My, force_poleL = True)
-                        else:
-                            i1, e1 = _segint(fun1, Mx, Ux, force_poleU = True)
-                            i2, e2 = _segint(fun2, My, Uy, force_poleU = True)
-                        i = i1 + i2
-                        e = e1 + e2
-                    elif poleLi or poleRi:
-                        i, e = _segint(fun1, Lx, Ux, force_poleL = poleLi, force_poleU = poleRi)
-                        #if isinf(i):
-                        #    import pdb; pdb.set_trace()
-                        #    i, e = _segint(fun1, Lx, Ux, force_poleL = poleLi, force_poleU = poleRi)
-                    elif poleLj or poleRj:
-                        i, e = _segint(fun2, Ly, Uy, force_poleL = poleLj, force_poleU = poleRj)
+    if params.general.parallel:
+        imap = params.general.process_pool.imap
+    else:
+        imap = itertools.imap
+    #import pickle
+    #print segList[0][0]
+    #try:
+    #    pickle.dumps(segList[0][0])
+    #except:
+    #    print "Q", segList[0][0]
+    #    import pdb; pdb.set_trace()
+    #    pickle.dumps(segList[0][0].f.vb)
+    #    #raise
+    res = [I for I in imap(partial(conv_point, segList, integration_par), xx)]
+    res = array(res)
+    return res
+
+def conv_point(segList, integration_par, x):
+    I = 0
+    err = 0
+    for segi, segj in segList:
+        fun1 = partial(fun_c1, segi, segj, x)
+        fun2 = partial(fun_c2, segi, segj, x)
+        if segi.isSegment() and segj.isSegment():
+            Lx = max(segi.safe_a, x-segj.safe_b)
+            Ux = min(segi.safe_b, x-segj.safe_a)
+            Ly = max(segj.safe_a, x-segi.safe_b)
+            Uy = min(segj.safe_b, x-segi.safe_a)
+
+            if not isinf(segi.a) and not isinf(segj.a) and not isinf(segi.b) and not isinf(segj.b):
+                # both segments finite, check poles
+                poleLi, poleRi = _testConvPole(segi, Lx, Ux)
+                poleLj, poleRj = _testConvPole(segj, Ly, Uy)
+                poleL = poleLi or poleRj
+                poleU = poleRi or poleLj
+                if poleL and poleU:
+                    Mx = (Lx + Ux)/2
+                    My = (Ly + Uy)/2
+                    if x > 0:
+                        i1, e1 = _segint(fun1, Lx, Mx, force_poleL = True)
+                        i2, e2 = _segint(fun2, Ly, My, force_poleL = True)
                     else:
-                        # no poles just integrate over x
-                        i, e = _segint(fun1, Lx, Ux)
-                elif (isinf(segj.a) or isinf(segj.b)) and not isinf(segi.a) and not isinf(segi.b):
-                    # integrate over x (the finite segment is segi)
-                    poleL, poleR = _testConvPole(segi, Lx, Ux)
-                    i, e = _segint(fun1, Lx, Ux, force_poleL = poleL, force_poleU = poleR)
-                elif (isinf(segi.a) or isinf(segi.b)) and not isinf(segj.a) and not isinf(segj.b):
-                    # integrate over y (the finite segment is segj)
-                    poleL, poleR = _testConvPole(segj, Ly, Uy)
-                    i, e = _segint(fun2, Ly, Uy, force_poleL = poleL, force_poleU = poleR)
-                elif isinf(segi.a) and isinf(segj.b):
-                    # infinite path: upper left quadrant
-                    # integrate over the variable which starts at smaller value
-                    if abs(Ux) < abs(Ly):
-                        i, e = integrate_fejer2_minf(fun1, Ux)
-                    else:
-                        i, e = integrate_fejer2_pinf(fun2, Ly)
-                elif isinf(segi.b) and isinf(segj.a):
-                    # infinite path: lower right quadrant
-                    # integrate over the variable which starts at smaller value
-                    if abs(Lx) < abs(Uy):
-                        i, e = integrate_fejer2_pinf(fun1, Lx)
-                    else:
-                        i, e = integrate_fejer2_minf(fun2, Uy)
-                elif ((isinf(segi.a) and isinf(segj.a)) or (isinf(segi.b) and isinf(segj.b))):
-                    # long but finite path across infinite segments
-                    # need to split such that both integrations begin at small values
-                    debug_plot = False
-                    debug_info = False
-                    #if 1e14 < x < 1e15:
-                    #    debug_plot = True
-                    #    debug_info = True
-                    Mx = (Lx + Ux) / 2
-                    My = (Ly + Uy) / 2
-                    if isinf(segi.a) and isinf(segj.a):
-                        ix, ex = integrate_with_pminf_guess(fun1, Mx, Ux, debug_plot = debug_plot, debug_info = debug_info)
-                        iy, ey = integrate_with_pminf_guess(fun2, My, Uy, debug_plot = debug_plot, debug_info = debug_info)
-                    else:
-                        ix, ex = integrate_with_pminf_guess(fun1, Lx, Mx, debug_plot = debug_plot, debug_info = debug_info)
-                        iy, ey = integrate_with_pminf_guess(fun2, Ly, My, debug_plot = debug_plot, debug_info = debug_info)
-                    i = ix + iy
-                    e = ex + ey
-                    #if 1e14 < x < 1e15:
-                    #    print x, segi, segj, i, log(i) - log(x**-1.5)
-                    #    print repr(Lx), repr(Mx), repr(Ly), repr(My)
-                    #    print fun1(array([Lx]))[0], fun1(array([Mx]))[0]
-                    #    print fun2(array([Ly]))[0], fun2(array([My]))[0]
-                    #    print ix, iy, log(ix) - log(x**-1.5), log(iy) - log(x**-1.5)
-                    #    print
+                        i1, e1 = _segint(fun1, Mx, Ux, force_poleU = True)
+                        i2, e2 = _segint(fun2, My, Uy, force_poleU = True)
+                    i = i1 + i2
+                    e = e1 + e2
+                elif poleLi or poleRi:
+                    i, e = _segint(fun1, Lx, Ux, force_poleL = poleLi, force_poleU = poleRi)
+                    #if isinf(i):
+                    #    import pdb; pdb.set_trace()
+                    #    i, e = _segint(fun1, Lx, Ux, force_poleL = poleLi, force_poleU = poleRi)
+                elif poleLj or poleRj:
+                    i, e = _segint(fun2, Ly, Uy, force_poleL = poleLj, force_poleU = poleRj)
                 else:
-                    print "Should not be here!!!"
-                    assert(False)
-            #if 3.26 < log(-x+1) < 3.27:
-            #    print "x", x, log(-x+1), segi, segj, repr(Lx), repr(Ux), ix
-            #    print "y", x, log(-x+1), segi, segj, repr(Ly), repr(Uy), iy 
-            elif segi.isDirac() and segj.isSegment():
-                i = segi.f*segj.f(x-segi.a)
-                e=0;
-            elif segi.isSegment() and segj.isDirac():
-                i = segj.f*segi.f(x-segj.a)
-                e=0;
-            elif segi.isDirac() and segj.isDirac():
-                i = 0
-                e = 0                
-            I += i
-            err += e
-        wyn[j]=I
-    return wyn
+                    # no poles just integrate over x
+                    i, e = _segint(fun1, Lx, Ux)
+            elif (isinf(segj.a) or isinf(segj.b)) and not isinf(segi.a) and not isinf(segi.b):
+                # integrate over x (the finite segment is segi)
+                poleL, poleR = _testConvPole(segi, Lx, Ux)
+                i, e = _segint(fun1, Lx, Ux, force_poleL = poleL, force_poleU = poleR)
+            elif (isinf(segi.a) or isinf(segi.b)) and not isinf(segj.a) and not isinf(segj.b):
+                # integrate over y (the finite segment is segj)
+                poleL, poleR = _testConvPole(segj, Ly, Uy)
+                i, e = _segint(fun2, Ly, Uy, force_poleL = poleL, force_poleU = poleR)
+            elif isinf(segi.a) and isinf(segj.b):
+                # infinite path: upper left quadrant
+                # integrate over the variable which starts at smaller value
+                if abs(Ux) < abs(Ly):
+                    i, e = integrate_fejer2_minf(fun1, Ux)
+                else:
+                    i, e = integrate_fejer2_pinf(fun2, Ly)
+            elif isinf(segi.b) and isinf(segj.a):
+                # infinite path: lower right quadrant
+                # integrate over the variable which starts at smaller value
+                if abs(Lx) < abs(Uy):
+                    i, e = integrate_fejer2_pinf(fun1, Lx)
+                else:
+                    i, e = integrate_fejer2_minf(fun2, Uy)
+            elif ((isinf(segi.a) and isinf(segj.a)) or (isinf(segi.b) and isinf(segj.b))):
+                # long but finite path across infinite segments
+                # need to split such that both integrations begin at small values
+                debug_plot = False
+                debug_info = False
+                #if 1e14 < x < 1e15:
+                #    debug_plot = True
+                #    debug_info = True
+                Mx = (Lx + Ux) / 2
+                My = (Ly + Uy) / 2
+                if isinf(segi.a) and isinf(segj.a):
+                    ix, ex = integrate_with_pminf_guess(fun1, Mx, Ux, debug_plot = debug_plot, debug_info = debug_info)
+                    iy, ey = integrate_with_pminf_guess(fun2, My, Uy, debug_plot = debug_plot, debug_info = debug_info)
+                else:
+                    ix, ex = integrate_with_pminf_guess(fun1, Lx, Mx, debug_plot = debug_plot, debug_info = debug_info)
+                    iy, ey = integrate_with_pminf_guess(fun2, Ly, My, debug_plot = debug_plot, debug_info = debug_info)
+                i = ix + iy
+                e = ex + ey
+                #if 1e14 < x < 1e15:
+                #    print x, segi, segj, i, log(i) - log(x**-1.5)
+                #    print repr(Lx), repr(Mx), repr(Ly), repr(My)
+                #    print fun1(array([Lx]))[0], fun1(array([Mx]))[0]
+                #    print fun2(array([Ly]))[0], fun2(array([My]))[0]
+                #    print ix, iy, log(ix) - log(x**-1.5), log(iy) - log(x**-1.5)
+                #    print
+            else:
+                print "Should not be here!!!"
+                assert(False)
+        #if 3.26 < log(-x+1) < 3.27:
+        #    print "x", x, log(-x+1), segi, segj, repr(Lx), repr(Ux), ix
+        #    print "y", x, log(-x+1), segi, segj, repr(Ly), repr(Uy), iy 
+        elif segi.isDirac() and segj.isSegment():
+            i = segi.f*segj.f(x-segi.a)
+            e=0;
+        elif segi.isSegment() and segj.isDirac():
+            i = segj.f*segi.f(x-segj.a)
+            e=0;
+        elif segi.isDirac() and segj.isDirac():
+            i = 0
+            e = 0                
+        I += i
+        err += e
+    return I
+
+
+
 def epseq(a,b): 
     if abs(a-b)<1e-10:
         return True
