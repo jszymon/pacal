@@ -3,6 +3,7 @@
 import itertools
 from functools import partial
 import bisect
+import operator
 
 from numpy import asfarray
 from numpy import multiply, add, divide
@@ -152,7 +153,7 @@ def conv(f, g):
         segint = seg.toInterpolatedSegment(left_pole, NoL, right_pole, NoR)
         fg.addSegment(segint)
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = lambda x,y : x+y)
+    fg_discr = convdiracs(f, g, fun = operator.add)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     return fg
@@ -173,9 +174,9 @@ def convx(segList, integration_par, xx):
         xx=asfarray([xx])
 
     if params.general.parallel:
-        imap = params.general.process_pool.imap
+        p_map = params.general.process_pool.map
     else:
-        imap = itertools.imap
+        p_map = map
     #import pickle
     #print segList[0][0]
     #try:
@@ -185,7 +186,8 @@ def convx(segList, integration_par, xx):
     #    import pdb; pdb.set_trace()
     #    pickle.dumps(segList[0][0].f.vb)
     #    #raise
-    res = [I for I in imap(partial(conv_point, segList, integration_par), xx)]
+    res = p_map(partial(conv_point, segList, integration_par), xx)
+    #res = [I for I in imap(partial(conv_point, segList, integration_par), xx)]
     res = array(res)
     return res
 
@@ -379,10 +381,11 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
     f= f.splitByPoints(bg)
     g= g.splitByPoints(bf)
     b = minimum.outer(bf, bg)
-    fun = lambda x : convminx(segList, x)            
+    #fun = lambda x : convminx(segList, x)
+    fun = partial(convminx, segList)
     ub = unique(b)
     fg = PiecewiseDistribution([]);
-    op = lambda x,y : minimum(x,y);
+    op = lambda x,y: minimum(x,y);
     if ub[0] == -Inf :
         segList = _findSegList(f, g, ub[1] -1, op)
         seg = MInfSegment(ub[1], fun)
@@ -462,7 +465,8 @@ def convmax(f, g):
     f= f.splitByPoints(bg)
     g= g.splitByPoints(bf)
     b = maximum.outer(bf, bg)
-    fun = lambda x : convmaxx(segList, x)            
+    #fun = lambda x : convmaxx(segList, x)            
+    fun = partial(convmaxx, segList)            
     ub = unique(b)
     fg = PiecewiseDistribution([]);
     op = lambda x,y : maximum(x,y);
@@ -572,8 +576,8 @@ def convprod(f, g):
     bf = f.getBreaks()
     bg = g.getBreaks()
     b = multiply.outer(bf, bg)
-    fun = lambda x : convprodx(segList, x)        
-    op = lambda x,y : x*y;    
+    fun = partial(convprodx, segList)
+    op = operator.mul #lambda x,y : x*y;    
     ub = epsunique(b)
     #ind = find(ub == 0.0)
     #ublist = ub.tolist()
@@ -640,7 +644,7 @@ def convprod(f, g):
         fg.addSegment(segint)
 
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = lambda x, y : x * y)
+    fg_discr = convdiracs(f, g, fun = operator.mul)#lambda x, y : x * y)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     seg0 = fg. findSegment(0.0)
@@ -729,6 +733,19 @@ def _distr_zero_signs(g):
                 g_zero_pos = True
     return g_zero, g_zero_pos, g_zero_neg
     
+# Integrand for division
+def fun_div(segList, x):
+    if isscalar(x):
+        if abs(x) < 1:
+            y = convdivx(segList, x)
+        else:
+            y = convdivx2(segList, x)
+    else:
+        y = empty_like(x)
+        mask = (abs(x) < 1)
+        y[mask] = convdivx(segList, x[mask])
+        y[~mask] = convdivx2(segList, x[~mask])
+    return y
 def convdiv(f, g):
     """Probabilistic division of piecewise functions f and g. 
     """
@@ -772,35 +789,24 @@ def convdiv(f, g):
         bisect.insort_left(ublist, 0)
     ub = unique(array(ublist))
     
-    # Integrand for division
-    #fun = lambda x : (abs(x)<1) * convdivx(segList,x) + (abs(x)>=1) * convdivx2(segList,x)
-    def fun(x):
-        if isscalar(x):
-            if abs(x) < 1:
-                y = convdivx(segList,x)
-            else:
-                y = convdivx2(segList,x)
-        else:
-            y = empty_like(x)
-            mask = (abs(x) < 1)
-            y[mask] = convdivx(segList,x[mask])
-            y[~mask] = convdivx2(segList,x[~mask])
-        return y
     fg = PiecewiseDistribution([]);
     if isinf(ub[0]):
         segList = _findSegListDiv(f, g, ub[1] - 1)
+        fun = partial(fun_div, segList)
         seg = MInfSegment(ub[1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
     if isinf(ub[-1]):
         segList = _findSegListDiv(f, g, ub[-2] + 1)
+        fun = partial(fun_div, segList)
         seg = PInfSegment(ub[-2], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in xrange(len(ub)-1) :
         segList = _findSegListDiv(f, g, (ub[i] + ub[i+1])/2)
+        fun = partial(fun_div, segList)
         _NoL = False
         _NoR = False
         if (ub[i] == 0):
@@ -832,7 +838,7 @@ def convdiv(f, g):
         segint = seg.toInterpolatedSegment(NoL = _NoL, NoR = _NoR)
         fg.addSegment(segint)
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = lambda x, y : x / y)
+    fg_discr = convdiracs(f, g, fun = operator.div)#lambda x, y : x / y)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     return fg
@@ -1039,7 +1045,7 @@ def _segint_(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fa
     return i,e
 
 
-def convdiracs(f, g, fun = lambda x,y : x+y ):
+def convdiracs(f, g, fun = operator.add):#lambda x,y : x+y ):
     """discrete convolution of f and g  
     """    
     fg = PiecewiseDistribution([]);
