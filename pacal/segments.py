@@ -14,7 +14,7 @@ from numpy import linspace, multiply, add, divide, size
 from numpy import unique, isnan, isscalar, diff, size
 from numpy import Inf, NaN, sign, isinf, isfinite, exp
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
-from numpy import append, nan_to_num
+from numpy import append, nan_to_num, select
 from numpy.random import uniform
 from numpy import argmax, argmin
 import numpy
@@ -411,12 +411,7 @@ class ConstSegment(Segment):
         self.const = c
         super(ConstSegment, self).__init__(a, b, None)
     def __call__(self, x):
-        if size(x) == 1:
-            x=asfarray(x)
-        y = zeros_like(x)
-        ind = where((x>=self.a) & (x<=self.b))
-        y[ind] = self.const
-        return y
+        return select([(x>=self.a) & (x<=self.b)], [self.const], 0)
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
         if a==None or a<self.a :

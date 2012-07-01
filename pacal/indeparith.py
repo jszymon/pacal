@@ -161,18 +161,17 @@ def conv(f, g):
 # The actual convolution:
 
 # Integrand for convolution along X axis
-fun_c1 = lambda segi, segj, x, t : segi.f(t)*segj.f(x-t)
+def fun_c1(segi, segj, x, t):
+    return segi.f(t)*segj.f(x-t)
 # Integrand for convolution along Y axis
-fun_c2 = lambda segi, segj, x, t : segi.f(x-t)*segj.f(t)
+def fun_c2(segi, segj, x, t):
+    return segi.f(x-t)*segj.f(t)
 # top wrapper
-
-
 def convx(segList, integration_par, xx):
     """convolution of f and g  
     """
     if isscalar(xx):
         xx=asfarray([xx])
-
     if params.general.parallel:
         p_map = params.general.process_pool.map
     else:
@@ -186,12 +185,10 @@ def convx(segList, integration_par, xx):
     #    import pdb; pdb.set_trace()
     #    pickle.dumps(segList[0][0].f.vb)
     #    #raise
-    res = p_map(partial(conv_point, segList, integration_par), xx)
-    #res = [I for I in imap(partial(conv_point, segList, integration_par), xx)]
+    res = p_map(partial(conv_at_point, segList, integration_par), xx)
     res = array(res)
     return res
-
-def conv_point(segList, integration_par, x):
+def conv_at_point(segList, integration_par, x):
     I = 0
     err = 0
     for segi, segj in segList:
@@ -285,10 +282,10 @@ def conv_point(segList, integration_par, x):
         #    print "y", x, log(-x+1), segi, segj, repr(Ly), repr(Uy), iy 
         elif segi.isDirac() and segj.isSegment():
             i = segi.f*segj.f(x-segi.a)
-            e=0;
+            e=0
         elif segi.isSegment() and segj.isDirac():
             i = segj.f*segi.f(x-segj.a)
-            e=0;
+            e=0
         elif segi.isDirac() and segj.isDirac():
             i = 0
             e = 0                
@@ -306,19 +303,19 @@ def epseq(a,b):
 def convmean(f, g, p = 0.5, q = 0.5):
     """Probabilistic weighted mean of f and g  
     """
-    if  p + q <> 1.0 :
+    if  p + q != 1.0:
         p1 = abs(p)/(abs(p) + abs(q))
         q = abs(q)/(abs(p) + abs(q))
-        p=p1;
+        p=p1
     if q == 0:
-        return f;
+        return f
     bf = f.getBreaks()
     bg = g.getBreaks()
     b = add.outer(bf * p, bg * q)
-    fun = lambda x : convmeanx(segList, x, p, q)            
+    fun = partial(convmeanx, segList, p, q)
     ub = epsunique(b)
-    fg = PiecewiseDistribution([]);
-    op = lambda x,y : p*x + q*y;
+    fg = PiecewiseDistribution([])
+    op = lambda x,y : p*x + q*y
     if isinf(ub[0]):
         segList = _findSegList(f, g, ub[1] -1, op)
         seg = MInfSegment(ub[1], fun)
@@ -343,15 +340,17 @@ def convmean(f, g, p = 0.5, q = 0.5):
         fg.addSegment(seg)
     return fg
 
-def convmeanx(segList, xx, p = 0.5, q = 0.5):
+def fun_cm(x, p, q, t):
+    return segi( t / p) * segj((x - t)/q)/p/q
+def convmeanx(segList, p, q, xx):
     """Probabilistic weighted mean of f and g, integral at points xx 
     """    
     if size(xx)==1:
         xx=asfarray([xx])
     wyn = zeros_like(xx)
-    fun = lambda t : segi( t / p) * segj((x - t)/q)/p/q
-    for j in range(len(xx)) :  
+    for j in range(len(xx)):
         x = xx[j]
+        fun = partial(fun_cm, x, p, q)
         I = 0
         err = 0
         for segi, segj in segList:
@@ -361,10 +360,10 @@ def convmeanx(segList, xx, p = 0.5, q = 0.5):
                 i, e = _segint(fun, L, U)
             elif segi.isDirac() and segj.isSegment():
                 i = segi.f*segj((x-segi.a)/q)/q   # TODO 
-                e=0;
+                e=0
             elif segi.isSegment() and segj.isDirac():
                 i = segj.f*segi((x-segj.a)/p)/p   # TODO
-                e=0;
+                e=0
             elif segi.isDirac() and segj.isDirac():
                 pass
                 #i = segi(x-segj.a)/p/q          # TODO
@@ -373,33 +372,35 @@ def convmeanx(segList, xx, p = 0.5, q = 0.5):
             err += e
         wyn[j]=I
     return wyn
+
 def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpoint !!!
     """Probabilistic minimum of f and g.
     """
     bf = f.getBreaks()
     bg = g.getBreaks()
-    f= f.splitByPoints(bg)
-    g= g.splitByPoints(bf)
+    f = f.splitByPoints(bg)
+    g = g.splitByPoints(bf)
     b = minimum.outer(bf, bg)
-    #fun = lambda x : convminx(segList, x)
-    fun = partial(convminx, segList)
     ub = unique(b)
     fg = PiecewiseDistribution([]);
-    op = lambda x,y: minimum(x,y);
-    if ub[0] == -Inf :
+    op = minimum
+    if ub[0] == -Inf:
         segList = _findSegList(f, g, ub[1] -1, op)
+        fun = partial(convminx, segList)
         seg = MInfSegment(ub[1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
     if ub[-1] == Inf :
         segList = _findSegList(f, g, ub[-2] + 1, op)
+        fun = partial(convminx, segList)
         seg = PInfSegment(ub[-2], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in range(len(ub)-1) :
         segList = _findSegList(f, g, (ub[i] + ub[i+1])/2, op)
+        fun = partial(convminx, segList)
         seg = Segment(ub[i],ub[i+1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
@@ -409,54 +410,60 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
     fg_discr  =_probDiracsInMin(f, g)
     fg.add_diracs(fg_discr)
     return fg
-    
-    
-
+def funi_minx(segi, segj, x, t):
+    return segi.f(t)*segj.f(x)
+def funj_minx(segi, segj, x, t):
+    return segi.f(x)*segj.f(t)
 def convminx(segList, xx):
     """Probabilistic minimum of f and g, integral at points xx. 
     """    
     if size(xx)==1:
         xx=asfarray([xx])
-    wyn = zeros_like(xx)
-    funi = lambda t : segi.f(t)*segj.f(x)
-    funj = lambda t : segi.f(x)*segj.f(t)
-    for j in range(len(xx)) :  
-        x = xx[j]
-        I = 0
-        err = 0
-        for segi, segj in segList:
-            if segj.a <= x <= segj.b and segj.a != segj.b:
-                if segi.isSegment() and segj.isSegment():
-                    L = max(segi.a,x)
-                    U = segi.b
-                    i, e = _segint(funi, L, U)
-                elif segi.isDirac() and segj.isSegment():
-                    i = segi.f*segj.f(x)   # TODO 
-                    e=0;
-                elif segi.isSegment() and segj.isDirac():
-                    i = segj.f*segi.f(x)   # TODO
-                    e=0;
-                elif segi.isDirac() and segj.isDirac():
-                    pass #Dicrete part is done in convmin
-                I += i
-                err += e
-            if segi.a <= x <= segi.b and segi.a != segi.b :
-                if segi.isSegment() and segj.isSegment():
-                    L = max(segj.a, x)
-                    U = segj.b
-                    i, e = _segint(funj, L, U)
-                elif segi.isDirac() and segj.isSegment():
-                    i = segi.f*segj.f(x) 
-                    e=0;
-                elif segi.isSegment() and segj.isDirac():
-                    i = segj.f*segi.f(x)
-                    e=0;
-                elif segi.isDirac() and segj.isDirac():
-                    pass #Dicrete part is done in convmin
-                I += i
-                err += e
-        wyn[j]=I
-    return wyn
+    if params.general.parallel:
+        p_map = params.general.process_pool.map
+    else:
+        p_map = map
+    res = p_map(partial(convminx_at_point, segList), xx)
+    res = array(res)
+    return res
+def convminx_at_point(segList, x):
+    I = 0
+    err = 0
+    for segi, segj in segList:
+        if segj.a <= x <= segj.b and segj.a != segj.b:
+            if segi.isSegment() and segj.isSegment():
+                funi = partial(funi_minx, segi, segj, x)
+                L = max(segi.a,x)
+                U = segi.b
+                i, e = _segint(funi, L, U)
+            elif segi.isDirac() and segj.isSegment():
+                i = segi.f*segj.f(x)   # TODO 
+                e=0
+            elif segi.isSegment() and segj.isDirac():
+                i = segj.f*segi.f(x)   # TODO
+                e=0
+            elif segi.isDirac() and segj.isDirac():
+                pass #Dicrete part is done in convmin
+            I += i
+            err += e
+        if segi.a <= x <= segi.b and segi.a != segi.b :
+            if segi.isSegment() and segj.isSegment():
+                funj = partial(funj_minx, segi, segj, x)
+                L = max(segj.a, x)
+                U = segj.b
+                i, e = _segint(funj, L, U)
+            elif segi.isDirac() and segj.isSegment():
+                i = segi.f*segj.f(x) 
+                e=0
+            elif segi.isSegment() and segj.isDirac():
+                i = segj.f*segi.f(x)
+                e=0
+            elif segi.isDirac() and segj.isDirac():
+                pass #Dicrete part is done in convmin
+            I += i
+            err += e
+    return I
+
 def convmax(f, g):
     """Probabilistic maximum of f and g.
     """
@@ -465,25 +472,26 @@ def convmax(f, g):
     f= f.splitByPoints(bg)
     g= g.splitByPoints(bf)
     b = maximum.outer(bf, bg)
-    #fun = lambda x : convmaxx(segList, x)            
-    fun = partial(convmaxx, segList)            
     ub = unique(b)
-    fg = PiecewiseDistribution([]);
-    op = lambda x,y : maximum(x,y);
+    fg = PiecewiseDistribution([])
+    op = maximum
     if isinf(ub[0]):
         segList = _findSegList(f, g, ub[1] -1, op)
+        fun = partial(convmaxx, segList)            
         seg = MInfSegment(ub[1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
     if isinf(ub[-1]):
         segList = _findSegList(f, g, ub[-2] + 1.0, op)
+        fun = partial(convmaxx, segList)            
         seg = PInfSegment(ub[-2], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in range(len(ub)-1) :
         segList = _findSegList(f, g, (ub[i] + ub[i+1.0])/2.0, op)
+        fun = partial(convmaxx, segList)            
         seg = Segment(ub[i],ub[i+1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
@@ -514,10 +522,10 @@ def convmaxx(segList, xx): #TODO : NOW  segments of f and g should have the same
                     i, e = _segint(funi, L, U)
                 elif segi.isDirac() and segj.isSegment():
                     i = segi.f*segj.f(x)
-                    e=0;
+                    e=0
                 elif segi.isSegment() and segj.isDirac():
                     i = segj.f*segi.f(x)
-                    e=0;
+                    e=0
                 elif segi.isDirac() and segj.isDirac():
                     pass #Dicrete part is done in convmax                             
                 I += i
@@ -529,10 +537,10 @@ def convmaxx(segList, xx): #TODO : NOW  segments of f and g should have the same
                     i, e = _segint(funj, L, U)
                 elif segi.isDirac() and segj.isSegment():
                     i = segi.f*segj.f(x)
-                    e=0;
+                    e=0
                 elif segi.isSegment() and segj.isDirac():
                     i = segj.f*segi.f(x)
-                    e=0;
+                    e=0
                 elif segi.isDirac() and segj.isDirac():
                     pass #Dicrete part is done in convmax
                 I += i
@@ -577,7 +585,7 @@ def convprod(f, g):
     bg = g.getBreaks()
     b = multiply.outer(bf, bg)
     fun = partial(convprodx, segList)
-    op = operator.mul #lambda x,y : x*y;    
+    op = operator.mul
     ub = epsunique(b)
     #ind = find(ub == 0.0)
     #ublist = ub.tolist()
@@ -596,7 +604,7 @@ def convprod(f, g):
     #    bisect.insort_left(ublist, 0)
     #ub = unique(array(ublist))
     #print "===", ub
-    fg = PiecewiseDistribution([]);
+    fg = PiecewiseDistribution([])
     if isinf(ub[0]):
         segList = _findSegList(f, g, ub[1] -1, op)
         seg = MInfSegment(ub[1], fun)
@@ -644,7 +652,7 @@ def convprod(f, g):
         fg.addSegment(segint)
 
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = operator.mul)#lambda x, y : x * y)
+    fg_discr = convdiracs(f, g, fun = operator.mul)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     seg0 = fg. findSegment(0.0)
@@ -703,12 +711,12 @@ def convprodx(segList, xx):
                 i = segi.f*segj.f(x/segi.a)*1.0/abs(segi.a)   # TODO 
                 if x== 0.0 :
                     i = i + segi.f
-                e = 0;
+                e = 0
             elif segi.isSegment() and segj.isDirac():
                 i = segj.f*segi.f(x/segj.a)*1.0/abs(segj.a)
                 if x== 0.0 :
                     i = i + segj.f
-                e = 0;
+                e = 0
             I += i
             err += e
         wyn[j]=I        
@@ -789,7 +797,7 @@ def convdiv(f, g):
         bisect.insort_left(ublist, 0)
     ub = unique(array(ublist))
     
-    fg = PiecewiseDistribution([]);
+    fg = PiecewiseDistribution([])
     if isinf(ub[0]):
         segList = _findSegListDiv(f, g, ub[1] - 1)
         fun = partial(fun_div, segList)
@@ -838,7 +846,7 @@ def convdiv(f, g):
         segint = seg.toInterpolatedSegment(NoL = _NoL, NoR = _NoR)
         fg.addSegment(segint)
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = operator.div)#lambda x, y : x / y)
+    fg_discr = convdiracs(f, g, fun = operator.div)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     return fg
@@ -882,11 +890,11 @@ def convdivx(segList, xx):
 
             elif segi.isDirac() and segj.isSegment():
                 i = segi.f * segj.f(segi.a/x) * abs(segi.a)/x/x
-                e = 0;
+                e = 0
                 assert (segi.a != 0.0)                
             elif segi.isSegment() and segj.isDirac():
                 i = segj.f*segi.f(segj.a)*abs(segj.a)
-                e = 0;
+                e = 0
                 assert (segj.a != 0.0)
             I += i
             err += e
@@ -935,7 +943,7 @@ def convdivx2(segList, xx):
             elif segi.isDirac() and segj.isSegment():
                 assert (segi.a != 0.0) 
                 i = segi.f * segj.f(segi.a/x) * abs(segi.a) / x / x
-                e = 0;
+                e = 0
                                 
             elif segi.isSegment() and segj.isDirac():
                 assert (segj.a != 0.0)
@@ -963,7 +971,7 @@ def _findSegList(f, g, z, op):
     input: f, g - picewise function, z = op(x,y), op - operation (+ - * /)
     output: list of segment products depends on z 
     """
-    list = [];
+    list = []
     for segi in f.segments:
         for segj in g.segments: 
             R1 = array([segi.a, segi.b, segi.a, segi.b]) 
@@ -979,7 +987,7 @@ def _findSegList2(f, g, z, op):
     input: f, g - picewise function, z = op(x,y), op - operation (+ - * /)
     output: list of segment products depends on z. [UNUSED]
     """
-    list = [];
+    list = []
     for segi in f.segments:
         for segj in g.segments: 
             R1 = array([segi.a, segi.b, segi.a, segi.b]) 
@@ -1003,7 +1011,7 @@ def _findSegListDiv(f, g, z):
 
     This function is used in division, taking -Infs into account.
     """
-    seg_list = [];
+    seg_list = []
     for segi in f.segments:
         for segj in g.segments:
             # does x*z intersect the rectangular segment?
@@ -1045,10 +1053,10 @@ def _segint_(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fa
     return i,e
 
 
-def convdiracs(f, g, fun = operator.add):#lambda x,y : x+y ):
+def convdiracs(f, g, fun = operator.add):
     """discrete convolution of f and g  
     """    
-    fg = PiecewiseDistribution([]);
+    fg = PiecewiseDistribution([])
     wyn = {}
     for fi in f.getDiracs():
         for gi in g.getDiracs():
@@ -1115,7 +1123,7 @@ def _probDiracsInMax(f, g):
 def dumpSegList(segList):
     """It dump segLis, for debug purposes only.  
     """
-    i=0;
+    i=0
     for item in segList:
         i=i+1
         print i, " ", item[0], ", ", item[1]    
