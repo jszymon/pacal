@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from functools import partial
+
 from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
 from numpy import array_split, concatenate, squeeze
 from numpy import where, dot, zeros
@@ -417,7 +419,14 @@ def _find_zero(f, a, ymax=1e-120, ymin=1e-150):
         except OverflowError:
             y = 0
     return a + x_mid
-    
+
+def _call_f(interp, x):
+    return interp.spec_f(x)
+def _wrap_f(f):
+    if params.general.parallel:
+        return partial(_call_f, f.im_self)
+    return f
+
 class ValTransformInterpolator(ChebyshevInterpolator1):
     def __init__(self, f, a, b=None, val_transform=log, val_transform_inv=exp, *args, **kwargs):        
         self.wrapped_f = f
@@ -425,10 +434,10 @@ class ValTransformInterpolator(ChebyshevInterpolator1):
             b = _find_zero(f, a)
         self.val_transform = val_transform
         self.val_transform_inv = val_transform_inv
-        super(ValTransformInterpolator, self).__init__(None, # use method f of this class
+        super(ValTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.val_transform(a), self.val_transform(b),
                                                        *args, **kwargs)  
-    def f(self, x):
+    def spec_f(self, x):
         return self.val_transform(self.wrapped_f(self.val_transform_inv(x)))
     def interp_at(self, x):
         return self.val_transform_inv(super(ValTransformInterpolator, self).interp_at(self.val_transform(x)))
@@ -497,7 +506,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
     def xtinv(self, x):
         return log1p(x - self.offset)
     def __init__(self, f, a, b=None, offset=1, par=None, *args, **kwargs):
-        if self.f is not None:
+        if f is not None:
             self.wrapped_f = f
         if par is None:
             par = params.interpolation_asymp
@@ -508,11 +517,11 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         self.orig_a = a
         self.orig_b = b
         self.offset = offset - 1
-        super(LogTransformInterpolator, self).__init__(None,
+        super(LogTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                        par=params.interpolation_asymp,
                                                        *args, **kwargs)
-    def f(self, x):
+    def spec_f(self, x):
         return log(abs(self.wrapped_f(self.xt(x))))
     def interp_at(self, x):
         if isscalar(x):
@@ -591,10 +600,10 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
         else:
             offset = abs(a) * finfo(double).eps
         self.offset = offset
-        super(PoleInterpolatorP, self).__init__(None,
+        super(PoleInterpolatorP, self).__init__(_wrap_f(self.spec_f),
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
-    def f(self, x):
+    def spec_f(self, x):
         return log1p(self.sign * self.wrapped_f(self.xt(x)))
     def interp_at(self, x):
         y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
@@ -637,10 +646,10 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
         else:
             offset = abs(b) * finfo(double).eps
         self.offset = offset        
-        super(PoleInterpolatorN, self).__init__(None,
+        super(PoleInterpolatorN, self).__init__(_wrap_f(self.spec_f),
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
-    def f(self, x):
+    def spec_f(self, x):
         return log1p(f(self.xt(x)))
     def interp_at(self, x):
         y = expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
@@ -732,11 +741,11 @@ class VarTransformInterpolator(ChebyshevInterpolator): # original state
         #    y = self.vt.apply_with_inv_transform(f, t)
         #    return y
         #interp_func = lambda t: self.vt.apply_with_inv_transform(f, t)
-        super(VarTransformInterpolator, self).__init__(None,
+        super(VarTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.vt.var_min,
                                                        self.vt.var_max,
                                                        par=par)
-    def f(self, t):
+    def spec_f(self, t):
         return self.vt.apply_with_inv_transform(self.wrapped_f, t)
     def transformed_interp_at(self, t):
         """Direct access to transformed function."""
@@ -865,10 +874,10 @@ class MInfInterpolator(PInfInterpolator):
         self.wrapped_f = f
         if L is not None:
             L = -L
-        super(MInfInterpolator, self).__init__(None, -U, L)
+        super(MInfInterpolator, self).__init__(_wrap_f(self.spec_f), -U, L)
         self.L = -self.U
         self.U = None
-    def f(self, x):
+    def spec_f(self, x):
         return self.wrapped_f(-x)
     def interp_at(self, x):
         return super(MInfInterpolator, self).interp_at(-x)

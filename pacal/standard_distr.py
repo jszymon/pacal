@@ -1,5 +1,6 @@
 """Standard distributions."""
 
+
 from numpy import Inf
 from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
@@ -10,7 +11,7 @@ from numpy import finfo, double
 _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
-from utils import lgamma
+from utils import lgamma, wrap_pdf
 from distr import Distr, DiscreteDistr, ConstDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
@@ -88,7 +89,6 @@ class MixDistr(Distr):
     #def init_piecewise_pdf(self):
     #    self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints)
 
-
 class NormalDistr(Distr):
     def __init__(self, mu=0.0, sigma=1.0, **kwargs):
         super(NormalDistr, self).__init__(**kwargs)
@@ -100,10 +100,12 @@ class NormalDistr(Distr):
         # put breaks at inflection points
         b1 = self.mu - self.sigma
         b2 = self.mu + self.sigma
+        #pdf = partial(_norm_pdf, self.mu, self.nrm, self.one_over_twosigma2)
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(MInfSegment(b1, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(b1, b2, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(b2, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(MInfSegment(b1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(b1, b2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(b2, wrapped_pdf))
     def pdf(self, x):
         q = (x-self.mu)**2 * self.one_over_twosigma2
         f = self.nrm * exp(-q)
@@ -169,9 +171,10 @@ class CauchyDistr(Distr):
         b1 = self.center - self.gamma
         b2 = self.center + self.gamma
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(MInfSegment(b1, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(b1, b2, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(b2, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(MInfSegment(b1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(b1, b2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(b2, wrapped_pdf))
         #self.piecewise_pdf = self.piecewise_pdf.toInterpolated()
     def rand_raw(self, n = None):
         return self.center + normal(0, 1, n) / normal(0, 1, n) * self.gamma
@@ -220,14 +223,15 @@ class ChiSquareDistr(Distr):
             y[mask_zero] = self.pdf_at_0
         return y
     def init_piecewise_pdf(self):
+        wrapped_pdf = wrap_pdf(self.pdf)
         if 1 <= self.df <= 20:
-            self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+            self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,  
                                                    breakPoints = [0.0, self.df/2.0, self.df*2.0, Inf],
                                                    lpoles=[True, False, False, False])
         elif 20 < self.df:            
             mean = self.df
             std = sqrt(2 * self.df)
-            self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,
+            self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
                                                         breakPoints =[0.0, self.df*0.75, self.df*4.0/3.0,  Inf],
                                                         lpoles=[True, False, False, False])
             
@@ -276,8 +280,9 @@ class ExponentialDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(0, 1, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(Segment(0, 1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(1, wrapped_pdf))
     def rand_raw(self, n = None):
         return exponential(1.0/self.lmbda, n)
     def __str__(self):
@@ -324,18 +329,19 @@ class GammaDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
+        wrapped_pdf = wrap_pdf(self.pdf)
         if self.k < 1:
-            self.piecewise_pdf.addSegment(SegmentWithPole(0, 1, self.pdf, left_pole = True))
-            self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
+            self.piecewise_pdf.addSegment(SegmentWithPole(0, 1, wrapped_pdf, left_pole = True))
+            self.piecewise_pdf.addSegment(PInfSegment(1, wrapped_pdf))
         elif self.k == 1:
-            self.piecewise_pdf.addSegment(Segment(0, 1, self.pdf))
-            self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
+            self.piecewise_pdf.addSegment(Segment(0, 1, wrapped_pdf))
+            self.piecewise_pdf.addSegment(PInfSegment(1, wrapped_pdf))
         else:
             mode = (self.k - 1) * self.theta
-            self.piecewise_pdf.addSegment(Segment(0, mode / 2, self.pdf))
-            self.piecewise_pdf.addSegment(Segment(mode / 2, mode, self.pdf))
-            self.piecewise_pdf.addSegment(Segment(mode, 2 * mode, self.pdf))
-            self.piecewise_pdf.addSegment(PInfSegment(2*mode, self.pdf))
+            self.piecewise_pdf.addSegment(Segment(0, mode / 2, wrapped_pdf))
+            self.piecewise_pdf.addSegment(Segment(mode / 2, mode, wrapped_pdf))
+            self.piecewise_pdf.addSegment(Segment(mode, 2 * mode, wrapped_pdf))
+            self.piecewise_pdf.addSegment(PInfSegment(2*mode, wrapped_pdf))
     def rand_raw(self, n = None):
         return gamma(self.k, self.theta, n)
     def __str__(self):
@@ -369,20 +375,21 @@ class BetaDistr(Distr):
             m = 0.5
         m = 0.5 # TODO check this, but it seems better
         self.piecewise_pdf = PiecewiseDistribution([])
+        wrapped_pdf = wrap_pdf(self.pdf)
         poleL = self.alpha < 2 and abs(self.alpha - 1) > params.pole_detection.max_pole_exponent
         poleR = self.beta < 2  and abs(self.beta - 1) > params.pole_detection.max_pole_exponent
         if poleL and poleR:
-            self.piecewise_pdf.addSegment(SegmentWithPole(0, m, self.pdf, left_pole = True))
-            self.piecewise_pdf.addSegment(SegmentWithPole(m, 1, self.pdf, left_pole = False))
+            self.piecewise_pdf.addSegment(SegmentWithPole(0, m, wrapped_pdf, left_pole = True))
+            self.piecewise_pdf.addSegment(SegmentWithPole(m, 1, wrapped_pdf, left_pole = False))
         elif poleL:
-            self.piecewise_pdf.addSegment(SegmentWithPole(0, m, self.pdf, left_pole = True))
-            self.piecewise_pdf.addSegment(Segment(m, 1, self.pdf))
+            self.piecewise_pdf.addSegment(SegmentWithPole(0, m, wrapped_pdf, left_pole = True))
+            self.piecewise_pdf.addSegment(Segment(m, 1, wrapped_pdf))
         elif poleR:
-            self.piecewise_pdf.addSegment(Segment(0, m, self.pdf))
-            self.piecewise_pdf.addSegment(SegmentWithPole(m, 1, self.pdf, left_pole = False))
+            self.piecewise_pdf.addSegment(Segment(0, m, wrapped_pdf))
+            self.piecewise_pdf.addSegment(SegmentWithPole(m, 1, wrapped_pdf, left_pole = False))
         else:
-            self.piecewise_pdf.addSegment(Segment(0, m, self.pdf))
-            self.piecewise_pdf.addSegment(Segment(m, 1, self.pdf))
+            self.piecewise_pdf.addSegment(Segment(0, m, wrapped_pdf))
+            self.piecewise_pdf.addSegment(Segment(m, 1, wrapped_pdf))
     def rand_raw(self, n = None):
         return beta(self.alpha, self.beta, n)
     def __str__(self):
@@ -413,8 +420,9 @@ class ParetoDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + 1, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + 1, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + 1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + 1, wrapped_pdf))
     def rand_raw(self, n = None):
         return self.xmin + pareto(self.alpha, n) * self.xmin
     def __str__(self):
@@ -444,8 +452,9 @@ class LevyDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + self.c, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + self.c, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(Segment(self.xmin, self.xmin + self.c, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(self.xmin + self.c, wrapped_pdf))
     def rand_raw(self, n = None):
         sigma = 1.0 / sqrt(self.c)
         return self.xmin + 1.0 / normal(0, sigma, n) ** 2
@@ -468,10 +477,11 @@ class LaplaceDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(MInfSegment(self.mu - 2 * self.lmbda, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(self.mu - 2 * self.lmbda, 0, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(0, self.mu + 2 * self.lmbda, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(self.mu + 2 * self.lmbda, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(MInfSegment(self.mu - 2 * self.lmbda, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(self.mu - 2 * self.lmbda, 0, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(0, self.mu + 2 * self.lmbda, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(self.mu + 2 * self.lmbda, wrapped_pdf))
     def rand_raw(self, n = None):
         return laplace(self.mu, self.lmbda, n)
     def __str__(self):
@@ -494,9 +504,10 @@ class StudentTDistr(Distr):
         # split at inflection points
         infl = sqrt(float(self.df) / (self.df + 2))
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(MInfSegment(-infl, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(-infl, infl, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(infl, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(MInfSegment(-infl, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(-infl, infl, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(infl, wrapped_pdf))
     def rand_raw(self, n = None):
         return standard_t(self.df, n)
     def __str__(self):
@@ -524,9 +535,10 @@ class SemicircleDistr(Distr):
     def init_piecewise_pdf(self):
         # split at inflection points
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(SegmentWithPole(-self.R, -float(self.R) / 2, self.pdf, left_pole = True))
-        self.piecewise_pdf.addSegment(Segment(-float(self.R) / 2, float(self.R) / 2, self.pdf))
-        self.piecewise_pdf.addSegment(SegmentWithPole(float(self.R) / 2, self.R, self.pdf, left_pole = False))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(SegmentWithPole(-self.R, -float(self.R) / 2, wrapped_pdf, left_pole = True))
+        self.piecewise_pdf.addSegment(Segment(-float(self.R) / 2, float(self.R) / 2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(SegmentWithPole(float(self.R) / 2, self.R, wrapped_pdf, left_pole = False))
     def rand_raw(self, n = None):
         return self.R * sqrt(uniform(0, 1, n)) * cos(uniform(0, 1, n) * pi)
     def __str__(self):
@@ -566,17 +578,18 @@ class FDistr(Distr):
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
+        wrapped_pdf = wrap_pdf(self.pdf)
         if self.df1 < 2:
-            self.piecewise_pdf.addSegment(SegmentWithPole(0, 1, self.pdf, left_pole = True))
-            self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
+            self.piecewise_pdf.addSegment(SegmentWithPole(0, 1, wrapped_pdf, left_pole = True))
+            self.piecewise_pdf.addSegment(PInfSegment(1, wrapped_pdf))
         elif self.df1 == 2:
-            self.piecewise_pdf.addSegment(Segment(0, 1, self.pdf))
-            self.piecewise_pdf.addSegment(PInfSegment(1, self.pdf))
+            self.piecewise_pdf.addSegment(Segment(0, 1, wrapped_pdf))
+            self.piecewise_pdf.addSegment(PInfSegment(1, wrapped_pdf))
         else:
             mode = float(self.df1 - 2) / self.df1 * float(self.df2) / (self.df2 + 2)
-            self.piecewise_pdf.addSegment(SegmentWithPole(0, mode, self.pdf, left_pole = True))
-            self.piecewise_pdf.addSegment(Segment(mode, mode + 1, self.pdf))
-            self.piecewise_pdf.addSegment(PInfSegment(mode + 1, self.pdf))
+            self.piecewise_pdf.addSegment(SegmentWithPole(0, mode, wrapped_pdf, left_pole = True))
+            self.piecewise_pdf.addSegment(Segment(mode, mode + 1, wrapped_pdf))
+            self.piecewise_pdf.addSegment(PInfSegment(mode + 1, wrapped_pdf))
     def rand_raw(self, n = None):
         return f_rand(self.df1, self.df2, n)
     def __str__(self):
@@ -616,18 +629,19 @@ class WeibullDistr(Distr):
             y[mask_zero] = self.pdf_at_0
         return y
     def init_piecewise_pdf(self):
+        wrapped_pdf = wrap_pdf(self.pdf)
         if self.k <= 1:
-            self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+            self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,  
                                                        breakPoints = [0.0, self.k, Inf],
                                                        lpoles=[True, False, False])
         else:
             mode = self.lmbda * (float(self.k - 1) / self.k)**(1.0/self.k)
             if self.k == floor(self.k):
-                self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+                self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,  
                                                            breakPoints = [0.0, mode, Inf],
                                                            lpoles=[False, False, False])
             else:
-                self.piecewise_pdf = PiecewiseDistribution(fun = self.pdf,  
+                self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,  
                                                            breakPoints = [0.0, mode, Inf],
                                                            lpoles=[True, False, False])
     def rand_raw(self, n = None):
@@ -663,9 +677,10 @@ class GumbelDistr(Distr):
         infl1 = self.mu - self.sigma * log((3 + sqrt(5))/2)
         infl2 = self.mu + self.sigma * log((3 + sqrt(5))/2)
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(MInfSegment(infl1, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(infl2, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(MInfSegment(infl1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(infl2, wrapped_pdf))
     def rand_raw(self, n = None):
         return gumbel(self.mu, self.sigma, n)
     def __str__(self):
@@ -704,9 +719,10 @@ class FrechetDistr(Distr):
         infl1 = self.m + (infl1 ** (1.0/a) * self.s)
         infl2 = self.m + (infl2 ** (1.0/a) * self.s)
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(self.m, infl1, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
-        self.piecewise_pdf.addSegment(PInfSegment(infl2, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(Segment(self.m, infl1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(PInfSegment(infl2, wrapped_pdf))
     def rand_raw(self, n = None):
         x = uniform(0,1,n)
         return self.m + self.s*(-log(x))**(-1.0/self.alpha)
@@ -742,9 +758,10 @@ class MollifierDistr(Distr):
         infl2 = 3.0 ** (-0.25) * self.epsilon
         infl1 = -infl2
         self.piecewise_pdf = PiecewiseDistribution([])
-        self.piecewise_pdf.addSegment(Segment(-self.epsilon, infl1, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(infl1, infl2, self.pdf))
-        self.piecewise_pdf.addSegment(Segment(infl2, self.epsilon, self.pdf))
+        wrapped_pdf = wrap_pdf(self.pdf)
+        self.piecewise_pdf.addSegment(Segment(-self.epsilon, infl1, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(infl1, infl2, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(infl2, self.epsilon, wrapped_pdf))
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
     def __str__(self):

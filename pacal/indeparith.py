@@ -176,15 +176,25 @@ def convx(segList, integration_par, xx):
         p_map = params.general.process_pool.map
     else:
         p_map = map
-    #import pickle
     #print segList[0][0]
+    ##try:
+    #print segList[0][0].f.args[0]
+    #import pickle
     #try:
+    #    pickle.dumps(segList[0][0])
+    #except:
+    #    import pdb; pdb.set_trace()
     #    pickle.dumps(segList[0][0])
     #except:
     #    print "Q", segList[0][0]
     #    import pdb; pdb.set_trace()
     #    pickle.dumps(segList[0][0].f.vb)
     #    #raise
+    #import cPickle as pickle
+    #for segi, segj in segList:
+    #    print "A",segj.f.args
+    #    #print "B",pickle.loads(pickle.dumps(segj.f)).f.args
+    #    print pickle.dumps(segj.f)
     res = p_map(partial(conv_at_point, segList, integration_par), xx)
     res = array(res)
     return res
@@ -584,7 +594,6 @@ def convprod(f, g):
     bf = f.getBreaks()
     bg = g.getBreaks()
     b = multiply.outer(bf, bg)
-    fun = partial(convprodx, segList)
     op = operator.mul
     ub = epsunique(b)
     #ind = find(ub == 0.0)
@@ -608,17 +617,20 @@ def convprod(f, g):
     if isinf(ub[0]):
         segList = _findSegList(f, g, ub[1] -1, op)
         seg = MInfSegment(ub[1], fun)
+        fun = partial(convprodx, segList)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
     if isinf(ub[-1]):
         segList = _findSegList(f, g, ub[-2] + 1, op)
+        fun = partial(convprodx, segList)
         seg = PInfSegment(ub[-2], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in range(len(ub)-1) :
         segList = _findSegList(f, g, (ub[i] + ub[i+1])/2, op)
+        fun = partial(convprodx, segList)
         _NoL = False
         _NoR = False
         if (ub[i] == 0):

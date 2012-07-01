@@ -2,6 +2,7 @@
 
 import bisect
 import numbers
+from functools import partial
 
 from integration import *
 from interpolation import *
@@ -28,6 +29,27 @@ except ImportError:
 
 
 
+def prob_comp_fun(f, ginv, ginvderiv, x):
+    """Helper function for composition"""
+    if isscalar(x):
+        try:
+            y = f(ginv(x)) * abs(ginvderiv(x))
+        except ArithmeticError:
+            y = 0
+    else:
+        y = _safe_call(f(ginv(x)) * abs(ginvderiv(x)))
+    return y
+def call_segint(seg, y0, x):
+    if isscalar(x):
+        return y0 + seg.segIntegral(x)
+    else:
+        return y0 + array([seg.segIntegral(xi) for xi in x])
+def call_segint2(seg, y0, x):
+    if isscalar(x):
+        return y0 - seg.segIntegral(x)
+    else:
+        return y0 - array([seg.segIntegral(xi) for xi in x])
+    
 class Segment(object):
     """Segment of piecewise continuous function, 
     default on finite interval [a, b].
@@ -73,19 +95,18 @@ class Segment(object):
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
-        return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
+        return Segment(self.a , self.b, partial(call_segint, self, y0))
+    def segIntegral(self, x):
+        if isscalar(x):
+            return self.integrate(self.a, x)
+        else:
+            return array([self.integrate(self.a, xi) for xi in x])
     def diff(self):
         return self.toInterpolatedSegment().diff()    
     def roots(self):
         return self.toInterpolatedSegment().roots()    
     def trim(self):
         return self            
-    
-    def _segIntegral(self, x):
-        if isscalar(x):
-            return self.integrate(self.a, x)
-        else:
-            return array([self.integrate(self.a, xi) for xi in x])
 
     def toInterpolatedSegment(self, left_pole = False, NoL = False, right_pole = False, NoR = False):
         if left_pole or right_pole:
@@ -208,17 +229,10 @@ class Segment(object):
     def probComposition(self, g, ginv, ginvderiv, pole_at_zero = False):
         """It produce probabilistic composition g o f for a given distribution f
         """
-        def fun(x):
-            if isscalar(x):
-                try:
-                    y = self.f(ginv(x)) * abs(ginvderiv(x))
-                except ArithmeticError:
-                    y = 0
-            else:
-                y = _safe_call(self.f(ginv(x)) * abs(ginvderiv(x)))
-            return y
         if self.isDirac():
             return DiracSegment(g(self.a), self.f)
+        fun = partial(prob_comp_fun, self.f, ginv, ginvderiv)
+        #print fun.func, fun.args
         if (isinf(g(array([self.a])))):
         #if (self.a==0):
             if  g(self.b)<0:
@@ -403,13 +417,18 @@ class Segment(object):
         return False
     def isMorPInf(self):
         return self.isMInf() or self.isPInf()
-        
+
+class ConstFun(object):
+    def __init__(self, c):
+        self.c = c
+    def __call__(self, x):
+        return 0.0*x + self.c
 class ConstSegment(Segment): 
     """constant function over finite interval 
     """    
     def __init__(self, a, b, c):
         self.const = c
-        super(ConstSegment, self).__init__(a, b, None)
+        super(ConstSegment, self).__init__(a, b, ConstFun(c))
     def __call__(self, x):
         return select([(x>=self.a) & (x<=self.b)], [self.const], 0)
     def integrate(self, a = None, b = None):
@@ -419,8 +438,8 @@ class ConstSegment(Segment):
         if b==None or b>self.b:
             b=self.b
         return self.const*(b-a)
-    def f(self, x):
-        return 0.0*x + self.const
+    #def f(self, x):
+    #    return 0.0*x + self.const
 class MInfSegment(Segment):
     """Segment on the range [-inf, b)."""    
     def __init__(self, b, f):
@@ -459,8 +478,8 @@ class MInfSegment(Segment):
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
-        return MInfSegment(self.b, lambda x : y0 + self._segIntegral(x) )    
-    def _segIntegral(self, x):
+        return MInfSegment(self.b, partial(call_segint, self, y0))
+    def segIntegral(self, x):
         if isscalar(x):
             return self.integrate(b = x)
         else:
@@ -521,8 +540,8 @@ class PInfSegment(Segment):
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
-        return PInfSegment(self.a, lambda x : y0 - self._segIntegral(x) )    
-    def _segIntegral(self, x):
+        return PInfSegment(self.a, partial(call_segint2, self, y0))
+    def segIntegral(self, x):
         if isscalar(x):
             return self.integrate(a = x)
         else:
@@ -562,7 +581,7 @@ class DiracSegment(Segment):
             return 0
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
-        return Segment(self.a , self.b, lambda x : y0 + self._segIntegral(x) )
+        return Segment(self.a , self.b, partial(call_segint, self, y0))
     def plot(self, 
              xmin = None,
              xmax = None,
@@ -703,7 +722,7 @@ class SegmentWithPole(Segment):
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
-        return SegmentWithPole(self.a , self.b, lambda x : y0 + self._segIntegral(x), left_pole = self.left_pole)
+        return SegmentWithPole(self.a , self.b, partial(call_segint, self, y0), left_pole = self.left_pole)
     def plot(self, 
              xmin = None,
              xmax = None,
@@ -742,11 +761,6 @@ class SegmentWithPole(Segment):
             plot([xmin, xmin], [0, yi[0]], 'k-.', linewidth=1)
         else:
             plot([xmax, xmax], [0, yi[-1]], 'k-.', linewidth=1)    
-#    def _segIntegral(self, x):
-#        if isscalar(x):
-#            return self.integrate(self.a, x)
-#        else:
-#            return array([self.integrate(self.a, xi) for xi in x])
 
     def toInterpolatedSegment(self, NoR = None, NoL = None):
         return InterpolatedSegmentWithPole(self.a, self.b, self.f, self.left_pole)

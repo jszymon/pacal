@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from functools import partial
+
 from numpy import array, arange, empty, cos, sin, abs
 from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
@@ -37,6 +39,18 @@ try:
     from numpy import Inf
 except:
     Inf = float('inf')
+
+# function wrappers for avoiding lambdas
+
+# wrap instancemethod .pdf in a partial function call for pickling
+# only used for parallel execution
+def call_pdf(obj, x):
+    return obj.pdf(x)
+def wrap_pdf(pdf):
+    if params.general.parallel:
+        return partial(call_pdf, pdf.im_self)
+    return pdf
+
 
 def combine_interpolation_nodes(oldXs, oldYs, newXs, newYs):
     """Combine old and new interpolation nodes in sorted order."""

@@ -166,7 +166,7 @@ class Distr(RV):
                 y =  zeros_like(t)
                 for i in range(len(t)):
                     y[i] = fun(t[i])
-                return y 
+                return y
         return PiecewiseFunction(fun=fun, breakPoints=self.get_piecewise_pdf().getBreaks()) 
     def cf(self):
         # TODO
@@ -555,11 +555,13 @@ class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
     def rand_op(self, n, cache):
         return self.scale * self.d.rand(n, cache) + self.shift
 
+def _one_over_abs(x):
+    return 1.0/abs(x)
 class ExpDistr(FuncDistr):
     """Exponent of a random variable"""
     def __init__(self, d):
         super(ExpDistr, self).__init__(d, numpy.exp, numpy.log,
-                                       lambda x: 1.0/abs(x), pole_at_zero = True,
+                                       _one_over_abs, pole_at_zero = True,
                                        fname = "exp")
     def is_nonneg(self):
         return True
