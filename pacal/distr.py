@@ -450,7 +450,6 @@ class Distr(RV):
             if d == 0:
                 return 0
             d = float(d)
-            #return FuncDistr(self, lambda x: d/x, lambda x: d/x, lambda x: d/x**2)
             return d * InvDistr(self)
         raise NotImplemented()
     def __pow__(self, d):

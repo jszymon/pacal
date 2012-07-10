@@ -44,11 +44,11 @@ except:
 
 # wrap instancemethod .pdf in a partial function call for pickling
 # only used for parallel execution
-def call_pdf(obj, x):
+def _call_pdf(obj, x):
     return obj.pdf(x)
 def wrap_pdf(pdf):
     if params.general.parallel:
-        return partial(call_pdf, pdf.im_self)
+        return partial(_call_pdf, pdf.im_self)
     return pdf
 
 
