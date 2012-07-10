@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import types
 from functools import partial
 
 from numpy import array, arange, empty, cos, sin, abs
@@ -534,6 +535,17 @@ def ordinal_ending(n):
     if n == 2:
         return "nd"
     return "th"
+
+
+def is_instance_method(obj):
+    """Checks if an object is a bound method on an instance."""
+    if not isinstance(obj, types.MethodType):
+        return False # Not a method
+    if obj.im_self is None:
+        return False # Method is not bound
+    if issubclass(obj.im_class, type) or obj.im_class is types.ClassType:
+        return False # Method is a classmethod
+    return True
 
 
 if __name__ == "__main__":

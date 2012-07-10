@@ -7,7 +7,7 @@ from functools import partial
 
 from integration import *
 from interpolation import *
-from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent
+from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent, is_instance_method
 
 import params
 
@@ -62,6 +62,15 @@ def _prob_composition(f, ginv, ginvderiv, x):
     return f(ginv(x)) * abs(ginvderiv(x))
 def _prob_composition2(f, ginv, ginvderiv, x):
     return f(-ginv(x)) * abs(ginvderiv(x))
+
+def _call_f(obj, x):
+    return obj.f(x)
+def wrap_f(f):
+    if params.general.parallel:
+        if is_instance_method(f):
+            return partial(_call_f, f.im_self)
+        return f
+    return f
 
 class Segment(object):
     """Segment of piecewise continuous function, 
@@ -1327,7 +1336,7 @@ class PiecewiseFunction(object):
         return copyFunction
     def copySquareComposition(self):
         """Composition with x^2"""
-        fun  = self.splitByPoints([0.0])
+        fun = self.splitByPoints([0.0])
         copyFunction = self.__class__([])
         leftFunction = self.__class__([])
         rightFunction = self.__class__([])
@@ -1344,7 +1353,7 @@ class PiecewiseFunction(object):
             copyFunction = leftFunction + rightFunction
         return copyFunction
     def copyAbsComposition(self):
-        """Composition with x^2"""
+        """Composition with |x|"""
         fun  =self.splitByPoints([0.0])
         leftFunction = self.__class__([])
         rightFunction = self.__class__([])
@@ -1652,34 +1661,35 @@ class PiecewiseFunction(object):
             inds = points[(seg.a<points) & (points<seg.b)]
             a = seg.a
             b = None
+            wrapped_f = wrap_f(seg.f)
             for ind in inds:
                 b = ind
-                if seg.isMInf() and isinf(a):       
-                    fun.addSegment(MInfSegment(b, seg.f))             
+                if seg.isMInf() and isinf(a):
+                    fun.addSegment(MInfSegment(b, wrapped_f))
                 elif seg.isPInf() and isinf(b):
-                    fun.addSegment(PInfSegment(a, seg.f))
+                    fun.addSegment(PInfSegment(a, wrapped_f))
                 elif seg.hasLeftPole() and a == seg.a:
-                    fun.addSegment(SegmentWithPole(a, b, seg.f, left_pole = True))
+                    fun.addSegment(SegmentWithPole(a, b, wrapped_f, left_pole = True))
                 elif seg.hasRightPole() and b == seg.b:
-                    fun.addSegment(SegmentWithPole(a, b, seg.f, left_pole = False))
+                    fun.addSegment(SegmentWithPole(a, b, wrapped_f, left_pole = False))
                 elif seg.isDirac():
-                    fun.addSegment(DiracSegment(a, seg.f))
+                    fun.addSegment(DiracSegment(a, wrapped_f))
                 else:
-                    fun.addSegment(Segment(a, b, seg.f))
+                    fun.addSegment(Segment(a, b, wrapped_f))
                 a = b   
             b = seg.b
             if seg.isMInf() and isinf(a):       
-                fun.addSegment(MInfSegment(b, seg.f))             
+                fun.addSegment(MInfSegment(b, wrapped_f))             
             elif seg.isPInf() and isinf(b):
-                fun.addSegment(PInfSegment(a, seg.f))
+                fun.addSegment(PInfSegment(a, wrapped_f))
             elif seg.hasLeftPole() and a == seg.a:
-                fun.addSegment(SegmentWithPole(a, b, seg.f, left_pole = True))
+                fun.addSegment(SegmentWithPole(a, b, wrapped_f, left_pole = True))
             elif seg.hasRightPole() and b == seg.b:
-                fun.addSegment(SegmentWithPole(a, b, seg.f, left_pole = False))
+                fun.addSegment(SegmentWithPole(a, b, wrapped_f, left_pole = False))
             elif seg.isDirac():
-                fun.addSegment(DiracSegment(a, seg.f))
+                fun.addSegment(DiracSegment(a, wrapped_f))
             else:
-                fun.addSegment(Segment(a, b, seg.f))
+                fun.addSegment(Segment(a, b, wrapped_f))
         return fun
     def inverse(self, y):
         vals = self.getSegVals()

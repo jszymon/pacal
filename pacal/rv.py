@@ -225,7 +225,6 @@ class RV(object):
             if d == 0:
                 return 0
             d = float(d)
-            #return FuncRV(self, lambda x: d/x, lambda x: d/x, lambda x: d/x**2)
             return d * InvRV(self)
         raise NotImplemented()
     def __pow__(self, d):
