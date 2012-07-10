@@ -650,7 +650,7 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
     def spec_f(self, x):
-        return log1p(f(self.xt(x)))
+        return log1p(self.wrapped_f(self.xt(x)))
     def interp_at(self, x):
         y = expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
         return y

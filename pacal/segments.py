@@ -331,7 +331,6 @@ class Segment(object):
         """Produce square of a random variable X^2 ~ f for a given distribution f over segment [a,b]
         we assume that:  a * b >= 0
         """ 
-        
         g = _op_square
         ginv = sqrt
         ginvderiv = _op_half_over_sqrt
