@@ -2,6 +2,7 @@
 
 import bisect
 import numbers
+import operator
 from functools import partial
 
 from integration import *
@@ -49,7 +50,10 @@ def call_segint2(seg, y0, x):
         return y0 - seg.segIntegral(x)
     else:
         return y0 - array([seg.segIntegral(xi) for xi in x])
-    
+
+def _shift_and_scale(f, one_over_scale, shift, x):
+    return abs(one_over_scale) * f((x - shift) * one_over_scale)
+
 class Segment(object):
     """Segment of piecewise continuous function, 
     default on finite interval [a, b].
@@ -94,7 +98,6 @@ class Segment(object):
         return i
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
-        #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return Segment(self.a , self.b, partial(call_segint, self, y0))
     def segIntegral(self, x):
         if isscalar(x):
@@ -225,7 +228,7 @@ class Segment(object):
         else:
             a = self.b
             b = self.a
-        return Segment(a * scale + shift, b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
+        return Segment(a * scale + shift, b * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift))
     def probComposition(self, g, ginv, ginvderiv, pole_at_zero = False):
         """It produce probabilistic composition g o f for a given distribution f
         """
@@ -247,15 +250,11 @@ class Segment(object):
                 return MInfSegment(g(self.a), fun)
         else:
             if g(self.a)<=g(self.b):
-                #return Segment(g(self.a)+8* finfo(float).eps,g(self.b)-4* finfo(float).eps, lambda x: self(ginv(x)) * abs(ginvderiv(x)))
-                #return Segment(g(self.a),g(self.b), lambda x: self(ginv(x)) * abs(ginvderiv(x)))
                 if g(self.a)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.a), g(self.b), fun)
                 else:
                     return Segment(g(self.a),g(self.b), fun)
             else:
-                #return Segment(g(self.b)+4* finfo(float).eps,g(self.a)-4* finfo(float).eps, lambda x: self(ginv(x)) * abs(ginvderiv(x)))              
-                #return Segment(g(self.b), g(self.a), fun)
                 if g(self.b)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.b), g(self.a), fun, left_pole = False)
                 else:
@@ -265,8 +264,8 @@ class Segment(object):
         """It produce probalilistic composition g o f for a given distribution f 
         """
         #if (isinf(g(self.a))):
-        g = lambda x : 1 / x
-        ginv = lambda x : 1 / x
+        g = partial(operator.div, 1.0)
+        ginv = partial(operator.div, 1.0)
         ginvderiv = lambda x : 1 / x**2
         def g(x):
             if isscalar(x):
@@ -477,7 +476,6 @@ class MInfSegment(Segment):
         return i    
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
-        #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return MInfSegment(self.b, partial(call_segint, self, y0))
     def segIntegral(self, x):
         if isscalar(x):
@@ -489,9 +487,9 @@ class MInfSegment(Segment):
         """
         _1_scale = 1.0 / scale
         if scale > 0:
-            return MInfSegment(self.b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
+            return MInfSegment(self.b * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift))
         else:
-            return PInfSegment(self.b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
+            return PInfSegment(self.b * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift))
     def isMInf(self):
         return True
     def tailexp(self):
@@ -551,9 +549,9 @@ class PInfSegment(Segment):
         """
         _1_scale = 1.0 / scale
         if scale > 0:
-            return PInfSegment(self.a * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
+            return PInfSegment(self.a * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift))
         else:
-            return MInfSegment(self.a * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale))
+            return MInfSegment(self.a * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift))
     def isPInf(self):
         return True    
     def tailexp(self):
@@ -716,12 +714,11 @@ class SegmentWithPole(Segment):
         """
         _1_scale = 1.0 / scale
         if scale > 0:
-            return SegmentWithPole(self.a * scale + shift, self.b * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale), left_pole = self.left_pole)
+            return SegmentWithPole(self.a * scale + shift, self.b * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift), left_pole = self.left_pole)
         else:
-            return SegmentWithPole(self.b * scale + shift, self.a * scale + shift, lambda x: abs(_1_scale) * self.f((x - shift) * _1_scale), left_pole = not self.left_pole)
+            return SegmentWithPole(self.b * scale + shift, self.a * scale + shift, partial(_shift_and_scale, self.f, _1_scale, shift), left_pole = not self.left_pole)
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
-        #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return SegmentWithPole(self.a , self.b, partial(call_segint, self, y0), left_pole = self.left_pole)
     def plot(self, 
              xmin = None,
