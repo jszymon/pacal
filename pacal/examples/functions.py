@@ -96,12 +96,10 @@ demo_distr(U, theoretical = UniformDistr(-pi/2, pi/2), histogram = True)
 C_shifted = NormalDistr(1.2,1) / NormalDistr(1.2,1)
 figure()
 demo_distr(C_shifted, theoretical = None, histogram = True, xmin=-5, xmax=5)
-#show()
 
 U_shifted = atan(C_shifted); 
 figure()
 demo_distr(U_shifted, theoretical = None, histogram = True)
-#show()
 
 #L.summary()
 #figure()
@@ -126,18 +124,19 @@ S.hist()
 C.summary()
 C.hist()
 C.plot(color="r")
-show()
-#! Let consider norlam distribution using Box-Muller transform
+
+#! Normal distribution using Box-Muller transform
 N = sqrt(-2*log(UniformDistr()))*C
+
 N.summary(show_moments=True)
 Norg = NormalDistr()
 Norg.summary(show_moments=True)
 r = N.get_piecewise_pdf() - Norg.get_piecewise_pdf()
 figure()
 r.plot()
-show()
+
 figure()
-# TODO tu trzeba jeszcze popracowac 
+# TODO more work needed here
 Norg.plot(linewidth=2, color='r')
 N.plot()
 

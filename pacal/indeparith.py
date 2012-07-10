@@ -616,8 +616,8 @@ def convprod(f, g):
     fg = PiecewiseDistribution([])
     if isinf(ub[0]):
         segList = _findSegList(f, g, ub[1] -1, op)
-        seg = MInfSegment(ub[1], fun)
         fun = partial(convprodx, segList)
+        seg = MInfSegment(ub[1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
