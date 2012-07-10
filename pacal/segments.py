@@ -54,6 +54,15 @@ def call_segint2(seg, y0, x):
 def _shift_and_scale(f, one_over_scale, shift, x):
     return abs(one_over_scale) * f((x - shift) * one_over_scale)
 
+def _op_square(x):
+    return x * x
+def _op_half_over_sqrt(x):
+    return 0.5 / sqrt(x)
+def _prob_composition(f, ginv, ginvderiv, x):
+    return f(ginv(x)) * abs(ginvderiv(x))
+def _prob_composition2(f, ginv, ginvderiv, x):
+    return f(-ginv(x)) * abs(ginvderiv(x))
+
 class Segment(object):
     """Segment of piecewise continuous function, 
     default on finite interval [a, b].
@@ -319,60 +328,60 @@ class Segment(object):
                     return Segment(g(self.b),g(self.a), fun)
 
     def squareComposition(self):
-        """It produce square of random variable X^2 o f for a given distribution f over segment [a,b]
-        we assume that:  a * b >= 0  
+        """Produce square of a random variable X^2 ~ f for a given distribution f over segment [a,b]
+        we assume that:  a * b >= 0
         """ 
         
-        g = lambda x : x * x
-        ginv = lambda x : sqrt(x)
-        ginvderiv = lambda x : 0.5 / sqrt(x)
+        g = _op_square
+        ginv = sqrt
+        ginvderiv = _op_half_over_sqrt
         if self.isDirac():
             return DiracSegment(g(self.a), self.f)
         assert (self.a>=0 and self.b>0) or (self.a<0 and self.b<=0)
         if self.a>=0:         
             if (isinf(self.b)):
-                return PInfSegment(g(self.a), lambda x: self.f(ginv(x)) * abs(ginvderiv(x))) 
+                return PInfSegment(g(self.a), partial(_prob_composition, self.f, ginv, ginvderiv))
             else:
                 if self.a>0:                    
-                    return Segment(g(self.a),g(self.b), lambda x: self.f(ginv(x)) * abs(ginvderiv(x)))
+                    return Segment(g(self.a), g(self.b), partial(_prob_composition, self.f, ginv, ginvderiv))
                 else:
-                    return SegmentWithPole(g(self.a),g(self.b), lambda x: self.f(ginv(x)) * abs(ginvderiv(x)))
+                    return SegmentWithPole(g(self.a), g(self.b), partial(_prob_composition, self.f, ginv, ginvderiv))
         else: 
             if (isinf(self.a)):
-                return PInfSegment(g(self.b), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x))) 
+                return PInfSegment(g(self.b), partial(_prob_composition2, self.f, ginv, ginvderiv))
             else:
                 if self.b<0:                    
-                    return Segment(g(self.b),g(self.a), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x)))
+                    return Segment(g(self.b), g(self.a), partial(_prob_composition2, self.f, ginv, ginvderiv))
                 else:
-                    return SegmentWithPole(g(self.b),g(self.a), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x)))
+                    return SegmentWithPole(g(self.b), g(self.a), partial(_prob_composition2, self.f, ginv, ginvderiv))
     
     def absComposition(self):
         """It produce absolute value of random variable |X| o f for a given distribution f over segment [a,b]
         we assume that:  a * b >= 0  
         """ 
         
-        g = lambda x : abs(x)
-        ginv = lambda x : abs(x)
-        ginvderiv = lambda x : 1.0 + 0.0 * x 
+        g = operator.abs
+        ginv = operator.abs
+        ginvderiv = ConstFun(1)
         if self.isDirac():
             return DiracSegment(g(self.a), self.f)
         assert (self.a>=0 and self.b>0) or (self.a<0 and self.b<=0)
         if self.a>=0:         
             if (isinf(self.b)):
-                return PInfSegment(g(self.a), lambda x: self.f(ginv(x)) * abs(ginvderiv(x))) 
+                return PInfSegment(g(self.a), partial(_prob_composition, self.f, ginv, ginvderiv))
             else:
                 if self.a>0:                    
-                    return Segment(g(self.a),g(self.b), lambda x: self.f(ginv(x)) * abs(ginvderiv(x)))
+                    return Segment(g(self.a), g(self.b), partial(_prob_composition, self.f, ginv, ginvderiv))
                 else:
-                    return SegmentWithPole(g(self.a),g(self.b), lambda x: self.f(ginv(x)) * abs(ginvderiv(x)))
+                    return SegmentWithPole(g(self.a), g(self.b), partial(_prob_composition, self.f, ginv, ginvderiv))
         else: 
             if (isinf(self.a)):
-                return PInfSegment(g(self.b), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x))) 
+                return PInfSegment(g(self.b), partial(_prob_composition2, self.f, ginv, ginvderiv))
             else:
                 if self.b<0:                    
-                    return Segment(g(self.b),g(self.a), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x)))
+                    return Segment(g(self.b), g(self.a), partial(_prob_composition2, self.f, ginv, ginvderiv))
                 else:
-                    return SegmentWithPole(g(self.b),g(self.a), lambda x: self.f(-ginv(x)) * abs(ginvderiv(x)))
+                    return SegmentWithPole(g(self.b), g(self.a), partial(_prob_composition2, self.f, ginv, ginvderiv))
 
     
     def __lt__(self, other):
@@ -537,7 +546,6 @@ class PInfSegment(Segment):
         return i    
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
-        #return Segment(self.a , self.b, lambda x : [self.integrate(self.a, xi) for xi in x])
         return PInfSegment(self.a, partial(call_segint2, self, y0))
     def segIntegral(self, x):
         if isscalar(x):
@@ -1058,9 +1066,9 @@ class PiecewiseFunction(object):
                 f0 = segi.f(segi.b)
         rightval = max(f0, segi.f(segi.b))
         if not segi.isPInf():
-            integralPFun.addSegment(PInfSegment(segi.b, lambda x: x * 0.0 + rightval))
+            integralPFun.addSegment(PInfSegment(segi.b, ConstFun(rightval)))
         if not integralPFun.segments[0].isMInf():
-            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: x * 0.0))
+            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, ConstFun(0)))
         return integralPFun
     def diff(self):
         diffPFun = PiecewiseFunction([])        
@@ -1118,9 +1126,9 @@ class PiecewiseFunction(object):
                 f0 = segi.f(segi.b)
         rightval = max(f0, segi.f(segi.b))
         if not segi.isPInf():
-            integralPFun.addSegment(PInfSegment(segi.b, lambda x: rightval + 0.0*x))
+            integralPFun.addSegment(PInfSegment(segi.b, ConstFun(rightval)))
         if not integralPFun.segments[0].isMInf():
-            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, lambda x: 0.0 + 0.0*x))
+            integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, ConstFun(0)))
         return integralPFun
     def max_abs(self):
         x1, m1 = self.maximum()
@@ -1461,30 +1469,30 @@ class PiecewiseFunction(object):
 
     def __add__(self, other):
         if isinstance(other, PiecewiseFunction):
-            return self._operation__(other, operation = lambda x,y : x+y)
+            return self._operation__(other, operation = operator.add)
         elif isinstance(other, numbers.Real):
             return self.__radd__(other)
         raise NotImplemented()
     def __sub__(self, other):
         if isinstance(other, PiecewiseFunction):
-            return self._operation__(other, operation = lambda x,y : x-y)
+            return self._operation__(other, operation = operator.sub)
         elif isinstance(other, numbers.Real):
             return self.__rsub__(other)
         raise NotImplemented()
     def __mul__(self, other):
         if isinstance(other, PiecewiseFunction):
-            return self._operation__(other, operation = lambda x,y : x*y)
+            return self._operation__(other, operation = operator.mul)
         elif isinstance(other, numbers.Real):
             return self.__rmul__(other)
         raise NotImplemented()
     def __div__(self, other):
         #TODO handle zeros o denominator, !!!currently unhandled!!!
         if isinstance(other, PiecewiseFunction):
-            return self._operation__(other, operation = lambda x,y : x/y)
+            return self._operation__(other, operation = operator.div)
         elif isinstance(other, numbers.Real):
             return self.__rdiv__(other)
         raise NotImplemented()
-    def __radd__(self, r, operation = lambda x,y : x+y):
+    def __radd__(self, r, operation = operator.add):
         """Overload sum with real number: distribution of X+r."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
@@ -1494,18 +1502,18 @@ class PiecewiseFunction(object):
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
         raise NotImplemented()
-    def __rmul__(self, r, operation = lambda x,y : x*y):
-        """Overload sum with real number: distribution of X+r."""
+    def __rmul__(self, r, operation = operator.mul):
+        """Overload product with real number: distribution of X*r."""
         if isinstance(r, numbers.Real):
-            return self._roperation__(r, operation = lambda x,y : x*y)
+            return self._roperation__(r, operation = operator.mul)
         raise NotImplemented()
     def __rdiv__(self, r, operation = lambda x,y : y/x):
-        """Overload sum with real number: distribution of X+r."""
+        """Overload division by real number: distribution of X+r."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation )
         raise NotImplemented()
 
-    def _roperation__(self, r, operation = lambda x,y : x+y):
+    def _roperation__(self, r, operation = operator.add):
         """Pointwise sum piecewise functions with real number """
         breaks = self.getBreaks()
         segsList = self.segments
@@ -1547,7 +1555,7 @@ class PiecewiseFunction(object):
             elif other_dirac is not None:
                 self_dirac.f = op(self_dirac.f,  other_dirac.f)
 
-    def _operation__(self, other, operation = lambda x,y : x+y):
+    def _operation__(self, other, operation = operator.add):
         """Pointwise operation on two piecewise functions."""
         breaks1 = self.getBreaks()
         breaks2 = other.getBreaks()
@@ -1594,9 +1602,9 @@ class PiecewiseFunction(object):
         return self._function__(fun = lambda x : x**k)
     def _log(self):
         #TODO handle zeros in arguments
-        return self._function__(fun = lambda x : numpy.log(x))
+        return self._function__(fun = numpy.log)
     def exp(self):
-        return self._function__(fun = lambda x : numpy.exp(x))
+        return self._function__(fun = numpy.exp)
     def _log1(self):
         #TODO handle zeros in arguments
         return self._function__(fun = lambda x : -numpy.log(x))
@@ -2016,7 +2024,7 @@ def _segint(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fal
     return i,e
 
 
-def _conv_diracs(f, g, fun = lambda x,y : x+y ):
+def _conv_diracs(f, g, fun = operator.add):
     """discrete convolution of f and g  
     """    
     fg = PiecewiseFunction([])
