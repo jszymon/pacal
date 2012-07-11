@@ -737,10 +737,6 @@ class VarTransformInterpolator(ChebyshevInterpolator): # original state
         if vt is None:
             vt = VarTransformIdentity()
         self.vt = vt
-        #def _interp_func(t):
-        #    y = self.vt.apply_with_inv_transform(f, t)
-        #    return y
-        #interp_func = lambda t: self.vt.apply_with_inv_transform(f, t)
         super(VarTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.vt.var_min,
                                                        self.vt.var_max,
@@ -829,7 +825,6 @@ class PInfInterpolator(object):
             self.vt = VarTransformReciprocal_PInf(L, U=self.x_vb_max, exponent=exponent)
             self.vb = VarTransformInterpolator(self.f, self.vt, par=params.interpolation_infinite)
             self.vl = LogTransformInterpolator(self.f, self.x_vb_max, par=params.interpolation_asymp)
-            #self.vl = PolyInterpolator(lambda t: self.vt.apply_with_inv_transform(f, t), self.vt.var_change(self.x_vb_max))
             self.U = self.vl.orig_b
         if params.interpolation_asymp.debug_info:
             #print "vb.minmax", L, Ut

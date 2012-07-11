@@ -8,6 +8,14 @@ import numpy
 
 from pylab import figure, show
 
+# Those need to be defined before PaCAL creates a process pool for
+# picklability:
+def example_f1(x):
+    return sqrt(2)/numpy.pi / (1+x**4)
+def example_f2(x):
+    return 1.5*x*x
+
+
 from pacal import *
 from pacal.distr import demo_distr
 from pacal.utils import lgamma
@@ -296,7 +304,7 @@ demo_distr(pr, theoretical = BetaDistr(p0, p-p0))
 #! Section 9.14
 #!-------------------------
 
-f = FunDistr(lambda x: sqrt(2)/numpy.pi / (1+x**4), [-Inf, -1, 0, 1, Inf])
+f = FunDistr(example_f1 , [-Inf, -1, 0, 1, Inf])
 figure()
 demo_distr(f, err_plot = False)
 figure()
@@ -319,10 +327,9 @@ for l, n in [[1, 2],
     figure()
     demo_distr(s, theoretical = GammaDistr(n, 1)/n)
 
-
 #! Exercise 9.2
 params.general.warn_on_dependent = False
-f = FunDistr(lambda x: 1.5*x*x, [-1,1])
+f = FunDistr(example_f2, [-1,1])
 m = (f + f) / 2
 figure()
 demo_distr(m)

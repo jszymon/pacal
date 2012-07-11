@@ -25,6 +25,16 @@ from pacal.indeparith import conv, convprod, convdiv, convmin, convmax
 from pacal.segments import PiecewiseFunction, PiecewiseDistribution, DiracSegment, ConstSegment
 from pacal.rv import *
 
+
+def _mgf_fun(distr, t):
+    if isscalar(t):
+        return distr.meanf(f=lambda x: exp(t*x)) 
+    else:
+        y = zeros_like(t)
+        for i in range(len(t)):
+            y[i] = _mgf_fun(distr, t[i])
+        return y
+
 #class Distr(object):
 #    def __init__(self, parents = [], indep = None):
 class Distr(RV):
@@ -159,15 +169,7 @@ class Distr(RV):
         else:
             return NaN
     def mgf(self):      
-        def fun(t):
-            if isscalar(t):
-                return self.meanf(f=lambda x: exp(t*x)) 
-            else:
-                y =  zeros_like(t)
-                for i in range(len(t)):
-                    y[i] = fun(t[i])
-                return y
-        return PiecewiseFunction(fun=fun, breakPoints=self.get_piecewise_pdf().getBreaks()) 
+        return PiecewiseFunction(fun=partial(_mgf_fun, self), breakPoints=self.get_piecewise_pdf().getBreaks()) 
     def cf(self):
         # TODO
         pass

@@ -54,14 +54,43 @@ def call_segint2(seg, y0, x):
 def _shift_and_scale(f, one_over_scale, shift, x):
     return abs(one_over_scale) * f((x - shift) * one_over_scale)
 
+def _op_rsub(x, y):
+    return y - x
+def _op_rdiv(x, y):
+    return y / x
 def _op_square(x):
     return x * x
 def _op_half_over_sqrt(x):
     return 0.5 / sqrt(x)
+def _op_one_over_x(x):
+    if isscalar(x):
+        if x != 0:
+            y = 1.0 / x
+        else:
+            y = Inf
+    else:
+        mask = (x != 0.0)
+        y = zeros_like(asfarray(x))
+        y[mask] = 1.0 / x[mask]
+    return y
+def _op_one_over_xsqaure(x):
+    if isscalar(x):
+        if x != 0:
+            y = 1.0 / x**2
+        else:
+            y = Inf
+    else:
+        mask = (x != 0.0)
+        y = zeros_like(asfarray(x))
+        y[mask] = 1.0 / (x[mask])**2
+    return y
+
 def _prob_composition(f, ginv, ginvderiv, x):
     return f(ginv(x)) * abs(ginvderiv(x))
 def _prob_composition2(f, ginv, ginvderiv, x):
     return f(-ginv(x)) * abs(ginvderiv(x))
+def _prob_composition_safe(f, ginv, ginvderiv, x):
+    return _safe_call(f(ginv(x)) * abs(ginvderiv(x)))
 
 def _call_f(obj, x):
     return obj.f(x)
@@ -71,6 +100,15 @@ def wrap_f(f):
             return partial(_call_f, f.im_self)
         return f
     return f
+def _safe_fun_on_f_call(seg, fun, x):
+    return nan_to_num(fun(seg.f(x)))
+def _segfun_scalar_op(seg, op, r, x):
+    return op(seg.f(x), r)
+def _scalar_segfun_op(seg, op, r, x):
+    return op(seg.f(x), r)
+def _segfun_segfun_op(seg1, seg2, op, x):
+    return op(seg1.f(x), seg2.f(x))
+
 
 class Segment(object):
     """Segment of piecewise continuous function, 
@@ -281,34 +319,9 @@ class Segment(object):
     def probInverse(self, pole_at_zero = False): # TODO unused ??
         """It produce probalilistic composition g o f for a given distribution f 
         """
-        #if (isinf(g(self.a))):
-        g = partial(operator.div, 1.0)
-        ginv = partial(operator.div, 1.0)
-        ginvderiv = lambda x : 1 / x**2
-        def g(x):
-            if isscalar(x):
-                if x != 0:
-                    y = 1.0 / x
-                else:
-                    y = Inf # TODO: put nan here
-            else:
-                mask = (x != 0.0)
-                y = zeros_like(asfarray(x))
-                y[mask] = 1.0 / x[mask]  # to powoduje bledy w odwrotnosci
-                #y = 1.0 / x
-            return y
-        def ginvderiv(x):
-            if isscalar(x):
-                if x != 0:
-                    y = 1 / x**2
-                else:
-                    y = Inf # TODO: put nan here          
-            else:
-                mask = (x != 0.0)
-                y = zeros_like(asfarray(x))
-                y[mask] = 1/(x[mask])**2
-            return y        
-        fun = lambda x: _safe_call(self.f(g(x)) * abs(ginvderiv(x)))
+        g = _op_one_over_x
+        ginv = _op_one_over_x
+        fun = partial(_prob_composition_safe, self.f, _op_one_over_x, _op_one_over_xsqaure)
         if (self.a==0):
             if  g(self.b)<0:
                 return MInfSegment(g(self.b), fun)
@@ -326,7 +339,7 @@ class Segment(object):
                 if g(self.a)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.a), g(self.b), fun)
                 else:
-                    return Segment(g(self.a),g(self.b), fun)
+                    return Segment(g(self.a), g(self.b), fun)
                 
             else:
                 #return Segment(g(self.b)+4* finfo(float).eps,g(self.a)-4* finfo(float).eps, fun)              
@@ -334,7 +347,7 @@ class Segment(object):
                 if g(self.a)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.b), g(self.a), fun)
                 else:
-                    return Segment(g(self.b),g(self.a), fun)
+                    return Segment(g(self.b), g(self.a), fun)
 
     def squareComposition(self):
         """Produce square of a random variable X^2 ~ f for a given distribution f over segment [a,b]
@@ -1501,22 +1514,22 @@ class PiecewiseFunction(object):
             return self.__rdiv__(other)
         raise NotImplemented()
     def __radd__(self, r, operation = operator.add):
-        """Overload sum with real number: distribution of X+r."""
+        """Overload sum with real number: distribution of r+X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
         raise NotImplemented()
-    def __rsub__(self, r, operation = lambda x,y : y-x):
-        """Overload sum with real number: distribution of X+r."""
+    def __rsub__(self, r, operation = _op_rsub):
+        """Overload sum with real number: distribution of r-X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
         raise NotImplemented()
     def __rmul__(self, r, operation = operator.mul):
-        """Overload product with real number: distribution of X*r."""
+        """Overload product with real number: distribution of r*X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation = operator.mul)
         raise NotImplemented()
-    def __rdiv__(self, r, operation = lambda x,y : y/x):
-        """Overload division by real number: distribution of X+r."""
+    def __rdiv__(self, r, operation = _op_rdiv):
+        """Overload division by real number: distribution of r/X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation )
         raise NotImplemented()
@@ -1526,19 +1539,18 @@ class PiecewiseFunction(object):
         breaks = self.getBreaks()
         segsList = self.segments
         fun = self.__class__([])
-        def make_segfun(segment1):
-            return lambda x: operation(segment1.f(x), r)
         for seg in segsList:
+            seg_fun = partial(_segfun_scalar_op, seg, operation, r)
             if seg.isMInf():
-                fun.addSegment(MInfSegment(seg.b, make_segfun(seg)))
+                fun.addSegment(MInfSegment(seg.b, seg_fun))
             elif seg.isPInf():
-                fun.addSegment(PInfSegment(seg.a, make_segfun(seg)))
+                fun.addSegment(PInfSegment(seg.a, seg_fun))
             elif seg.isSegment() and seg.hasLeftPole():
-                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(seg), left_pole = True))
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, seg_fun, left_pole = True))
             elif seg.isSegment() and seg.hasRightPole():
-                fun.addSegment(SegmentWithPole(seg.a, seg.b, make_segfun(seg), left_pole = False))
+                fun.addSegment(SegmentWithPole(seg.a, seg.b, seg_fun, left_pole = False))
             elif seg.isSegment():
-                si=Segment(seg.a, seg.b, make_segfun(seg))
+                si=Segment(seg.a, seg.b, seg_fun)
                 fun.addSegment(si)
             elif seg.isDirac():
                 si = DiracSegment(seg.a, operation(seg.f, r))
@@ -1575,11 +1587,11 @@ class PiecewiseFunction(object):
         fun = self.__class__([])
         def make_segfun(segment1, segment2):
             if segment1 is None:
-                return lambda x: operation(0, segment2.f(x))
+                return partial(_scalar_segfun_op, segment2, operation, 0)
             elif segment2 is None:
-                return lambda x: operation(segment1.f(x), 0)
+                return partial(_segfun_scalar_op, segment1, operation, 0)
             else:
-                return lambda x: operation(segment1.f(x), segment2.f(x))
+                return partial(_segfun_segfun_op, segment1, segment2, operation)
         for segf, segg in segsList:
             if segf is None:
                 seg = segg
@@ -1620,19 +1632,18 @@ class PiecewiseFunction(object):
     def _function__(self, fun = lambda x: x):
         """Pointwise sum of two piecewise functions."""
         result = self.__class__([])
-        def make_fun(segment):
-            return lambda x: nan_to_num(fun(segment.f(x)))
         for seg in self.segments:
+            safe_fun = partial(_safe_fun_on_f_call, seg, fun)
             if seg.isMInf():
-                result.addSegment(MInfSegment(seg.b, make_fun(seg)))
+                result.addSegment(MInfSegment(seg.b, safe_fun))
             elif seg.isPInf():
-                result.addSegment(PInfSegment(seg.a, make_fun(seg)))
+                result.addSegment(PInfSegment(seg.a, safe_fun))
             elif seg.isSegment() and seg.hasLeftPole():
-                result.addSegment(SegmentWithPole(seg.a, seg.b, make_fun(seg), left_pole = True))
+                result.addSegment(SegmentWithPole(seg.a, seg.b, safe_fun, left_pole = True))
             elif seg.isSegment() and seg.hasRightPole():
-                result.addSegment(SegmentWithPole(seg.a, seg.b, make_fun(seg), left_pole = False))
+                result.addSegment(SegmentWithPole(seg.a, seg.b, safe_fun, left_pole = False))
             elif seg.isSegment():
-                si=Segment(seg.a, seg.b, make_fun(seg))
+                si=Segment(seg.a, seg.b, safe_fun)
                 result.addSegment(si)
             elif seg.isDirac():
                 si=DiracSegment(seg.a, fun(seg.f))

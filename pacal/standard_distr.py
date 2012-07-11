@@ -144,15 +144,15 @@ class TrapezoidalDistr(Distr):
         self.b = b
         self.c = c
         self.d = d
-        self.u = 2.0 / float(d+c-(b + a))
+        self.u = 2.0 / (d + c - (b + a))
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
         if self.a<self.b:
-            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u*(x - self.a)/(self.b - self.a)))
+            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u * (x - self.a) / (self.b - self.a)))
         if self.b<self.c:
             self.piecewise_pdf.addSegment(ConstSegment(self.b, self.c, self.u))
         if self.c<self.d:
-            self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u*(self.d  - x)/(self.d - self.c)))
+            self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u * (self.d  - x) / (self.d - self.c)))
     def rand_raw(self, n=None):
         return  self.rand_invcdf(n) # TODO !to improve it! 
     def __str__(self):
