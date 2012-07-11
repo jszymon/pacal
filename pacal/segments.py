@@ -105,7 +105,7 @@ def _safe_fun_on_f_call(seg, fun, x):
 def _segfun_scalar_op(seg, op, r, x):
     return op(seg.f(x), r)
 def _scalar_segfun_op(seg, op, r, x):
-    return op(seg.f(x), r)
+    return op(r, seg.f(x))
 def _segfun_segfun_op(seg1, seg2, op, x):
     return op(seg1.f(x), seg2.f(x))
 
@@ -1779,7 +1779,7 @@ class PiecewiseFunction(object):
             rpoles[-1]=True
             lpoles[0]=True 
         fun2 = PiecewiseFunction(fun = _tmp_inv, breakPoints=breakvals, 
-                             lpoles=lpoles, rpoles=rpoles)
+                                 lpoles=lpoles, rpoles=rpoles)
         if use_interpolated:
             return fun2.toInterpolated()
         else:
