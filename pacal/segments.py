@@ -1039,7 +1039,6 @@ class PiecewiseFunction(object):
         interpolatedPFun = self.__class__([])
         for seg in self.segments:
             interpolatedPFun.addSegment(seg.toInterpolatedSegment())
-        
         return interpolatedPFun
     
     def integrate(self, a = None, b = None):
@@ -1770,7 +1769,8 @@ class PiecewiseFunction(object):
 #        if vals[-1]>0 and vals[-1]<=1: 
 #            breakvals[-1] = 1
         def _tmp_inv(x):
-            return self.inverse(x)
+            y = self.inverse(x)
+            return y
         breakvals = epsunique(array(breakvals),0.0001)    
         for i in breakvals:
             lpoles.append(False)
@@ -1781,9 +1781,8 @@ class PiecewiseFunction(object):
         fun2 = PiecewiseFunction(fun = _tmp_inv, breakPoints=breakvals, 
                                  lpoles=lpoles, rpoles=rpoles)
         if use_interpolated:
-            return fun2.toInterpolated()
-        else:
-            return fun2
+            fun2 = fun2.toInterpolated()
+        return fun2
 
 class PiecewiseDistribution(PiecewiseFunction):
     """

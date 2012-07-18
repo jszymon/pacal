@@ -641,18 +641,19 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
             self.wrapped_f = f
         self.orig_a = a
         self.orig_b = b
+        self.sign = int(sign(self.wrapped_f(float(a + b) / 2)))
         if b == 0:
             offset = 1e-50
         else:
             offset = abs(b) * finfo(double).eps
-        self.offset = offset        
+        self.offset = offset
         super(PoleInterpolatorN, self).__init__(_wrap_f(self.spec_f),
                                                 self.xtinv(self.orig_a), self.xtinv(self.orig_b),
                                                 *args, **kwargs)
     def spec_f(self, x):
-        return log1p(self.wrapped_f(self.xt(x)))
+        return log1p(self.sign * self.wrapped_f(self.xt(x)))
     def interp_at(self, x):
-        y = expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
+        y = self.sign * expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
         return y
     def getNodes(self):
         return self.xt(self.Xs), expm1(self.Ys)      
