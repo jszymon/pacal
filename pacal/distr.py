@@ -115,9 +115,9 @@ class Distr(RV):
     def get_piecewise_invcdf(self, use_interpolated=True):
         """return, inverse CDF function, as PiecewiseFunction object"""
         if use_interpolated:
-            invcdf  = self.get_piecewise_cdf_interp().invfun(use_interpolated=use_interpolated)
+            invcdf  = self.get_piecewise_cdf_interp().invfun(use_interpolated=use_interpolated, rangeY=None)
         else:            
-            invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated)
+            invcdf  = self.get_piecewise_cdf().invfun(use_interpolated=use_interpolated, rangeY=None)
         return invcdf
 
     def pdf(self,x):
