@@ -21,6 +21,7 @@ from segments import DiracSegment
 from segments import Segment, SegmentWithPole, PInfSegment, MInfSegment
 from segments import PiecewiseDistribution, _segint
 from utils import epsunique, testPole
+from utils import get_parmap
 
 
 def _testConvPole(seg, L, U, pole_eps = None):
@@ -172,10 +173,7 @@ def convx(segList, integration_par, xx):
     """
     if isscalar(xx):
         xx=asfarray([xx])
-    if params.general.parallel:
-        p_map = params.general.process_pool.map
-    else:
-        p_map = map
+    p_map = get_parmap()
     #print segList[0][0]
     ##try:
     #print segList[0][0].f.args[0]
@@ -429,10 +427,7 @@ def convminx(segList, xx):
     """    
     if size(xx)==1:
         xx=asfarray([xx])
-    if params.general.parallel:
-        p_map = params.general.process_pool.map
-    else:
-        p_map = map
+    p_map = get_parmap()
     res = p_map(partial(convminx_at_point, segList), xx)
     res = array(res)
     return res

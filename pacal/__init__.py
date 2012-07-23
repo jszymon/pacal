@@ -65,10 +65,9 @@ def _unpickle_ufunc(name):
     return getattr(_np, name)
 if params.general.parallel:
     # create process pool
-    import multiprocessing
-    p = multiprocessing.current_process()
-    if p.name.startswith("Main"):
-        params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
+    #p = multiprocessing.current_process()
+    #if p.name.startswith("Main"):
+    #    params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
     # make ufuncs picklable
     import copy_reg
     copy_reg.pickle(_np.ufunc, _pickle_ufunc, _unpickle_ufunc)

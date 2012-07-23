@@ -36,6 +36,7 @@ class general(params_class):
         independent = True
     parallel = True
     nprocs = None
+    process_pool = None
 
 class pole_detection(params_class):
     max_pole_exponent = -1e-2 # exponents above this value are treated as poles

@@ -548,6 +548,23 @@ def is_instance_method(obj):
     return True
 
 
+def get_parmap():
+    if params.general.parallel:
+        if params.general.process_pool is None:
+            import multiprocessing
+            p = multiprocessing.current_process()
+            #print p.name
+            #import os; print os.getpid()
+            if p.name.startswith("Main"):
+                params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
+            if params.general.process_pool is None:
+                raise RuntimeError("Process pool not initialized")
+        pmap = params.general.process_pool.map
+    else:
+        pmap = map
+    return pmap
+
+
 if __name__ == "__main__":
     from pacal import *
     import time
