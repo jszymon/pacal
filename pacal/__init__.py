@@ -59,16 +59,45 @@ from depvars.models import TwoVarsModel, Model
 
 import params
 
-def _pickle_ufunc(ufunc):
-    return ufunc.__name__
-def _unpickle_ufunc(name):
-    return getattr(_np, name)
+#def _pickle_ufunc(ufunc):
+#    return ufunc.__name__
+#def _unpickle_ufunc(name):
+#    return getattr(_np, name)
+
+
+#
+def _pickle_method(method):
+    obj = method.im_self
+    cls = method.im_class
+    func_name = method.im_func.__name__
+    #print "pickle>>>", func_name, obj, cls 
+    if func_name.startswith('__') and not func_name.endswith('__'):
+        #deal with mangled names
+        cls_name = cls.__name__.lstrip('_')
+        func_name = '_%s%s' % (cls_name, func_name)
+    return _unpickle_method, (func_name, obj, cls)
+
+def _unpickle_method(func_name, obj, cls):
+    #print "upickle>>>", func_name, obj, cls
+    if obj and func_name in obj.__dict__:
+        cls, obj = obj, None # if func_name is classmethod
+    for cls in cls.__mro__:
+        try:
+            func = cls.__dict__[func_name]
+        except KeyError:
+            pass
+        else:
+            break
+    return func.__get__(obj, cls)
+
 if params.general.parallel:
     # create process pool
     #p = multiprocessing.current_process()
     #if p.name.startswith("Main"):
     #    params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
     # make ufuncs picklable
+    import types
     import copy_reg
-    copy_reg.pickle(_np.ufunc, _pickle_ufunc, _unpickle_ufunc)
-
+    #copy_reg.pickle(_np.ufunc, _pickle_ufunc, _unpickle_ufunc)
+    copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
+    
