@@ -58,24 +58,25 @@ def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
 #put p;
 #run;
 
-# Correct values are computed using sympy at multidigit precision.
-test_noncentral_t(7, 10.3, 5.1, None, None,
-                  R_pdf = 0.003581733882073113, R_cdf = 0.001191483320239349,
-                  Mathematica_pdf = 0.0035817338822428215, Mathematica_cdf = 0.0011914833206298843,
-                  SAS_pdf = 3.5817338822428000000e-3, SAS_cdf = 1.1914833206298000000e-3)
-test_noncentral_t(7, 10.3, -50.0, None, None,
-                  R_pdf = 1.554312234475223e-17, R_cdf = 9.35918009759007e-14, # R gives a warning of low accuracy
-                  Mathematica_pdf = 1.542256935359599e-21, Mathematica_cdf = 0,
-                  SAS_pdf = 1.3157713027446000000e-40, SAS_cdf = 9.400060780335900000e-40)
-test_noncentral_t(7, 10.3, -1e3, None, None,
-                  R_pdf = 0, R_cdf = 9.39248678832882e-14, # R gives a warning of low accuracy
-                  Mathematica_pdf = 0, Mathematica_cdf = 0,
-                  SAS_cdf = 7.34842111248630000e-49,# SAS gives an error for the PDF in this case.  Strangely it works for x=-820 but not for -820.5 (and below)
-                  )
-
-
-#d, f, P = noncentral_t(4, 2, 5.0)
-#from pylab import show
-#d.plot()
-#show()
+if __name__ == "__main__":
+    # Correct values are computed using sympy at multidigit precision.
+    test_noncentral_t(7, 10.3, 5.1, None, None,
+                      R_pdf = 0.003581733882073113, R_cdf = 0.001191483320239349,
+                      Mathematica_pdf = 0.0035817338822428215, Mathematica_cdf = 0.0011914833206298843,
+                      SAS_pdf = 3.5817338822428000000e-3, SAS_cdf = 1.1914833206298000000e-3)
+    test_noncentral_t(7, 10.3, -50.0, None, None,
+                      R_pdf = 1.554312234475223e-17, R_cdf = 9.35918009759007e-14, # R gives a warning of low accuracy
+                      Mathematica_pdf = 1.542256935359599e-21, Mathematica_cdf = 0,
+                      SAS_pdf = 1.3157713027446000000e-40, SAS_cdf = 9.400060780335900000e-40)
+    test_noncentral_t(7, 10.3, -1e3, None, None,
+                      R_pdf = 0, R_cdf = 9.39248678832882e-14, # R gives a warning of low accuracy
+                      Mathematica_pdf = 0, Mathematica_cdf = 0,
+                      SAS_cdf = 7.34842111248630000e-49,# SAS gives an error for the PDF in this case.  Strangely it works for x=-820 but not for -820.5 (and below)
+                      )
+    
+    
+    #d, f, P = noncentral_t(4, 2, 5.0)
+    #from pylab import show
+    #d.plot()
+    show()
 
