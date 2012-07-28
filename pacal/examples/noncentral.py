@@ -4,7 +4,7 @@
 
 from pacal import *
 from pylab import figure, legend, title, xlim, ylim
-
+import time
 
 colors = "kbgrcmy"
 
@@ -14,7 +14,7 @@ def plot_nonc(d, titl = "", lim = None):
     for i, nc in enumerate([0, 1, 2, 5, 10]):
         ncd = d(nc)
         print ncd
-        ncd.summary()
+        ncd.summary(show_moments=True)
         ncd.plot(label = "nonc=" + str(nc), color = colors[i%len(colors)])
         print 
         
@@ -26,7 +26,7 @@ def plot_nonc(d, titl = "", lim = None):
     #show()
 
 if __name__ == "__main__":
-    
+    tic = time.time()
     #!-------------
     #! Noncentral T
     #!-------------
@@ -54,5 +54,5 @@ if __name__ == "__main__":
     #!
     plot_nonc(lambda nc: NoncentralFDistr(1, 1, nc), titl = "NoncentralF(1, 1, nonc)", lim = [-0.1, 3, 0, 0.9])
     plot_nonc(lambda nc: NoncentralFDistr(10, 20, nc), titl = "NoncentralF(10, 20, nonc)")
-    
+    print "toc=", time.time() - tic 
     show()
