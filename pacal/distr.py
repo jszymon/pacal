@@ -521,12 +521,23 @@ class OpDistr(Distr):
 
 class FuncDistr(FuncRV, OpDistr):
     """Injective function of random variable"""
-    def __init__(self, d, f, f_inv, f_inv_deriv, pole_at_zero = False, fname = "f", sym = None):
+    def __init__(self, d, pole_at_zero = False, fname = "f", sym = None):
         super(FuncDistr, self).__init__(d, sym = sym, fname = fname)
-        self.f = f
-        self.f_inv = f_inv
-        self.f_inv_deriv = f_inv_deriv
         self.pole_at_zero = pole_at_zero 
+# functions need to be implemented directly (not passed to constructor)
+#        self.f = f
+#        self.f_inv = f_inv
+#        self.f_inv_deriv = f_inv_deriv
+
+    # functions need to be implemented directly (not passed to constructor)
+    def f(self, x):
+        pass
+    
+    def f_inv(self, x):        
+        pass
+    
+    def f_inv_deriv(self, x):
+        pass
     def pdf(self, x):
         y = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
         if isscalar(x):
@@ -561,9 +572,14 @@ def _one_over_abs(x):
 class ExpDistr(FuncDistr):
     """Exponent of a random variable"""
     def __init__(self, d):
-        super(ExpDistr, self).__init__(d, numpy.exp, numpy.log,
-                                       _one_over_abs, pole_at_zero = True,
+        super(ExpDistr, self).__init__(d, pole_at_zero = True,
                                        fname = "exp")
+    def f(self, x):
+        return numpy.exp(x)
+    def f_inv(self, x):        
+        return numpy.log(x)
+    def f_inv_deriv(self, x):
+        return 1.0/abs(x)
     def is_nonneg(self):
         return True
 def exp(d):
@@ -579,8 +595,13 @@ class LogDistr(FuncDistr):
     def __init__(self, d):
         if not d.is_nonneg():
             raise ValueError("logarithm of a nonpositive distribution")
-        super(LogDistr, self).__init__(d, numpy.log, numpy.exp,
-                                       numpy.exp, pole_at_zero= True, fname = "log")
+        super(LogDistr, self).__init__(d, pole_at_zero= True, fname = "log")
+    def f(self, x):
+        return numpy.log(x)
+    def f_inv(self, x):        
+        return numpy.exp(x)
+    def f_inv_deriv(self, x):
+        return numpy.exp(x)
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyLogComposition(self.f, self.f_inv, self.f_inv_deriv, pole_at_zero = self.pole_at_zero)
     
@@ -603,10 +624,11 @@ def sign(d):
 class AtanDistr(FuncDistr):
     """Arcus tangent of a random variable"""
     def __init__(self, d):
-        super(AtanDistr, self).__init__(d, numpy.arctan, self.f_inv,
-                                        self.f_inv_deriv, pole_at_zero= False, fname ="atan")
-    @staticmethod
-    def f_inv(x):
+        super(AtanDistr, self).__init__(d, pole_at_zero= False, fname ="atan")
+    
+    def f(self, x):
+        return numpy.arctan(x)  
+    def f_inv(self, x):
         if isscalar(x):
             if x <= -pi/2 or x >= pi/2:
                 y = 0
@@ -617,8 +639,7 @@ class AtanDistr(FuncDistr):
             y = zeros_like(asfarray(x))
             y[mask] = numpy.tan(x[mask])
         return y
-    @staticmethod
-    def f_inv_deriv(x):
+    def f_inv_deriv(self, x):
         if isscalar(x):
             if x <= -pi/2 or x >= pi/2:
                 y = 0
@@ -629,6 +650,7 @@ class AtanDistr(FuncDistr):
             y = zeros_like(asfarray(x))
             y[mask] = 1 + numpy.tan(x[mask])**2
         return y
+
 def atan(d):
     """Overload the atan function."""
     if isinstance(d, Distr):
@@ -677,10 +699,12 @@ class InvDistr(InvRV, OpDistr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = self.d.get_piecewise_pdf().copyProbInverse(pole_at_zero = self.pole_at_zero)
 
-class PowDistr(PowRV, FuncDistr):
+# unused !!!
+class PowDistr(PowRV, OpDistr):
     """Inverse of random variable."""
     def __init__(self, d, alpha = 1):
-        super(PowDistr, self).__init__([d], self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow")
+        #super(PowDistr, self).__init__([d], self.f_, self.f_inv, self.f_inv_deriv, pole_at_zero = alpha > 1, fname="pow")
+        super(PowDistr, self).__init__([d], pole_at_zero = alpha > 1, fname="pow")
         self.d = d
         self.alpha = alpha
         self.alpha_inv = 1.0 / alpha
@@ -754,6 +778,37 @@ class AbsDistr(OpDistr):
         return "|#{0}|".format(id(self.d))
     def getName(self):
         return "|{0}|".format(self.d.getName())
+    
+class SquareDistr(OpDistr):
+    """Injective function of random variable"""
+    def __init__(self, d):
+        super(SquareDistr, self).__init__([d])
+        self.d = d
+    def init_piecewise_pdf(self):
+        self.piecewise_pdf = self.d.get_piecewise_pdf().copySquareComposition()
+    def pdf(self,x):
+        if x <= 0:  # won't work for x == 0
+            f = 0
+        else:
+            f = (self.d.pdf(-sqrt(x)) + self.d.pdf(sqrt(x))) /(2*sqrt(x))
+        return f
+    def rand_op(self, n, cache):
+        r = self.d.rand(n, cache)
+        return r * r
+    def __str__(self):
+        return "#{0}**2".format(id(self.d))
+    def getName(self):
+        return "sqr({0})".format(self.d.getName())
+
+
+def sqrt(d):
+    if isinstance(d, Distr):
+        if not d.is_nonneg():
+            raise ValueError("logarithm of a nonpositive distribution")
+        return d ** 0.5
+    if isinstance(d, RV):
+        return PowRV(d, 0.5)
+    return numpy.sqrt(d)
 
 class FuncNoninjectiveDistr(OpDistr):
     """Non-injective function of random variable only piecewise smooth functions are permitted"""
@@ -909,35 +964,7 @@ class SignDistr(DiscreteDistr):
     def getName(self):
         return "sign({0})".format(self.d.getName())
 
-class SquareDistr(OpDistr):
-    """Injective function of random variable"""
-    def __init__(self, d):
-        super(SquareDistr, self).__init__([d])
-        self.d = d
-    def init_piecewise_pdf(self):
-        self.piecewise_pdf = self.d.get_piecewise_pdf().copySquareComposition()
-    #def pdf(self,x):
-    #    if x <= 0:  # won't work for x == 0
-    #        f = 0
-    #    else:
-    #        f = (self.d.pdf(-sqrt(x)) + self.d.pdf(sqrt(x))) /(2*sqrt(x))
-    #    return f
-    def rand_op(self, n, cache):
-        r = self.d.rand(n, cache)
-        return r * r
-    def __str__(self):
-        return "#{0}**2".format(id(self.d))
-    def getName(self):
-        return "sqr({0})".format(self.d.getName())
 
-def sqrt(d):
-    if isinstance(d, Distr):
-        if not d.is_nonneg():
-            raise ValueError("logarithm of a nonpositive distribution")
-        return d ** 0.5
-    if isinstance(d, RV):
-        return PowRV(d, 0.5)
-    return numpy.sqrt(d)
 
 class SumDistr(SumRV, OpDistr):
     """Sum of distributions."""
