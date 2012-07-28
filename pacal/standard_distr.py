@@ -8,6 +8,7 @@ from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, p
 from numpy.random import f as f_rand
 
 from numpy import finfo, double
+from functools import partial
 _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
@@ -136,7 +137,11 @@ class UniformDistr(Distr):
         return "U({0},{1})".format(self.a, self.b)
     def range(self):
         return self.a, self.b
-    
+
+def _lin_fun1(a, b, u, x):
+    return u * (x - a) / (b - a)
+def _lin_fun2(c, d, u, x):
+    return u * (d - x) / (d - c)
 class TrapezoidalDistr(Distr):
     def __init__(self, a=0.0, b=0.0, c=1.0, d=1.0, **kwargs):
         super(TrapezoidalDistr, self).__init__(**kwargs)
@@ -148,11 +153,13 @@ class TrapezoidalDistr(Distr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
         if self.a<self.b:
-            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u * (x - self.a) / (self.b - self.a)))
+#            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u * (x - self.a) / (self.b - self.a)))
+            self.piecewise_pdf.addSegment(Segment(self.a, self.b, partial(_lin_fun1, self.a, self.b, self.u)))
         if self.b<self.c:
             self.piecewise_pdf.addSegment(ConstSegment(self.b, self.c, self.u))
         if self.c<self.d:
-            self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u * (self.d  - x) / (self.d - self.c)))
+ #           self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u * (self.d  - x) / (self.d - self.c)))
+            self.piecewise_pdf.addSegment(Segment(self.c, self.d, partial(_lin_fun2, self.c, self.d, self.u)))
     def rand_raw(self, n=None):
         return  self.rand_invcdf(n) # TODO !to improve it! 
     def __str__(self):
