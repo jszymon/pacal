@@ -2088,7 +2088,7 @@ def _safe_call(x):
         
 
 if __name__ == "__main__":    
-#    import time
+    import time
 #    from pylab import show, subplot
 #    import matplotlib.pyplot as plt
 #    ts = time.time()
