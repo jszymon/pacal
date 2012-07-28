@@ -60,6 +60,8 @@ def _op_rdiv(x, y):
     return y / x
 def _op_square(x):
     return x * x
+def _op_sqrt(x):
+    return x ** 0.5
 def _op_half_over_sqrt(x):
     return 0.5 / sqrt(x)
 def _op_one_over_x(x):
@@ -354,7 +356,7 @@ class Segment(object):
         we assume that:  a * b >= 0
         """ 
         g = _op_square
-        ginv = sqrt
+        ginv = _op_sqrt
         ginvderiv = _op_half_over_sqrt
         if self.isDirac():
             return DiracSegment(g(self.a), self.f)
@@ -2085,197 +2087,197 @@ def _safe_call(x):
         return x
         
 
-if __name__ == "__main__":
-    import time
-    from pylab import show, subplot
-    import matplotlib.pyplot as plt
-    ts = time.time()
-    """Product of N mixtures of uniform random variables"""
-    segf1 = DiracSegment(1.0, 0.3)
-    segf2 = DiracSegment(0.5, 0.5)
-    segf3 = Segment(0.0, 1.0, lambda x: 6.0*x*(1.0-x))
-    segf4 = Segment(0.0, 1.0, lambda x: 1-abs(x-1))
-    segf5 = Segment(1.0, 2.0, lambda x: 1-abs(x-1))
-    segf6 = ConstSegment(-1.0, -0.5, 2.0/1.0)
-    segf7 = ConstSegment(-2.0, -0.0, 1.0/3.0)
-    segf8 = ConstSegment(0.0, 1.0, 3.0/3.0)
-    segf9 = ConstSegment(2.0, 3.0, 1.0/2.0)
-    #seglog = SegmentWithPole(0, 0.5, lambda x: log(x)**4, pole = 0.0)
-    #seglog2 = Segment(0.5, 1, lambda x: log(x)**4)
-    seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.5/x**0.5) 
-    #seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.25/abs(x)**0.5, pole = 0.0) 
-    #seglog1 = SegmentWithPole(-1.0, 0.0, lambda x: 0.25/abs(x)**0.5, pole = 0.0) 
-    #seglog1 = Segment(1.0, 10, lambda x: 0.5/x**0.5) 
-    #seglog2 = Segment(1.0, 10, lambda x: 0.5/x**0.5) 
-    #seglog2 = SegmentWithPole(-1.0, 0.0, lambda x: 0.5/abs(x)**0.5, pole = 0.0) 
-    #seglog = SegmentWithPole(0, 1, lambda x: chisqr(x,1), pole = 0.0) 
-    #seglog2 = PInfSegment(1, lambda x: chisqr(x,1)) 
-    #segg1 = MInfSegment(-1.0, lambda x:normpdf(x))
-    segg1 = Segment(-3.0, -1.0, lambda x:normpdf(x))
-    segg2 = PInfSegment(1.0, lambda x:normpdf(x))
-    segg3 = Segment(-1.0, 0.0, lambda x:normpdf(x))
-    segg4 = Segment(+0.0, 1.0, lambda x:normpdf(x))
-    
-    seg1 =  Segment( 0.0, 1.0,  lambda x: 0.5 + 0.0*x)
-    seg2 =  Segment(-1.0, 0.0,  lambda x: 0.5 + 0.0*x)
-    f = PiecewiseFunction([])
-    seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.5/abs(x)**0.5) 
-    seglog2 = SegmentWithPole(-1.0, 0.0, lambda x: 0.5/abs(x)**0.5, left_pole = False) 
-    #f.addSegment(segf3)
-    #f.addSegment(seglog2)
-    #g1 = f.toInterpolated()
-    #f.addSegment(seglog2)
-    #c = f.copySquareComposition()
-    #d = c.toInterpolated()
-    # f.addSegment(seg1)
-    
-    #g.addSegment(segg1)
-    #g.addSegment(segg2)
-    #g.addSegment(segg3)
-    #g.addSegment(segg4)
-    #print f.medianad()
-    ##f.plot(linewidth=1, color = 'g', linestyle='-')
-    ##g1.plot(linewidth=1, color = 'b', linestyle='-')
-    ##g.plot(linewidth=3, color = 'r', linestyle='-')
-    #f.plot()
-    #g = f.copyShiftedAndScaled(4,0.6)
-    #g.plot(color = 'r')
-    #h= _conv_mean(f,g, p=0.5,q=0.5)
-    #h.plot(color = 'k')
-    #print g.integrate(), g 
-    #print h.integrate(), h 
-    #print h.medianad()
-    #fig = plt.figure()
-    
-    #f = PiecewiseFunction([])
-    #f.addSegment(SegmentWithPole(0,1,lambda x: 1/x))
-    
-    #f.addSegment(PInfSegment(1,lambda x: exp(-x)))
-    #f.addSegment(MInfSegment(-1,lambda x: exp(x)))
-    #f.addSegment(Segment(-1, 0,lambda x: 1+x))
-    #print "f=",f
-    #g = f.splitByPoints(array([-7, -4, -0.3, 0.5, 0.8, 1.3, 5.0]))
-    #print g
-    #f.plot(color = "k")
-    #g.plot()    
-    #h = g.toInterpolated()
-    #print h
-    #h.plot(color = 'r')
-    #r=h-f
-    #plt.figure()
-    #r.plot()
-    f = PiecewiseFunction(fun = lambda x : 1.0/abs(x)**0.5, breakPoints = [-5, -3,-2, 0,1, 10], lpoles=[False, False, False, True, False, False],rpoles=[False, False, False, True, False, False])
-    f.addSegment(DiracSegment(1,0.7))
-    plt.figure()
-    f.plot(show_segments= True)
-    #plt.figure()
-    #g  = f.toInterpolated()
-    #g.plot(show_segments= True, show_nodes=True)
-    #plt.figure()
-    #g.plot(xmin =-10, xmax = 5, show_segments= True, show_nodes=True, color = 'k', linewidth= 1)
-    #plt.figure()
-    #g.plot(xmin =-20, xmax = 10,  show_segments= False, show_nodes=True, color = 'k', linewidth= 1)
-    #plt.figure()
-    #r = f-g
-    #r.plot(xmin =-20, xmax = 10,  show_segments= False, show_nodes=True, color = 'k', linewidth= 1)
-    plt.figure()
-    k = PiecewiseDistribution([])
-    segf1 = DiracSegment(0.0, 0.3)
-    segf2 = DiracSegment(0.5, 0.5)
-    segf3 = Segment(0.0, 0.5, lambda x: 0.8*x)
-    segf4 = ConstSegment(0.5, 1.0, 0.2)
-    k.addSegment(segf1)
-    k.addSegment(segf2)
-    k.addSegment(segf3)
-    k.addSegment(segf4)
-    print k
-    
-    
-    k.plot()
-    show()
-    0/0
-    #h = k.toInterpolated()
-    from indeparith import conv, convmax, convmin
-    i  = conv(h,h)
-    print "h=", h.integrate(), h
-    print "i=", i.integrate(), i
-    
-    
-    h.plot()
-    i.plot()
-    plt.figure()
-    c = g.cumint().toInterpolated()
-    print c
-    c.plot()
-    plt.figure()
-    f = PiecewiseFunction(fun  = exp, breakPoints = [-10, -7, 0, 3])
-    g = PiecewiseFunction(fun  = sin, breakPoints  = [-11, -7, 1, 3])
-    f = f.toInterpolated()
-    g = g.toInterpolated()
-    
-    h= f-g
-    h.plot(color = 'r', linewidth=3.0)
-    f.plot(color = 'b')
-    g.plot(color = 'k')
-    
-    print h
-    print h.segments[1].f(linspace(-1,2,17))
-    print f(linspace(-1,2,100)) - g(linspace(-1,2,100))
-    print g.segments[1].f(linspace(-1,2,17))
-    show()
-    
-    h = PiecewiseDistribution([])
-    k.addSegment(ConstSegment(1.0,2.0,1.0/2.0))
-    #k.addSegment(Segment(0.0, 0.5,lambda x: 1.0+0.0*x))
-    h.addSegment(Segment(-1.0,3.0,lambda x: 1.0/3.0+0.0*x))
-    #k.addSegment(Segment(0.2,1.0,lambda x: 1.0+0.0*x))
-    #k = k.toInterpolated()
-    #h.addSegment(ConstSegment(-1,0,0.5))
-    print k, k.range()
-    
-    f.plot(show_segments = True)
-    print "f=", f.integrate(0,1), f
-    k.plot()
-    h.plot()
-    p = convmin(k,h)
-    print "======", p
-    plt.figure()
-    p.plot()
-    plt.figure()
-    p.plot(xmin =-10, xmax = 5, leftRightEpsilon = 1e-2)
-    plt.figure()
-    p.plot(xmin =-1, xmax = 2, leftRightEpsilon = 1e-2)
-    
-    
-    #g = _conv_(g1,g1)
-    #g.plot(linewidth=4, color = 'g', linestyle='-')            
-    #intf =  f.integrate()
-    #intg1 =  g1.integrate()
-    #intg =  g.integrate()
-   
-    #print 'initegral=', 1.0-intf,1.0-intg1,1.0-intg
-    #print 'initegral=', intf,intg1,intg2, intf**1-intg1, intf**2-intg2 
-    #dd = _conv_(d,d)
-    #dd.plot()
-   
-    #plt.figure()
-    #f.plot_tails()
-    #g.plot_tails()
-    
-   
-
-    
-    #d.plot()
-    #fig = plt.figure()
-    #print estimateDegreeOfZero(h, Inf)
-    
-    #intf =  f.integrate()
-    #intg =  g.integrate()
-    #print intf
-    #print intg
-    #print intf - intg
-    #plt.figure()
-    #f.plot_tails()
-    #plt.figure()
-    #h.plot_tails()
-    plt.show()
+if __name__ == "__main__":    
+#    import time
+#    from pylab import show, subplot
+#    import matplotlib.pyplot as plt
+#    ts = time.time()
+#    """Product of N mixtures of uniform random variables"""
+#    segf1 = DiracSegment(1.0, 0.3)
+#    segf2 = DiracSegment(0.5, 0.5)
+#    segf3 = Segment(0.0, 1.0, lambda x: 6.0*x*(1.0-x))
+#    segf4 = Segment(0.0, 1.0, lambda x: 1-abs(x-1))
+#    segf5 = Segment(1.0, 2.0, lambda x: 1-abs(x-1))
+#    segf6 = ConstSegment(-1.0, -0.5, 2.0/1.0)
+#    segf7 = ConstSegment(-2.0, -0.0, 1.0/3.0)
+#    segf8 = ConstSegment(0.0, 1.0, 3.0/3.0)
+#    segf9 = ConstSegment(2.0, 3.0, 1.0/2.0)
+#    #seglog = SegmentWithPole(0, 0.5, lambda x: log(x)**4, pole = 0.0)
+#    #seglog2 = Segment(0.5, 1, lambda x: log(x)**4)
+#    seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.5/x**0.5) 
+#    #seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.25/abs(x)**0.5, pole = 0.0) 
+#    #seglog1 = SegmentWithPole(-1.0, 0.0, lambda x: 0.25/abs(x)**0.5, pole = 0.0) 
+#    #seglog1 = Segment(1.0, 10, lambda x: 0.5/x**0.5) 
+#    #seglog2 = Segment(1.0, 10, lambda x: 0.5/x**0.5) 
+#    #seglog2 = SegmentWithPole(-1.0, 0.0, lambda x: 0.5/abs(x)**0.5, pole = 0.0) 
+#    #seglog = SegmentWithPole(0, 1, lambda x: chisqr(x,1), pole = 0.0) 
+#    #seglog2 = PInfSegment(1, lambda x: chisqr(x,1)) 
+#    #segg1 = MInfSegment(-1.0, lambda x:normpdf(x))
+#    segg1 = Segment(-3.0, -1.0, lambda x:normpdf(x))
+#    segg2 = PInfSegment(1.0, lambda x:normpdf(x))
+#    segg3 = Segment(-1.0, 0.0, lambda x:normpdf(x))
+#    segg4 = Segment(+0.0, 1.0, lambda x:normpdf(x))
+#    
+#    seg1 =  Segment( 0.0, 1.0,  lambda x: 0.5 + 0.0*x)
+#    seg2 =  Segment(-1.0, 0.0,  lambda x: 0.5 + 0.0*x)
+#    f = PiecewiseFunction([])
+#    seglog = SegmentWithPole(0.0, 1.0, lambda x: 0.5/abs(x)**0.5) 
+#    seglog2 = SegmentWithPole(-1.0, 0.0, lambda x: 0.5/abs(x)**0.5, left_pole = False) 
+#    #f.addSegment(segf3)
+#    #f.addSegment(seglog2)
+#    #g1 = f.toInterpolated()
+#    #f.addSegment(seglog2)
+#    #c = f.copySquareComposition()
+#    #d = c.toInterpolated()
+#    # f.addSegment(seg1)
+#    
+#    #g.addSegment(segg1)
+#    #g.addSegment(segg2)
+#    #g.addSegment(segg3)
+#    #g.addSegment(segg4)
+#    #print f.medianad()
+#    ##f.plot(linewidth=1, color = 'g', linestyle='-')
+#    ##g1.plot(linewidth=1, color = 'b', linestyle='-')
+#    ##g.plot(linewidth=3, color = 'r', linestyle='-')
+#    #f.plot()
+#    #g = f.copyShiftedAndScaled(4,0.6)
+#    #g.plot(color = 'r')
+#    #h= _conv_mean(f,g, p=0.5,q=0.5)
+#    #h.plot(color = 'k')
+#    #print g.integrate(), g 
+#    #print h.integrate(), h 
+#    #print h.medianad()
+#    #fig = plt.figure()
+#    
+#    #f = PiecewiseFunction([])
+#    #f.addSegment(SegmentWithPole(0,1,lambda x: 1/x))
+#    
+#    #f.addSegment(PInfSegment(1,lambda x: exp(-x)))
+#    #f.addSegment(MInfSegment(-1,lambda x: exp(x)))
+#    #f.addSegment(Segment(-1, 0,lambda x: 1+x))
+#    #print "f=",f
+#    #g = f.splitByPoints(array([-7, -4, -0.3, 0.5, 0.8, 1.3, 5.0]))
+#    #print g
+#    #f.plot(color = "k")
+#    #g.plot()    
+#    #h = g.toInterpolated()
+#    #print h
+#    #h.plot(color = 'r')
+#    #r=h-f
+#    #plt.figure()
+#    #r.plot()
+#    f = PiecewiseFunction(fun = lambda x : 1.0/abs(x)**0.5, breakPoints = [-5, -3,-2, 0,1, 10], lpoles=[False, False, False, True, False, False],rpoles=[False, False, False, True, False, False])
+#    f.addSegment(DiracSegment(1,0.7))
+#    plt.figure()
+#    f.plot(show_segments= True)
+#    #plt.figure()
+#    #g  = f.toInterpolated()
+#    #g.plot(show_segments= True, show_nodes=True)
+#    #plt.figure()
+#    #g.plot(xmin =-10, xmax = 5, show_segments= True, show_nodes=True, color = 'k', linewidth= 1)
+#    #plt.figure()
+#    #g.plot(xmin =-20, xmax = 10,  show_segments= False, show_nodes=True, color = 'k', linewidth= 1)
+#    #plt.figure()
+#    #r = f-g
+#    #r.plot(xmin =-20, xmax = 10,  show_segments= False, show_nodes=True, color = 'k', linewidth= 1)
+#    plt.figure()
+#    k = PiecewiseDistribution([])
+#    segf1 = DiracSegment(0.0, 0.3)
+#    segf2 = DiracSegment(0.5, 0.5)
+#    segf3 = Segment(0.0, 0.5, lambda x: 0.8*x)
+#    segf4 = ConstSegment(0.5, 1.0, 0.2)
+#    k.addSegment(segf1)
+#    k.addSegment(segf2)
+#    k.addSegment(segf3)
+#    k.addSegment(segf4)
+#    print k
+#    
+#    
+#    k.plot()
+#    show()
+#    0/0
+#    #h = k.toInterpolated()
+#    from indeparith import conv, convmax, convmin
+#    i  = conv(h,h)
+#    print "h=", h.integrate(), h
+#    print "i=", i.integrate(), i
+#    
+#    
+#    h.plot()
+#    i.plot()
+#    plt.figure()
+#    c = g.cumint().toInterpolated()
+#    print c
+#    c.plot()
+#    plt.figure()
+#    f = PiecewiseFunction(fun  = exp, breakPoints = [-10, -7, 0, 3])
+#    g = PiecewiseFunction(fun  = sin, breakPoints  = [-11, -7, 1, 3])
+#    f = f.toInterpolated()
+#    g = g.toInterpolated()
+#    
+#    h= f-g
+#    h.plot(color = 'r', linewidth=3.0)
+#    f.plot(color = 'b')
+#    g.plot(color = 'k')
+#    
+#    print h
+#    print h.segments[1].f(linspace(-1,2,17))
+#    print f(linspace(-1,2,100)) - g(linspace(-1,2,100))
+#    print g.segments[1].f(linspace(-1,2,17))
+#    show()
+#    
+#    h = PiecewiseDistribution([])
+#    k.addSegment(ConstSegment(1.0,2.0,1.0/2.0))
+#    #k.addSegment(Segment(0.0, 0.5,lambda x: 1.0+0.0*x))
+#    h.addSegment(Segment(-1.0,3.0,lambda x: 1.0/3.0+0.0*x))
+#    #k.addSegment(Segment(0.2,1.0,lambda x: 1.0+0.0*x))
+#    #k = k.toInterpolated()
+#    #h.addSegment(ConstSegment(-1,0,0.5))
+#    print k, k.range()
+#    
+#    f.plot(show_segments = True)
+#    print "f=", f.integrate(0,1), f
+#    k.plot()
+#    h.plot()
+#    p = convmin(k,h)
+#    print "======", p
+#    plt.figure()
+#    p.plot()
+#    plt.figure()
+#    p.plot(xmin =-10, xmax = 5, leftRightEpsilon = 1e-2)
+#    plt.figure()
+#    p.plot(xmin =-1, xmax = 2, leftRightEpsilon = 1e-2)
+#    
+#    
+#    #g = _conv_(g1,g1)
+#    #g.plot(linewidth=4, color = 'g', linestyle='-')            
+#    #intf =  f.integrate()
+#    #intg1 =  g1.integrate()
+#    #intg =  g.integrate()
+#   
+#    #print 'initegral=', 1.0-intf,1.0-intg1,1.0-intg
+#    #print 'initegral=', intf,intg1,intg2, intf**1-intg1, intf**2-intg2 
+#    #dd = _conv_(d,d)
+#    #dd.plot()
+#   
+#    #plt.figure()
+#    #f.plot_tails()
+#    #g.plot_tails()
+#    
+#   
+#
+#    
+#    #d.plot()
+#    #fig = plt.figure()
+#    #print estimateDegreeOfZero(h, Inf)
+#    
+#    #intf =  f.integrate()
+#    #intg =  g.integrate()
+#    #print intf
+#    #print intg
+#    #print intf - intg
+#    #plt.figure()
+#    #f.plot_tails()
+#    #plt.figure()
+#    #h.plot_tails()
+#    plt.show()
