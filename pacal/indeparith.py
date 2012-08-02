@@ -180,6 +180,13 @@ def funi_maxx(segi, segj, x, t):
 def funj_maxx(segi, segj, x, t):
     return segi.f(x)*segj.f(t)
 
+# Integrand for minimum along X axis
+def funi_minx(segi, segj, x, t):
+    return segi.f(t)*segj.f(x)
+# Integrand for minimum along Y axis
+def funj_minx(segi, segj, x, t):
+    return segi.f(x)*segj.f(t)
+
 class Convxrunner(object):
     def __init__(self, segList, integration_par):
         self.segList = segList
@@ -239,6 +246,15 @@ class Convxrunner(object):
             xx=asfarray([xx])
         p_map = get_parmap()
         res = p_map(self.convmax_at_point, xx)
+        res = array(res)
+        return res
+    def convminx(self, xx):
+        """Probabilistic minimum of f and g, integral at points xx. 
+        """    
+        if size(xx)==1:
+            xx=asfarray([xx])
+        p_map = get_parmap()
+        res = p_map(self.convminx_at_point, xx)
         res = array(res)
         return res
     def conv_at_point(self, x):
@@ -349,7 +365,46 @@ class Convxrunner(object):
             I += i
             err += e
         return I
-    
+
+    def convminx_at_point(self, x):
+        segList = self.segList
+        integration_par = self.integration_par
+        I = 0
+        err = 0
+        for segi, segj in segList:
+            if segj.a <= x <= segj.b and segj.a != segj.b:
+                if segi.isSegment() and segj.isSegment():
+                    funi = partial(funi_minx, segi, segj, x)
+                    L = max(segi.a,x)
+                    U = segi.b
+                    i, e = _segint(funi, L, U)
+                elif segi.isDirac() and segj.isSegment():
+                    i = segi.f*segj.f(x)   # TODO 
+                    e=0
+                elif segi.isSegment() and segj.isDirac():
+                    i = segj.f*segi.f(x)   # TODO
+                    e=0
+                elif segi.isDirac() and segj.isDirac():
+                    pass #Dicrete part is done in convmin
+                I += i
+                err += e
+            if segi.a <= x <= segi.b and segi.a != segi.b :
+                if segi.isSegment() and segj.isSegment():
+                    funj = partial(funj_minx, segi, segj, x)
+                    L = max(segj.a, x)
+                    U = segj.b
+                    i, e = _segint(funj, L, U)
+                elif segi.isDirac() and segj.isSegment():
+                    i = segi.f*segj.f(x) 
+                    e=0
+                elif segi.isSegment() and segj.isDirac():
+                    i = segj.f*segi.f(x)
+                    e=0
+                elif segi.isDirac() and segj.isDirac():
+                    pass #Dicrete part is done in convmin
+                I += i
+                err += e
+        return I    
     def convmax_at_point(self, x): 
         """Probabilistic maximum of f and g, integral at point x
         """    
@@ -650,21 +705,24 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
     op = minimum
     if ub[0] == -Inf:
         segList = _findSegList(f, g, ub[1] -1, op)
-        fun = partial(convminx, segList)
+        #fun = partial(convminx, segList)
+        fun = Convxrunner(segList, params.integration_infinite).convminx
         seg = MInfSegment(ub[1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
     if ub[-1] == Inf :
         segList = _findSegList(f, g, ub[-2] + 1, op)
-        fun = partial(convminx, segList)
+        #fun = partial(convminx, segList)
+        fun = Convxrunner(segList, params.integration_infinite).convminx
         seg = PInfSegment(ub[-2], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in range(len(ub)-1) :
         segList = _findSegList(f, g, (ub[i] + ub[i+1])/2, op)
-        fun = partial(convminx, segList)
+        #fun = partial(convminx, segList)
+        fun = Convxrunner(segList, params.integration_finite).convminx
         seg = Segment(ub[i],ub[i+1], fun)
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
@@ -674,56 +732,56 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
     fg_discr  =_probDiracsInMin(f, g)
     fg.add_diracs(fg_discr)
     return fg
-def funi_minx(segi, segj, x, t):
-    return segi.f(t)*segj.f(x)
-def funj_minx(segi, segj, x, t):
-    return segi.f(x)*segj.f(t)
-def convminx(segList, xx):
-    """Probabilistic minimum of f and g, integral at points xx. 
-    """    
-    if size(xx)==1:
-        xx=asfarray([xx])
-    p_map = get_parmap()
-    res = p_map(partial(convminx_at_point, segList), xx)
-    res = array(res)
-    return res
-def convminx_at_point(segList, x):
-    I = 0
-    err = 0
-    for segi, segj in segList:
-        if segj.a <= x <= segj.b and segj.a != segj.b:
-            if segi.isSegment() and segj.isSegment():
-                funi = partial(funi_minx, segi, segj, x)
-                L = max(segi.a,x)
-                U = segi.b
-                i, e = _segint(funi, L, U)
-            elif segi.isDirac() and segj.isSegment():
-                i = segi.f*segj.f(x)   # TODO 
-                e=0
-            elif segi.isSegment() and segj.isDirac():
-                i = segj.f*segi.f(x)   # TODO
-                e=0
-            elif segi.isDirac() and segj.isDirac():
-                pass #Dicrete part is done in convmin
-            I += i
-            err += e
-        if segi.a <= x <= segi.b and segi.a != segi.b :
-            if segi.isSegment() and segj.isSegment():
-                funj = partial(funj_minx, segi, segj, x)
-                L = max(segj.a, x)
-                U = segj.b
-                i, e = _segint(funj, L, U)
-            elif segi.isDirac() and segj.isSegment():
-                i = segi.f*segj.f(x) 
-                e=0
-            elif segi.isSegment() and segj.isDirac():
-                i = segj.f*segi.f(x)
-                e=0
-            elif segi.isDirac() and segj.isDirac():
-                pass #Dicrete part is done in convmin
-            I += i
-            err += e
-    return I
+#def funi_minx(segi, segj, x, t):
+#    return segi.f(t)*segj.f(x)
+#def funj_minx(segi, segj, x, t):
+#    return segi.f(x)*segj.f(t)
+#def convminx(segList, xx):
+#    """Probabilistic minimum of f and g, integral at points xx. 
+#    """    
+#    if size(xx)==1:
+#        xx=asfarray([xx])
+#    p_map = get_parmap()
+#    res = p_map(partial(convminx_at_point, segList), xx)
+#    res = array(res)
+#    return res
+#def convminx_at_point(segList, x):
+#    I = 0
+#    err = 0
+#    for segi, segj in segList:
+#        if segj.a <= x <= segj.b and segj.a != segj.b:
+#            if segi.isSegment() and segj.isSegment():
+#                funi = partial(funi_minx, segi, segj, x)
+#                L = max(segi.a,x)
+#                U = segi.b
+#                i, e = _segint(funi, L, U)
+#            elif segi.isDirac() and segj.isSegment():
+#                i = segi.f*segj.f(x)   # TODO 
+#                e=0
+#            elif segi.isSegment() and segj.isDirac():
+#                i = segj.f*segi.f(x)   # TODO
+#                e=0
+#            elif segi.isDirac() and segj.isDirac():
+#                pass #Dicrete part is done in convmin
+#            I += i
+#            err += e
+#        if segi.a <= x <= segi.b and segi.a != segi.b :
+#            if segi.isSegment() and segj.isSegment():
+#                funj = partial(funj_minx, segi, segj, x)
+#                L = max(segj.a, x)
+#                U = segj.b
+#                i, e = _segint(funj, L, U)
+#            elif segi.isDirac() and segj.isSegment():
+#                i = segi.f*segj.f(x) 
+#                e=0
+#            elif segi.isSegment() and segj.isDirac():
+#                i = segj.f*segi.f(x)
+#                e=0
+#            elif segi.isDirac() and segj.isDirac():
+#                pass #Dicrete part is done in convmin
+#            I += i
+#            err += e
+#    return I
 
 def convmax(f, g):
     """Probabilistic maximum of f and g.
