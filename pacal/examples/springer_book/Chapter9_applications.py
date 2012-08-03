@@ -20,6 +20,27 @@ from pacal import *
 from pacal.distr import demo_distr
 from pacal.utils import lgamma
 
+# helper functions used below
+def gen_f(p, m, a, h, x):
+    h = float(h)
+    logk = p/h*log(a)+lgamma(m)-lgamma(p/h)-lgamma(m-p/h)
+    k = h * exp(logk)
+    return k * x**(p-1) / (1 + a*x**h)**m
+grcache = {}
+def gr1(m, p, p0, r, x):
+    ly = lgamma(float(p+r-1)/m)-lgamma(float(p0+r-1)/m)-lgamma(float(p-p0)/m) + (p0+r-1)*log(x)
+    y = m * exp(ly)*(1.0-x**m) **(float(p-p0)/m - 1)
+    return y
+def gr(m, p, p0, r, x):
+    """Need to scale the distributions.  Examples in Springer/Kotlarski seem not normalized"""
+    if r in grcache:
+        scale = grcache[r]
+    else:
+        f = FunDistr(partial(gr1, m, p, p0, r), [0,1])
+        scale = f.cdf(1)
+        grcache[r] = scale
+    y = gr1(m, p, p0, r, x)
+    return y / scale
 
 if __name__ == "__main__":
     #!-------------------
@@ -239,11 +260,6 @@ if __name__ == "__main__":
     #! Section 9.11: Generalized F variables
     #!---------------------------------------
     
-    def gen_f(p, m, a, h, x):
-        h = float(h)
-        logk = p/h*log(a)+lgamma(m)-lgamma(p/h)-lgamma(m-p/h)
-        k = h * exp(logk)
-        return k * x**(p-1) / (1 + a*x**h)**m
     f = FunDistr(partial(gen_f, 1, 1, 1, 2), [0,1,Inf])
     
     figure()
@@ -275,27 +291,11 @@ if __name__ == "__main__":
     
     #! Exaple 9.13.1 (following Kotlarski)
     p0 = 2; p = 5
-    m = 3
-    def gr1(r, x):
-        ly = lgamma(float(p+r-1)/m)-lgamma(float(p0+r-1)/m)-lgamma(float(p-p0)/m) + (p0+r-1)*log(x)
-        y = m * exp(ly)*(1.0-x**m) **(float(p-p0)/m - 1)
-        return y
-    grcache = {}
-    def gr(r, x):
-        """Need to scale the distributions.  Examples in Springer/Kotlarski seem not normalized"""
-        if r in grcache:
-            scale = grcache[r]
-        else:
-            f = FunDistr(partial(gr1, r), [0,1])
-            scale = f.cdf(1)
-            grcache[r] = scale
-        y = gr1(r, x)
-        return y / scale
-        
+    m = 3        
     
     pr = OneDistr()
     for i in xrange(m):
-        f = FunDistr(partial(gr, i), [0,1])
+        f = FunDistr(partial(gr, m, p, p0, i), [0,1])
         pr *= f
     figure()
     demo_distr(pr, theoretical = BetaDistr(p0, p-p0))
