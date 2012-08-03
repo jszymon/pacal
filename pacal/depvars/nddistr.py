@@ -7,8 +7,9 @@ from copy import copy
 import numpy
 from numpy import asfarray, asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
 from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
-from numpy import linspace, meshgrid
+from numpy import linspace, meshgrid, transpose
 from numpy.linalg import det
+from pacal.utils import get_parmap
 
 from pylab import plot, contour, xlabel, ylabel, gca, mean
 
@@ -36,6 +37,9 @@ def getRanges(vars, ci=None):
         else:
             a[i], b[i] = vars[i].ci(ci)
     return a, b
+
+
+            
 class NDFun(object):
     # abs is a workaround for sympy.lambdify bug
     def __init__(self, d, Vars, fun, safe = False, abs = False):
@@ -130,47 +134,141 @@ class NDFun(object):
         v1 = var[-1]
         c_var = list(sorted(set(range(self.d)) - set([v1])))
         arg = zeros(self.d)
-        def integ_f(f, arg, c_var, v1, X, x1):
-            if isscalar(x1):
-                arg[c_var] = X
-                arg[v1] = x1
-                y = f(*arg)
-            else:
-                Xcol = [None] * self.d
-                for i, j in enumerate(c_var):
-                    Xcol[j] = zeros(len(x1)) + X[i]
-                Xcol[v1] = x1
-                return f(*Xcol)
-        def interp_f(f, arg, c_var, v1, *X):
-            if isscalar(X[0]):
-                # TODO: fix integration bounds!!!!
-                if hasattr(self, "f"):
-                    y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.f.a[v1], self.f.b[v1])
-                else:
-                    y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.a[v1], self.b[v1])
-                return y[0]
-            y = asfarray(zeros_like(X[0]))
-            for i in xrange(len(X[0])):
-                # TODO: fix integration bounds!!!!
-                if hasattr(self, "f"):
-                    y[i] = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, [x[i] for x in X]), self.f.a[v1], self.f.b[v1])[0]
-                else:
-                    y[i] = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, [x[i] for x in X]), self.a[v1], self.b[v1])[0]
-            return y
+#        def integ_f(f, arg, c_var, v1, X, x1):
+#            if isscalar(x1):
+#                arg[c_var] = X
+#                arg[v1] = x1
+#                y = f(*arg)
+#            else:
+#                Xcol = [None] * self.d
+#                for i, j in enumerate(c_var):
+#                    Xcol[j] = zeros(len(x1)) + X[i]
+#                Xcol[v1] = x1
+#                return f(*Xcol)
+#        def interp_f(f, arg, c_var, v1, *X):
+#            if isscalar(X[0]):
+#                # TODO: fix integration bounds!!!!
+#                if hasattr(self, "f"):
+#                    y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X, self.d), self.f.a[v1], self.f.b[v1])
+#                else:
+#                    y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X, self.d), self.a[v1], self.b[v1])
+#                return y[0]
+#            y = asfarray(zeros_like(X[0]))
+#            for i in xrange(len(X[0])):
+#                # TODO: fix integration bounds!!!!
+#                if hasattr(self, "f"):
+#                    y[i] = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, [x[i] for x in X], self.d), self.f.a[v1], self.f.b[v1])[0]
+#                else:
+#                    y[i] = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, [x[i] for x in X], self.d), self.a[v1], self.b[v1])[0]
+#            return y
         if self.d == 1:
             X = []
+#            if hasattr(self, "f"):
+#                y = integrate_fejer2(partial(integ_f, self.fun, arg, c_var, v1, X), self.f.a[v1], self.f.b[v1])
+#            else:
+#                y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.a[v1], self.b[v1])
+#            return NDConstFactor(y[0])
             if hasattr(self, "f"):
-                y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.f.a[v1], self.f.b[v1])
+                y = integrate_fejer2(partial(InterpRunner(self.fun, arg, c_var, v1).integ_f, X), self.f.a[v1], self.f.b[v1])
             else:
-                y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.a[v1], self.b[v1])
+                y = integrate_fejer2(partial(InterpRunner(self, arg, c_var, v1).integ_f, X), self.a[v1], self.b[v1])
             return NDConstFactor(y[0])
-        m = NDInterpolatedDistr(self.d - 1, partial(interp_f, self, arg, c_var, v1), [self.Vars[i] for i in c_var])
+        #m = NDInterpolatedDistr(self.d - 1, partial(self.interp_f, self, arg, c_var, v1), [self.Vars[i] for i in c_var])
+        m = NDInterpolatedDistr(self.d - 1, InterpRunner(self, arg, c_var, v1).interpxx, [self.Vars[i] for i in c_var])
         if len(var) == 1:
             return m
         else:
             # TODO: eliminate all vars at once using sparse grid integration
             return m.eliminate(var[:-1])      
-          
+    
+
+class InterpRunner:
+    def __init__(self, f, arg, c_var, v1):
+        self.ndfun = f
+        self.arg = arg
+        self.c_var = c_var
+        self.v1 = v1
+    def interp_fx(self, X):
+        ndfun = self.ndfun
+        arg = self.arg
+        c_var = self.c_var
+        v1 = self.v1       
+        if hasattr(self.ndfun, "f"):
+            y = integrate_fejer2(partial(self.integ_f, X), ndfun.f.a[v1], ndfun.f.b[v1])[0]
+        else:
+            y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])[0]
+        return y
+    def interpxx(self, *X):
+        """convolution of f and g  
+        """
+        ndfun = self.ndfun
+        v1 = self.v1   
+        if isscalar(X[0]):
+            # TODO: fix integration bounds!!!!
+            if hasattr(self.ndfun, "f"):
+                y = integrate_fejer2(partial(self.integ_f, X), ndfun.f.a[v1], ndfun.f.b[v1])
+            else:
+                y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
+            return y[0]
+        xx = transpose(array(X))
+        if isscalar(xx):
+            xx=asfarray([xx])
+        #print ">>>>>>>>", xx
+        p_map = get_parmap()
+        res = p_map(self.interp_fx, xx)
+        res = array(res)
+        return res
+
+    def integ_f(self, X, x1):
+        #print ":::", X, x1
+        f = self.ndfun
+        arg = self.arg
+        c_var = self.c_var
+        v1 = self.v1   
+        if isscalar(x1):
+            arg[c_var] = X
+            arg[v1] = x1
+            y = f(*arg)
+            #return y
+        else:
+            Xcol = [None] * f.d
+            for i, j in enumerate(c_var):
+                Xcol[j] = zeros(len(x1)) + X[i]
+            Xcol[v1] = x1
+            return f(*Xcol)
+    def interp_f(self, *X):
+        ndfun = self.ndfun
+        arg = self.arg
+        c_var = self.c_var
+        v1 = self.v1       
+#        print "======="
+#        print ndfun, arg, c_var, v1, X[0]
+#        print self.ndfun.a
+#        print self.ndfun.b
+#        print self.ndfun.a[v1]
+#        print self.ndfun.b[v1]
+        if isscalar(X[0]):
+            # TODO: fix integration bounds!!!!
+            if hasattr(self.ndfun, "f"):
+                y = integrate_fejer2(partial(self.integ_f, X), ndfun.f.a[v1], ndfun.f.b[v1])
+            else:
+                y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
+            return y[0]
+        y = asfarray(zeros_like(X[0]))
+        for i in xrange(len(X[0])):
+            # TODO: fix integration bounds!!!!
+            if hasattr(self.ndfun, "f"):
+                y[i] = integrate_fejer2(partial(self.integ_f, [x[i] for x in X]), ndfun.f.a[v1], ndfun.f.b[v1])[0]
+            else:
+                y[i] = integrate_fejer2(partial(self.integ_f, [x[i] for x in X]), ndfun.a[v1], ndfun.b[v1])[0]
+        return y
+    def safe_interp_f(self, xt):
+        print ":::", xt
+        if isscalar(xt) or len(xt)<=1:
+            return self.interp_f(array([xt]))
+        else:
+            return self.interp_f(*xt)
+    
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
         super(NDDistr, self).__init__(d, Vars, self.pdf)          
@@ -549,7 +647,8 @@ class ConditionalDistr(NDFun):
         cd = ConditionalDistr(self.nd.condition(var, *X, **kwargs), [self.Vars[i] for i in new_cond], marg=self.marg)
         return cd
 
-
+def _get_sym_name(v):
+    return v.getSymname()
 class NDProductDistr(NDDistr):
     def __init__(self, factors):
         new_factors = []
@@ -558,7 +657,7 @@ class NDProductDistr(NDDistr):
                 f = Factor1DDistr(f)
             new_factors.append(f)
         Vars = list(set.union(*[set(f.Vars) for f in new_factors]))
-        Vars.sort(key = lambda v: v.getSymname())
+        Vars.sort(key = _get_sym_name) #lambda v: v.getSymname())
         super(NDProductDistr, self).__init__(len(Vars), Vars)
         self.factors = self.optimize(new_factors)
         self.a = [-inf] * len(self.Vars)
