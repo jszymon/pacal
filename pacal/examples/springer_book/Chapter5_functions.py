@@ -14,7 +14,7 @@ from pacal.distr import demo_distr
 
 if __name__ == "__main__":
         
-    tic  =time.time()
+    tic = time.time()
     #! Example 5.1.3
     d = NormalDistr() + NormalDistr() * NormalDistr()
     demo_distr(d)

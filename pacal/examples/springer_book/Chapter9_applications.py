@@ -20,6 +20,8 @@ from pacal import *
 from pacal.distr import demo_distr
 from pacal.utils import lgamma
 
+import time
+
 # helper functions used below
 def gen_f(p, m, a, h, x):
     h = float(h)
@@ -51,6 +53,7 @@ if __name__ == "__main__":
     #! Implemented elsewhere
     
     #! Example 9.1.2
+    t0 = time.time()
     def theor_sum_exp(a1, a2, a3, x):
         t1 = exp(-3*a1*x) / (a2-a1) / (a3-a1)
         t2 = exp(-3*a2*x) / (a1-a2) / (a3-a2)
@@ -456,5 +459,5 @@ if __name__ == "__main__":
     for p in [1, 3, 5, 100]:
         figure()
         demo_distr(GammaDistr(p, 1) - GammaDistr(p, 1))
-    
+    print time.time() - t0
     show()
