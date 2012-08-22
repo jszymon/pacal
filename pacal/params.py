@@ -91,7 +91,7 @@ class integration(params_class):
 # interpolation on finite/infinite/asymptotic/pole segments
 class interpolation_finite(interpolation): pass
 class interpolation_infinite(interpolation): 
-    maxn = 100    
+    maxn = 100
     exponent = 6
 class interpolation_asymp(interpolation):
     maxn = 100
