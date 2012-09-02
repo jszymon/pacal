@@ -480,7 +480,7 @@ class LaplaceDistr(Distr):
         self.mu = mu
         self.nrm = 0.5 / self.lmbda
     def pdf(self, x):
-        y = self.nrm * exp(-abs(x - self.mu))
+        y = self.nrm * exp(-abs(x - self.mu)/self.lmbda)
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
