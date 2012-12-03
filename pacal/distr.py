@@ -491,10 +491,10 @@ class Distr(RV):
         """Overload or: Conditional distribution """        
         if isinstance(restriction, Condition):
             if isinstance(restriction, Lt):
-                assert self.range()[0]<restriction.U, "Upper value out of range"
+                assert self.range_()[0]<restriction.U, "Upper value out of range"
                 return CondLtDistr(self, restriction.U)
             if isinstance(restriction, Gt):
-                assert self.range()[1]>restriction.L, "Lower value out of range" 
+                assert self.range_()[1]>restriction.L, "Lower value out of range"+str(self.range_())+str(self)
                 return CondGtDistr(self, restriction.L)
             if isinstance(restriction, Between):
                 return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
@@ -1090,14 +1090,25 @@ class CondGtDistr(Distr):
         super(CondGtDistr, self).__init__([], **kwargs)
     def init_piecewise_pdf(self):
         Z = MaxDistr(ConstDistr(self.L), self.d)    
+        # Do poprawki zostaja tu diraki o wys.=0, tak samo Lt
+        #print Z.get_piecewise_pdf(), self.L
+        while(Z.get_piecewise_pdf().segments[0].a<self.L):
+            diracB = Z.get_piecewise_pdf().segments.pop(0)
         diracB = Z.get_piecewise_pdf().segments.pop(0)
+        #print Z.get_piecewise_pdf(), diracB
         self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1.0/(1-diracB.f)])).get_piecewise_pdf()
     def __str__(self):
         return "{0} | X>{1}".format(self.d, self.L)
     def getName(self):
         return "{0} | X>{1}".format(self.d.getName(), self.L)
     def rand_raw(self, n):
-        return self.rand_invcdf(n)
+        tab=array([])
+        k=0
+        while k<n:
+            x =self.d.rand(n)    
+            tab = concatenate((tab,x[x>self.L]))
+            k = len(tab)
+        return tab[0:n] #self.rand_invcdf(n)
     def range(self):
         return self.L, self.d.range()[1]
     
