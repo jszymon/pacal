@@ -366,12 +366,12 @@ class NDDistr(NDFun):
         mo = mean(array(getRanges(self.Vars)), axis=0)
         fo = self(*[mo[i] for i in range(len(mo))])
         r = getRanges(self.Vars)
-        for i in range(50):
+        for i in range(100):
             mi = zeros_like(mo)
             for j in range(len(r)):
                 mi[j] = float(UniformDistr(r[0][j], r[1][j]).rand(1))                
             fi = self(*mi)
-            if fo < fi:
+            if fo < fi:                
                 mo =mi
                 fo = fi
         return maxprob(self, mo*1.01, array(getRanges(self.Vars)).T)
@@ -453,8 +453,10 @@ class NDDistrWithVarSubst(NDDistr):
     def __init__(self, f, substvar, substfun, substfunvars):
         self.orig_f = f
         self.substfun = substfun
+        
         # prepare variables
         substidx, _c_var = f.prepare_var(substvar)
+        
         assert len(substidx) == 1
         self.substidx = substidx[0]
         substvar = f.Vars[self.substidx]
@@ -476,6 +478,8 @@ class Factor1DDistr(NDDistr):
     def __init__(self, distr):
         self.distr = distr
         super(Factor1DDistr, self).__init__(1, [distr])
+    def __str__(self):
+        return str(self.distr)
     def pdf(self, *X):        
         return self.distr.pdf(*X)
 
@@ -483,6 +487,8 @@ class NDConstFactor(NDDistr):
     def __init__(self, c):
         super(NDConstFactor, self).__init__(0, [])
         self.c = c
+    def __str__(self):
+        return "const=" + str(self.c) 
     def pdf(self, *X):
         assert len(X) == 0
         return self.c
@@ -670,7 +676,8 @@ class NDProductDistr(NDDistr):
     def __str__(self):
         s = "Factors:\n"
         for i, f in enumerate(self.factors):
-            s += "F_" + str(i) + " (" + ",".join(str(v.getSymname()) for v in f.Vars) + ")" + str(f.__class__) + "\n"
+            #s += "F_" + str(i) + " (" + ",".join(str(v.getSymname()) for v in f.Vars) + ")" + str(f.__class__) + "\n"
+            s += "F_" + str(id(f)) + " (" + ",".join(str(v.getSymname()) for v in f.Vars) + ")" + str(f.__str__()) + "\n"
         return s
     def pdf(self, *X):
         y = 1

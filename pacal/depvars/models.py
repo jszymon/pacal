@@ -113,6 +113,7 @@ class Model(object):
             if free_var.getSymname() in set(eq.atoms(sympy.Symbol)):
                 self.rv_to_equation[rv] = eq.subs(free_var.getSymname(), inv_transf)
         self.rv_to_equation[free_var] = inv_transf
+        #print str(free_var.getSymname())+ "=" + str(var_changes[0][0])
         self.nddistr = self.nddistr.varschange(free_var, inv_transf_lamdified, inv_transf_vars, jacobian)
 
     def var_change_helper(self, free_var, dep_var):
@@ -137,10 +138,11 @@ class Model(object):
             inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
-            #print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-            #print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-            #print "solution: ", free_var.getSymname(), "=", uj
-            #print "variables: ", uj_symbols, inv_transf_vars
+            if params.models.debug_info:
+                #print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+                #print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
+                print "substitution: ", free_var.getSymname(), "=", uj,
+                #print "variables: ", uj_symbols, inv_transf_vars
 
             # Jacobian
             #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
@@ -154,7 +156,8 @@ class Model(object):
                 jacobian = NDConstFactor(abs(float(J)))
                 jacobian_vars = []
 
-            #print "J=", J
+            if params.models.debug_info:
+                print ";  Jaccobian=", J
             #print "variables: ", J_symbols, jacobian_vars
 
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
@@ -169,8 +172,10 @@ class Model(object):
     def eliminate(self, var):
         var = self.prepare_var(var)
         if params.models.debug_info:
-            print "eliminate variable: ", var.getSymname()
+            print "eliminate variable: ", var.getSymname(),
         if var in self.free_rvs:
+            if params.models.debug_info:
+                print " eliminate free via integration"
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                     raise RuntimeError("Cannot eliminate free variable on which other variables depend")
@@ -178,6 +183,8 @@ class Model(object):
             self.free_rvs.remove(var)
             self.all_vars.remove(var)
         elif var in self.dep_rvs:
+            if params.models.debug_info:
+                print " eliminate dependent via substitution"
             subs_eq = self.rv_to_equation[var]
             del self.rv_to_equation[var]
             self.subst_for_rv_in_children(var, subs_eq)
@@ -253,7 +260,7 @@ class Model(object):
             exchanged_vars = set()
             while wanted_rvs | exchanged_vars != set(M.all_vars):
                 #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
-                #print M
+                #print M.nddistr
                 # find a free var to eliminate
                 to_remove = []
                 for v in M.free_rvs:

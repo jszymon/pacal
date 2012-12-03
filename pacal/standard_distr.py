@@ -166,6 +166,8 @@ class TrapezoidalDistr(Distr):
         return "Trapz({0},{1},{2},{3})#{4}".format(self.a, self.b,self.c, self.d, id(self))
     def getName(self):
         return "Trapz({0},{1},{2},{3})".format(self.a, self.b,self.c, self.d)
+    def range(self):
+        return self.a, self.d
 
 class CauchyDistr(Distr):
     def __init__(self, gamma = 1.0, center = 0.0, **kwargs):
@@ -1192,7 +1194,7 @@ if __name__ == "__main__":
     #     demo_distr(den, theoretical = ChiSquareDistr(n), xmin = 0, xmax=1e1)
     #     figure()
     #     demo_distr(Tn, theoretical = StudentTDistr(n), xmin = -1e1, xmax=1e1)
-    #  	return num, den, Tn
+    #      return num, den, Tn
     # test_student(5)
     # test_student(4)
 
