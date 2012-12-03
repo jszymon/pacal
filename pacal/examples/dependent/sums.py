@@ -42,11 +42,11 @@ M.toGraphwiz()
 #M = M.inference([X[0], X[1]], [S[-1]], [3.5])
 print "===================="
 M1 = M.inference(wanted_rvs =[X[0], X[1]], cond_rvs=[S[-1]], cond_X=[1])
-print "===================="
+print "====================",M1
 M2 = M.inference(wanted_rvs =[S[1], S[4]])
-print "===================="
+print "====================",M2
 M3 = M.inference(wanted_rvs =[S[1], S[4]], cond_rvs=[S[3]], cond_X=[2])
-print "===================="
+print "====================",M3
 MC_X0 = M.inference(wanted_rvs =[X[0]], cond_rvs=[S[-1]], cond_X=[1])
 print "===================="
 

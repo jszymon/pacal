@@ -24,7 +24,9 @@ def multiprec_cdf(df, mu, x):
 def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
                       R_pdf = None, R_cdf = None,
                       Mathematica_pdf = None, Mathematica_cdf = None,
+                      Mathematic8_pdf = None, Mathematic8_cdf = None,
                       SAS_pdf = None, SAS_cdf = None,
+                      Matlab_pdf = None, Matlab_cdf = None
                       ):
     if exact_pdf is None:
         exact_pdf = float(multiprec_pdf(df, mu, x))
@@ -33,7 +35,9 @@ def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
         exact_cdf = float(multiprec_cdf(df, mu, x))
         print "exact_cdf", repr(exact_cdf)
     d_, f, P = noncentral_t(df, mu, x)
-    print f, P
+    print "pacal_pdf", f
+    print "pacal_cdf", P
+    # print f, P
     pdf_err = abs(f - exact_pdf)
     cdf_err = abs(P - exact_cdf)
     def str_errors(name, df, mu, x, pdf, cdf, exact_pdf, exact_cdf):
@@ -48,7 +52,9 @@ def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
     print str_errors("PaCal:      ", df, mu, x, f, P, exact_pdf, exact_cdf),
     print str_errors("R:          ", df, mu, x, R_pdf, R_cdf, exact_pdf, exact_cdf),
     print str_errors("Mathematica:", df, mu, x, Mathematica_pdf, Mathematica_cdf, exact_pdf, exact_cdf),
+    print str_errors("Mathematic8:", df, mu, x, Mathematic8_pdf, Mathematic8_cdf, exact_pdf, exact_cdf),
     print str_errors("SAS:        ", df, mu, x, SAS_pdf, SAS_cdf, exact_pdf, exact_cdf),
+    print str_errors("Matlab:     ", df, mu, x, Matlab_pdf, Matlab_cdf, exact_pdf, exact_cdf),
 
 
 #SAS code:
@@ -63,20 +69,24 @@ if __name__ == "__main__":
     test_noncentral_t(7, 10.3, 5.1, None, None,
                       R_pdf = 0.003581733882073113, R_cdf = 0.001191483320239349,
                       Mathematica_pdf = 0.0035817338822428215, Mathematica_cdf = 0.0011914833206298843,
-                      SAS_pdf = 3.5817338822428000000e-3, SAS_cdf = 1.1914833206298000000e-3)
+                      Mathematic8_pdf = 0.003581733882242849, Mathematic8_cdf = 0.0011914833206298871,
+                      SAS_pdf = 3.5817338822428000000e-3, SAS_cdf = 1.1914833206298000000e-3,
+                      Matlab_pdf = 0.0035817338822428362172, Matlab_cdf = 0.0011914833206298604609)
     test_noncentral_t(7, 10.3, -50.0, None, None,
                       R_pdf = 1.554312234475223e-17, R_cdf = 9.35918009759007e-14, # R gives a warning of low accuracy
                       Mathematica_pdf = 1.542256935359599e-21, Mathematica_cdf = 0,
-                      SAS_pdf = 1.3157713027446000000e-40, SAS_cdf = 9.400060780335900000e-40)
+                      Mathematic8_pdf = 1.315771302399274e-40, Mathematic8_cdf = 9.400060780339078e-40,
+                      SAS_pdf = 1.3157713027446000000e-40, SAS_cdf = 9.400060780335900000e-40,
+                      Matlab_pdf = -1.5543122344752193045e-17, Matlab_cdf = 7.2164496600635175128e-15)
     test_noncentral_t(7, 10.3, -1e3, None, None,
                       R_pdf = 0, R_cdf = 9.39248678832882e-14, # R gives a warning of low accuracy
                       Mathematica_pdf = 0, Mathematica_cdf = 0,
+                      Mathematic8_pdf = 5.1438924543891633e-51, Mathematic8_cdf = 7.348421112537427e-49,
                       SAS_cdf = 7.34842111248630000e-49,# SAS gives an error for the PDF in this case.  Strangely it works for x=-820 but not for -820.5 (and below)
-                      )
-    
-    
+                      Matlab_pdf = -0, Matlab_cdf = 7.3274719625260331668e-15)
+                      
+
     #d, f, P = noncentral_t(4, 2, 5.0)
     #from pylab import show
     #d.plot()
     show()
-
