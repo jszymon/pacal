@@ -2,9 +2,10 @@
 
 Mainly work around incompatibilities between versions."""
 
+from functools import partial
 from numpy import isfinite
 import sympy
-
+import sympy.printing.lambdarepr
 
 # sympy defines max, min and abs differently in different versions
 try:
@@ -55,3 +56,11 @@ def eq_solve(lhs, rhs, x):
             solutions = sympy.solve(lhs - rhs, x)
         _eq_cache[key] = solutions
     return solutions
+
+def _my_lambdify_helper(expr_str, argnames, *argvals):
+    #print expr_str, argnames, argvals, dict(zip(argnames, argvals))
+    return eval(expr_str, globals(), dict(zip(argnames, argvals)))
+def my_lambdify(args, expr, modules=None, printer=None, use_imps=True):
+    """Lambdify sympy expressions without using lambda functions."""
+    argnames = [str(arg) for arg in args]
+    return partial(_my_lambdify_helper, sympy.printing.lambdarepr.lambdarepr(expr), argnames)

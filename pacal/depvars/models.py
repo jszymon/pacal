@@ -14,11 +14,13 @@ import sympy
 from pylab import legend, figure, plot, axis
 
 from pacal.sympy_utils import eq_solve
+from pacal.sympy_utils import my_lambdify
 from pacal.standard_distr import FunDistr, PDistr
 from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segment
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
+
 
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
@@ -135,7 +137,7 @@ class Model(object):
             if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
                 continue
             uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
-            inv_transf = sympy.lambdify(uj_symbols, uj, "numpy")
+            inv_transf = my_lambdify(uj_symbols, uj, "numpy")
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
             if params.models.debug_info:
@@ -150,7 +152,7 @@ class Model(object):
             J_symbols = list(sorted(J.atoms(sympy.Symbol)))
             if len(J_symbols) > 0:
                 jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
-                jacobian = sympy.lambdify(J_symbols, J, "numpy")
+                jacobian = my_lambdify(J_symbols, J, "numpy")
                 jacobian = NDFun(len(jacobian_vars), jacobian_vars, jacobian, safe = True, abs = True)
             else:
                 jacobian = NDConstFactor(abs(float(J)))
@@ -376,7 +378,7 @@ class Model(object):
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
             a, b = self.free_rvs[0].range()
             freesym = self.free_rvs[0].getSym()
-            fun = sympy.lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
+            fun = my_lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
             ax = plot_1d1d_distr(self.nddistr, a, b, fun)
             ax.set_xlabel(self.free_rvs[0].getSymname())
             ax.set_ylabel(self.dep_rvs[0].getSymname())
@@ -426,14 +428,14 @@ class TwoVarsModel(Model):
         self.fun_alongx = eq_solve(self.symop, z, y)[0]
         self.fun_alongy = eq_solve(self.symop, z, x)[0]
 
-        self.lfun_alongx = sympy.lambdify([x, z], self.fun_alongx, "numpy")    
-        self.lfun_alongy = sympy.lambdify([y, z], self.fun_alongy, "numpy")
+        self.lfun_alongx = my_lambdify([x, z], self.fun_alongx, "numpy")    
+        self.lfun_alongy = my_lambdify([y, z], self.fun_alongy, "numpy")
         self.Jx = 1 * sympy.diff(self.fun_alongx, z)
         #print "Jx=", self.Jx
         #print "fun_alongx=", self.fun_alongx
         self.Jy = 1 * sympy.diff(self.fun_alongy, z)
-        self.lJx = sympy.lambdify([x, z], self.Jx, "numpy")
-        self.lJy = sympy.lambdify([y, z], self.Jy, "numpy")
+        self.lJx = my_lambdify([x, z], self.Jx, "numpy")
+        self.lJy = my_lambdify([y, z], self.Jy, "numpy")
         self.z = z
     def solveCutsX(self, fun, ay, by):        
         axc = eq_solve(fun, ay, self.symvars[0])[0]
@@ -488,7 +490,7 @@ class TwoVarsModel(Model):
         x = self.symvars[0]
         y = self.symvars[1]
         
-        lop = sympy.lambdify([x, y], self.symop, "numpy") 
+        lop = my_lambdify([x, y], self.symop, "numpy") 
         tmp = [lop(ax, ay), lop(ax, by), lop(bx, ay), lop(bx, by)]
         i0, i1 = min(tmp), max(tmp)
         for i in linspace(i0, i1, 20):
@@ -533,7 +535,7 @@ class TwoVarsModel(Model):
         op = self.symop#d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
-        lop = sympy.lambdify([x, y], op, "numpy") 
+        lop = my_lambdify([x, y], op, "numpy") 
         F = self.vars[0]
         G = self.vars[1]
         #self.nddistr.setMarginals(F, G)

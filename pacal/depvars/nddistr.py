@@ -39,7 +39,7 @@ def getRanges(vars, ci=None):
     return a, b
 
 
-            
+
 class NDFun(object):
     # abs is a workaround for sympy.lambdify bug
     def __init__(self, d, Vars, fun, safe = False, abs = False):
@@ -57,7 +57,7 @@ class NDFun(object):
         self.Vars = Vars
         var_ids = [id(v) for v in self.Vars]
         self.id_to_idx = dict((id, idx) for idx, id in enumerate(var_ids))
-        self.idx_to_id = [id_ for idx, id_ in enumerate(var_ids)] 
+        self.idx_to_id = [id_ for idx, id_ in enumerate(var_ids)]
         self.symVars = [v.getSymname() for v in Vars]
         self.sym_to_var = dict((v.getSymname(), v) for v in Vars)
         if len(Vars)==1:
@@ -97,8 +97,7 @@ class NDFun(object):
         if id(var) in self.id_to_idx:
             var = self.id_to_idx[id(var)]
         if not isinstance(var, numbers.Integral) or not 0 <= var < self.d:
-            print "!!!", var
-            raise RuntimeError("Incorrect marginal index")
+            raise RuntimeError("Incorrect marginal index " + str(var))
         return var
     def prepare_var(self, var):
         """Convert var to a list of dimension numbers."""
@@ -116,7 +115,7 @@ class NDFun(object):
 
 #        vars_change = []
 #        for i in range(len(self.Vars)):
-#            if id(vari)==id(self.Vars[i]): 
+#            if id(vari)==id(self.Vars[i]):
 #                vars_change.append(varj)
 #            else:
 #                vars_change.append(self.Vars[i])
@@ -179,10 +178,10 @@ class NDFun(object):
             return m
         else:
             # TODO: eliminate all vars at once using sparse grid integration
-            return m.eliminate(var[:-1])      
-    
+            return m.eliminate(var[:-1])
 
-class InterpRunner:
+
+class InterpRunner(object):
     def __init__(self, f, arg, c_var, v1):
         self.ndfun = f
         self.arg = arg
@@ -192,17 +191,17 @@ class InterpRunner:
         ndfun = self.ndfun
         arg = self.arg
         c_var = self.c_var
-        v1 = self.v1       
+        v1 = self.v1
         if hasattr(self.ndfun, "f"):
             y = integrate_fejer2(partial(self.integ_f, X), ndfun.f.a[v1], ndfun.f.b[v1])[0]
         else:
             y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])[0]
         return y
     def interpxx(self, *X):
-        """convolution of f and g  
+        """convolution of f and g
         """
         ndfun = self.ndfun
-        v1 = self.v1   
+        v1 = self.v1
         if isscalar(X[0]):
             # TODO: fix integration bounds!!!!
             if hasattr(self.ndfun, "f"):
@@ -224,7 +223,7 @@ class InterpRunner:
         f = self.ndfun
         arg = self.arg
         c_var = self.c_var
-        v1 = self.v1   
+        v1 = self.v1
         if isscalar(x1):
             arg[c_var] = X
             arg[v1] = x1
@@ -240,7 +239,7 @@ class InterpRunner:
         ndfun = self.ndfun
         arg = self.arg
         c_var = self.c_var
-        v1 = self.v1       
+        v1 = self.v1
 #        print "======="
 #        print ndfun, arg, c_var, v1, X[0]
 #        print self.ndfun.a
@@ -263,15 +262,15 @@ class InterpRunner:
                 y[i] = integrate_fejer2(partial(self.integ_f, [x[i] for x in X]), ndfun.a[v1], ndfun.b[v1])[0]
         return y
     def safe_interp_f(self, xt):
-        print ":::", xt
+        #print ":::", xt
         if isscalar(xt) or len(xt)<=1:
             return self.interp_f(array([xt]))
         else:
             return self.interp_f(*xt)
-    
+
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
-        super(NDDistr, self).__init__(d, Vars, self.pdf)          
+        super(NDDistr, self).__init__(d, Vars, self.pdf)
         self.marginals = Vars
     def condition(self, var, *X, **kwargs):
         """Return the NDDistr conditioned on var=X.
@@ -321,20 +320,20 @@ class NDDistr(NDFun):
                 elif type==1:
                     return distr.median()
                 elif type==2:
-                    return distr.mode()                
+                    return distr.mode()
                 elif type==3:
                     return distr.quantile(0.025)
                 elif type==4:
                     return distr.quantile(0.975)
                 else:
-                    assert 1==0    
+                    assert 1==0
                 #return distr.median()
             else:
                 y =  zeros_like(x)
                 for i in range(len(x)):
                     print i, "|||", _fun(x[i])
                     y[i] = _fun(x[i])
-                return y  
+                return y
             #distr = FunDistr(fun=self.condition([c_var], x).distr_pdf, breakPoints=var.get_piecewise_pdf().getBreaks())
             #return distr.mean()
         #print "+++", _fun(0.5)
@@ -343,14 +342,14 @@ class NDDistr(NDFun):
     def cov(self, i=None, j=None):
         if i is not None and j is not None:
             var, c_var = self.prepare_var([i, j])
-            dij = self.eliminate(c_var)                
+            dij = self.eliminate(c_var)
             f, g  = dij.Vars[0], self.Vars[1]
             fmean = 0 #f.mean()
-            gmean = 0 #g.mean()           
+            gmean = 0 #g.mean()
             f0, f1 = f.range()
-            g0, g1 = g.range() 
+            g0, g1 = g.range()
             if i == j:
-                c, e =  1, 0#integrate_fejer2(lambda x: (x - fmean) ** 2 * f.pdf(x), f0, f1)                  
+                c, e =  1, 0#integrate_fejer2(lambda x: (x - fmean) ** 2 * f.pdf(x), f0, f1)
             else:
                 c, e = integrate_iter(lambda x, y: (x - fmean) * (y - gmean) * dij.pdf(x, y), f0, f1, g0, g1)
             return c
@@ -359,8 +358,8 @@ class NDDistr(NDFun):
             for i in range(self.d):
                 for j in range(self.d):
                     #print c[i,j]
-                    #print self.cov(i,j)   
-                    c[i, j] = self.cov(i,j)                                          
+                    #print self.cov(i,j)
+                    c[i, j] = self.cov(i,j)
             return c
     def mode(self):
         mo = mean(array(getRanges(self.Vars)), axis=0)
@@ -369,9 +368,9 @@ class NDDistr(NDFun):
         for i in range(100):
             mi = zeros_like(mo)
             for j in range(len(r)):
-                mi[j] = float(UniformDistr(r[0][j], r[1][j]).rand(1))                
+                mi[j] = float(UniformDistr(r[0][j], r[1][j]).rand(1))
             fi = self(*mi)
-            if fo < fi:                
+            if fo < fi:
                 mo =mi
                 fo = fi
         return maxprob(self, mo*1.01, array(getRanges(self.Vars)).T)
@@ -386,7 +385,7 @@ class NDDistr(NDFun):
         Lf, Uf = f.ci(0.001)
         Lg, Ug = g.ci(0.001)
         deltaf = (Uf - Lf) / n
-        deltag = (Ug - Lg) / n 
+        deltag = (Ug - Lg) / n
         X, Y = meshgrid(arange(Lf, Uf, deltaf), arange(Lg, Ug, deltag))
         if cdf:
             Z = self.cdf(X, Y)
@@ -423,14 +422,14 @@ class NDDistr(NDFun):
             i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
         elif not isinf(L) and  not isinf(U):
             if force_poleL and force_poleU:
-                i1, e1 = integrate_fejer2_Xn_transformP(fun, L, (L+U)*0.5, debug_info = debug_info, debug_plot = debug_plot) 
-                i2, e2 = integrate_fejer2_Xn_transformN(fun, (L+U)*0.5, U, debug_info = debug_info, debug_plot = debug_plot) 
+                i1, e1 = integrate_fejer2_Xn_transformP(fun, L, (L+U)*0.5, debug_info = debug_info, debug_plot = debug_plot)
+                i2, e2 = integrate_fejer2_Xn_transformN(fun, (L+U)*0.5, U, debug_info = debug_info, debug_plot = debug_plot)
                 i, e = i1+i2, e1+e2
             elif force_poleL:
-                i, e = integrate_fejer2_Xn_transformP(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
+                i, e = integrate_fejer2_Xn_transformP(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
             elif force_poleU:
-                i, e = integrate_fejer2_Xn_transformN(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
-            else: 
+                i, e = integrate_fejer2_Xn_transformN(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
+            else:
                 #i, e = integrate_fejer2(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
                 i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
         elif isinf(L) and isfinite(U) :
@@ -447,16 +446,16 @@ class NDDistr(NDFun):
         #if e>1e-10:
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
         #    print i,e
-        return i,e  
-    
+        return i,e
+
 class NDDistrWithVarSubst(NDDistr):
     def __init__(self, f, substvar, substfun, substfunvars):
         self.orig_f = f
         self.substfun = substfun
-        
+
         # prepare variables
         substidx, _c_var = f.prepare_var(substvar)
-        
+
         assert len(substidx) == 1
         self.substidx = substidx[0]
         substvar = f.Vars[self.substidx]
@@ -480,7 +479,7 @@ class Factor1DDistr(NDDistr):
         super(Factor1DDistr, self).__init__(1, [distr])
     def __str__(self):
         return str(self.distr)
-    def pdf(self, *X):        
+    def pdf(self, *X):
         return self.distr.pdf(*X)
 
 class NDConstFactor(NDDistr):
@@ -488,7 +487,7 @@ class NDConstFactor(NDDistr):
         super(NDConstFactor, self).__init__(0, [])
         self.c = c
     def __str__(self):
-        return "const=" + str(self.c) 
+        return "const=" + str(self.c)
     def pdf(self, *X):
         assert len(X) == 0
         return self.c
@@ -582,7 +581,7 @@ class GausianCopula(NDDistr): # TODO
             X = [self.marginals[i].get_piecewise_cdfinv_interp()(X[i]) for i in range(len(X))]
             Xa = asfarray(X)
             print Xa
-            
+
             Xa = Xa.transpose(range(1, len(X[0].shape) + 1) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
@@ -789,7 +788,7 @@ class NDProductDistr(NDDistr):
         #print "kept factors=", kept_factors
         #print "elim factors=", elim_factors
         #print "new factors=", new_factors
-        return NDProductDistr(new_factors)        
+        return NDProductDistr(new_factors)
 
 class _NDProductDistr(NDProductDistr):
     """A temporary class for elimination after factoring variables
@@ -799,20 +798,20 @@ class _NDProductDistr(NDProductDistr):
 
 class IJthOrderStatsNDDistr(NDDistr):
     """return joint p.d.f. of the i-th and j-th order statistics
-    for sample size of n, 1<=i<j<=n, see springer's book p. 347 
+    for sample size of n, 1<=i<j<=n, see springer's book p. 347
     """
     def __init__(self, f, n, i, j):
         #print n, i, j, (1 <= i and i < j and j <= n)
-        assert (1 <= i and i < j and j <= n), "incorrect values 1<=i<j<=n" 
+        assert (1 <= i and i < j and j <= n), "incorrect values 1<=i<j<=n"
         self.f = f.get_piecewise_pdf()
         self.F = f.get_piecewise_cdf().toInterpolated()
         self.S = (1.0 - self.F).toInterpolated()
         X = iid_order_stat(f, n, i, sym="X_{0}".format(i))
         Y = iid_order_stat(f, n, j, sym="X_{0}".format(j))
         Vars = [X, Y]
-        super(IJthOrderStatsNDDistr, self).__init__(2, Vars)  
+        super(IJthOrderStatsNDDistr, self).__init__(2, Vars)
         self.i = i
-        self.j = j 
+        self.j = j
         self.n = n
         a, b = getRanges([f, f])
         self.a = a
@@ -823,7 +822,7 @@ class IJthOrderStatsNDDistr(NDDistr):
         i, j, n = self.i, self.j, self.n
         mask = x < y
         return mask * multinomial_coeff(n, [i - 1, 1, j - i - 1, 1, n - j]) * self.F(x) ** (i - 1.0) * (self.F(y) - self.F(x)) ** (j - i - 1) * (1.0 - self.F(y)) ** (n - j) * self.f(x) * self.f(y)
-        
+
     def _segint(self, fun, L, U, force_minf = False, force_pinf = False, force_poleL = False, force_poleU = False,
                 debug_info = False, debug_plot = False):
         #print params.integration_infinite.exponent
@@ -841,14 +840,14 @@ class IJthOrderStatsNDDistr(NDDistr):
             i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
         elif not isinf(L) and  not isinf(U):
             if force_poleL and force_poleU:
-                i1, e1 = integrate_fejer2_Xn_transformP(fun, L, (L+U)*0.5, debug_info = debug_info, debug_plot = debug_plot) 
-                i2, e2 = integrate_fejer2_Xn_transformN(fun, (L+U)*0.5, U, debug_info = debug_info, debug_plot = debug_plot) 
+                i1, e1 = integrate_fejer2_Xn_transformP(fun, L, (L+U)*0.5, debug_info = debug_info, debug_plot = debug_plot)
+                i2, e2 = integrate_fejer2_Xn_transformN(fun, (L+U)*0.5, U, debug_info = debug_info, debug_plot = debug_plot)
                 i, e = i1+i2, e1+e2
             elif force_poleL:
-                i, e = integrate_fejer2_Xn_transformP(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
+                i, e = integrate_fejer2_Xn_transformP(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
             elif force_poleU:
-                i, e = integrate_fejer2_Xn_transformN(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)             
-            else: 
+                i, e = integrate_fejer2_Xn_transformN(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
+            else:
                 #i, e = integrate_fejer2(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
                 i, e = integrate_wide_interval(fun, L, U, debug_info = debug_info, debug_plot = debug_plot)
         elif isinf(L) and isfinite(U) :
@@ -865,11 +864,11 @@ class IJthOrderStatsNDDistr(NDDistr):
         #if e>1e-10:
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
         #    print i,e
-        return i,e     
+        return i,e
 
 
 
-    
+
 def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     # plot distr in 3d
     from mpl_toolkits.mplot3d import axes3d
@@ -899,7 +898,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
     if theoretical is not None:
         fig = plt.figure()
     fig = plt.gcf()
-    
+
     if have_3d:
         #ax = fig.add_subplot(111, projection='3d')
         ax = plt.gca(projection='3d')
@@ -922,7 +921,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=20):
         #print "max=", maxV, V
         C = ax.contour(X, Y, Z, V)#), colors="k")
         #C.clabel()
-        fig.colorbar(C) 
+        fig.colorbar(C)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
@@ -937,7 +936,7 @@ def plot_1d1d_distr(free_distr, a, b, fun):
     import numpy as np
     from mpl_toolkits.mplot3d import axes3d
     from matplotlib import cm
-    
+
     X = np.linspace(a, b, 1000)
     Y = fun(X)
     Z = free_distr(X)
@@ -992,7 +991,7 @@ class NDNoisyFun(NDDistr):
             mask = (self.noise_a <= z - fy) & (z - fy <= self.noise_b)
             y[mask] = self.noise_distr((z - fy)[mask])
         return y
-    
+
     def eliminate(self, var):
         var, c_var = self.prepare_var(var)
         if len(var) != 1 or var[0] != self.d - 1:
@@ -1068,7 +1067,7 @@ if __name__ == "__main__":
     fun1.plot(linewidth=2.0, color='g', label="median")
     fun2 = c.regfun(Y, type=2)
     fun2.plot(linewidth=2.0, color='b', label="mode")
-    
+
     fun3 = c.regfun(Y, type=3)
     fun3.plot(linewidth=1.0, color='k', label="ci_L")
     fun4 = c.regfun(Y, type=4)
@@ -1079,10 +1078,10 @@ if __name__ == "__main__":
     c.plot()
     show()
     0/0
-    
+
     #from pacal.depvars.copulas import *
     #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
-    
+
     d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
     print d.symVars
     plot_2d_distr(d)
@@ -1106,39 +1105,39 @@ if __name__ == "__main__":
     print ndn(1, 1), ndn_sub(0,1)
 
     plot_2d_distr(ndn)
-    
+
     ndn_marg = ndn.eliminate(1)
     ndn_marg = ndn.eliminate(ndn.Vars[1])
     print ndn_marg.Vars
     figure()
-    
+
     plot(X, [ndn_marg(x) for x in X])
-    
+
     ndn_cond = ndn.condition(ndn.Vars[1], 0.5)
     print ndn_cond.Vars
     figure()
     plot(X, [ndn_cond(x) for x in X])
-    
-    
+
+
     ndi = NDInterpolatedDistr(ndn.d, ndn)
     print ndi.Vars
-    
+
     plot_2d_distr(ndi)
-    
+
     ndi_int = ndi.eliminate([0, 1])
     print ndi_int
-    
+
     ndi_marg = ndi.eliminate(ndi.Vars[1])
     print ndi_marg.Vars
     figure()
     plot(X, [ndi_marg(x) for x in X])
     plot(X, [ndn_marg(x) for x in X])
-    
+
     ndi_cond = ndi.condition(ndi.Vars[1], 0.5)
     figure()
     plot(X, [ndi_cond(x) for x in X])
     plot(X, [ndn_cond(x) for x in X])
-    
+
     ndn_cond2 = ndn.condition(ndn.Vars[1], 2)
     ndi_cond2 = ndi.condition(ndi.Vars[1], 2)
     ndn_cond3 = ConditionalDistr(ndn, 1)
@@ -1163,10 +1162,10 @@ if __name__ == "__main__":
 
     plot_2d_distr(ndn1)
     plot_2d_distr(ndn2)
-    
+
     gmmarg1 = gmrf.eliminate(ndn2.Vars[1])
     plot_2d_distr(gmmarg1)
-    
+
     gmmarg2 = gmrf.eliminate(ndn1.Vars[1])
     plot_2d_distr(gmmarg2)
 
@@ -1176,10 +1175,10 @@ if __name__ == "__main__":
     gmmarg4 = gmrf.eliminate([ndn1.Vars[1], ndn2.Vars[1]])
     figure()
     plot(X, gmmarg4(X))
-    
+
     gmmarg5 = gmrf.eliminate([0, 1, 2])
     print gmmarg5.as_constant()
-    
+
     gmrfc1 = gmrf.condition(ndn1.Vars[0], 1)
     plot_2d_distr(gmrfc1)  # [1, 2] are conditionally independent given [0]
 
@@ -1187,6 +1186,5 @@ if __name__ == "__main__":
     plot_2d_distr(gmrfc2)
     gmrfc3 = gmrf.condition(ndn1.Vars[1], -1)
     plot_2d_distr(gmrfc3)
-    
+
     show()
- 

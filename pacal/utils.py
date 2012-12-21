@@ -32,7 +32,7 @@ from numpy import real, concatenate, linspace, argmin
 
 #from scipy.fftpack.basic import fft
 from scipy.optimize import fmin_cg,fmin, fmin_tnc
- 
+
 import params
 
 # safe infinity
@@ -102,7 +102,7 @@ def chebspace(a, b, n, returnWeights=False):
     # ensure that endpoints are exact
     cs[0] = a
     cs[-1] = b
-    if returnWeights:  
+    if returnWeights:
         weights = ones_like(cs)
         weights[::2] = -1
         weights[0] /= 2
@@ -110,16 +110,16 @@ def chebspace(a, b, n, returnWeights=False):
         return cs, weights
     else:
         return cs
-    
+
 def chebspace1(a, b, n, returnWeights=False):
     """Chebyshev nodes for given degree n"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
     cs = apb - bma * cos(arange(1, 2*n, 2) * pi / (2*n))
-    if returnWeights:  
+    if returnWeights:
         weights = ones_like(cs)
         weights = sin(arange(1, 2 * n, 2) * pi / (2 * n))
-        weights[1::2] = -1 * weights[1::2] 
+        weights[1::2] = -1 * weights[1::2]
         return cs, weights
     else:
         return cs
@@ -147,11 +147,11 @@ def incremental_cheb_nodes1(n, a = -1, b = 1):
     """Extra Chebyshev nodes added by moving from degree m to n=2*m-1"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    ind = arange(0, n)  
+    ind = arange(0, n)
     return apb - bma * cos((2*ind[((ind % 3) != 1)] + 1)* pi / (2*n))
 
 def chebt2(f):
-    """chebyshev transformation, coefficients in expansion using 
+    """chebyshev transformation, coefficients in expansion using
     Chebyshev polynomials T_n(x), see chebfun for details"""
     n = len(f)
     oncircle = concatenate((f[-1::-1], f[1:-1]))
@@ -159,11 +159,11 @@ def chebt2(f):
     #print n, len(fftcoef)
     #print fftcoef[n-1:]
     #print fftcoef[n-1:0:-1]
-    fftcoef[n-1:0:-1] += fftcoef[n-1:] # z+conj(z)  
-    return fftcoef[n-1::-1] 
+    fftcoef[n-1:0:-1] += fftcoef[n-1:] # z+conj(z)
+    return fftcoef[n-1::-1]
     #return c
 def ichebt2(c):
-    """inverse chebyshev transformation, values of function in Chebyshev 
+    """inverse chebyshev transformation, values of function in Chebyshev
     nodes of the second kind, see chebfun for details"""
     n = len(c)
     oncircle = concatenate(([c[-1]],c[-2:0:-1]/2, c[0:-1]/2));
@@ -171,13 +171,13 @@ def ichebt2(c):
     f = (n-1)*concatenate(([2*v[0]], v[1:n-1]+v[-1:n-1:-1], [2*v[n-1]] ))
     return f
 
-def chebt1(f): 
+def chebt1(f):
     #TODO
     """chebyshev transformation, see chebfun"""
     n = len(f)
     oncircle = concatenate((f[-1::-1], f[1:-1]))
     fftcoef = real(fft(oncircle))/(2*n-2)
-    return fftcoef[n-1::-1] 
+    return fftcoef[n-1::-1]
 def ichebt1(c):
     #TODO
     """inverse chebyshev transformation, see chebfun"""
@@ -243,7 +243,7 @@ def estimateDegreeOfPole(f, x, pos = True, fromTo = None, N = 10, deriv = False,
 
 def estimateAtInfExponent(f, x, pos = True, fromTo = None, N = 10, deriv = False, debug_plot = False):
     if fromTo is None:
-        fromTo = (1,10)        
+        fromTo = (1,10)
     ex = logspace(fromTo[0], fromTo[1], N)
     if pos:
         lx = ex
@@ -266,7 +266,7 @@ def estimateAtInfExponent(f, x, pos = True, fromTo = None, N = 10, deriv = False
         return ri[-1]/di[-1]
     else:
         return 0
-    
+
 def testPole(f, x, pos = True, pole_eps = None, deriv = None, debug_info = None, **kwargs):
     if pole_eps is None:
         pole_eps = params.pole_detection.max_pole_exponent
@@ -364,7 +364,7 @@ def stepfun(x, shift = 0.0):
         else:
             return 1.0
     else:
-        mask = (x >= 0.0) 
+        mask = (x >= 0.0)
         y = zeros_like(asfarray(x))
         y[mask] = 1.0
         return y
@@ -407,7 +407,7 @@ def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, m
 
 def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = False, pos = True):
     if fromTo is None:
-        fromTo = (1,100)        
+        fromTo = (1,100)
     ex = logspace(fromTo[0], fromTo[1], N)
     if pos:
         lx = ex
@@ -419,7 +419,7 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
     ind = (y > 0)
     xi = xi[ind]
     yi = log(y[ind])
-    ri = yi[1:] - yi[0:-1] 
+    ri = yi[1:] - yi[0:-1]
     di = abs(xi[1:]-xi[0:-1])
     if debug_plot:
         print ri, di
@@ -429,10 +429,10 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
         if ex>50:
             return Inf
         else:
-            return ex 
+            return ex
     else:
         return 0
-    
+
 def maxprob(pdf, x0, lub=None):
     def fun(x):
         #print x, lub
@@ -442,15 +442,15 @@ def maxprob(pdf, x0, lub=None):
                     x[i]=lub[i][0]
                 if x[i]>lub[i][1]:
                     x[i]=lub[i][1]
-        
+
         f = -pdf(*[x[i] for i in range(len(x))])
         #print x, f
-        return f 
+        return f
     #return fmin_tnc(fun, x0,bounds=lub)
     return fmin_cg(fun, x0, gtol=1e-14)
     #return fmin(fun, x0)
 def fmin2(fc, L, U, **kwargs):
-    xx = linspace(L,U,20)   
+    xx = linspace(L,U,20)
     y = [fc(x) for x in xx]
     ind = argmin(y)
     #xopt = fmin_cg(fc, xx[ind], maxiter=20, disp=0)
@@ -460,7 +460,7 @@ def fmin2(fc, L, U, **kwargs):
     if xopt<L:
         return L
     return xopt
-        
+
 
 try:
     from math import lgamma
@@ -492,7 +492,7 @@ def taylor_coeff(fun, N):
     zz = exp(2j*pi*(array(range(N)))/N)
     c = fft(fun(zz))/N
     return real(c)
-    
+
 _debug_fig = None
 _debug_cancelled = False
 def debug_plot(a, b, nodes, fs, coeffs):
@@ -568,7 +568,7 @@ def get_parmap():
 if __name__ == "__main__":
     from pacal import *
     import time
-    import numpy.polynomial.chebyshev as ch    
+    import numpy.polynomial.chebyshev as ch
     c = array([1, 2, 3, 1])
     CT =cheb1companion(array([1, 2, 3, 1]))
     print CT
@@ -576,30 +576,30 @@ if __name__ == "__main__":
     print ch.chebroots(c)
     print chebroots(c) - ch.chebroots(c)
     0/0
-    #print taylor_coeff(lambda x:exp(x), 30) 
+    #print taylor_coeff(lambda x:exp(x), 30)
     N = NormalDistr()
     fun  = N.mgf()
     #fun.plot()
-    t0  = time.time()    
+    t0  = time.time()
     t_i =  taylor_coeff(fun, 100)
     print time.time()-t0
     sil=1
-    
-    t0  = time.time()    
+
+    t0  = time.time()
     for i in range(50):
         if i==0:
             sil=1
         else:
-            sil *= i 
+            sil *= i
         mi = N.moment(i, 0.0)
-        print i, repr(mi),  repr(t_i[i])*sil*2,  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]); 
+        print i, repr(mi),  repr(t_i[i])*sil*2,  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]);
     print time.time()-t0
-    
-    
+
+
     print N.summary()
     show()
     0/0
-    print binomial_coeff(10, 7) 
+    print binomial_coeff(10, 7)
     print multinomial_coeff(10, [3, 3, 4])
     print multinomial_coeff(13, [7, 2, 4])
     print multinomial_coeff(21, [9, 8, 4])
@@ -607,26 +607,26 @@ if __name__ == "__main__":
 
     from standard_distr import *
     from pylab import *
-    
+
     print estimateTailExponent(LevyDistr(), pos = True)
     L = LevyDistr()
     L.summary()
 
     A= UniformDistr() / UniformDistr()
- # ChiSquareDistr(1) / ChiSquareDistr(1.1) 
+ # ChiSquareDistr(1) / ChiSquareDistr(1.1)
     A.summary()
     A.plot()
     S =A
     figure()
     for i in linspace(1,10,10):
         S_1 = S * 2
-        S = S + S        
+        S = S + S
         subplot(211)
         (S/(2**(i))).plot(xmin=0,xmax=50)
         print i,
         (S/(2**(i))).summary()
         subplot(212)
-        r = S.get_piecewise_pdf() - S_1.get_piecewise_pdf() 
+        r = S.get_piecewise_pdf() - S_1.get_piecewise_pdf()
         r.plot(xmin=0,xmax=50)
     show()
     0/0
