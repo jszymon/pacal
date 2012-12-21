@@ -7,6 +7,8 @@ from numpy import isfinite
 import sympy
 import sympy.printing.lambdarepr
 
+import params
+
 # sympy defines max, min and abs differently in different versions
 try:
     sympy_max = sympy.Max
@@ -62,5 +64,9 @@ def _my_lambdify_helper(expr_str, argnames, *argvals):
     return eval(expr_str, globals(), dict(zip(argnames, argvals)))
 def my_lambdify(args, expr, modules=None, printer=None, use_imps=True):
     """Lambdify sympy expressions without using lambda functions."""
-    argnames = [str(arg) for arg in args]
-    return partial(_my_lambdify_helper, sympy.printing.lambdarepr.lambdarepr(expr), argnames)
+    if params.general.parallel:
+        argnames = [str(arg) for arg in args]
+        l = partial(_my_lambdify_helper, sympy.printing.lambdarepr.lambdarepr(expr), argnames)
+    else:
+        l = sympy.lambdify(args, expr, modules, printer, use_imps)
+    return l
