@@ -12,7 +12,7 @@ class NoncentralTDistr(DivDistr):
         self.df = df
         self.mu = mu
     def __str__(self):
-        return "NoncentralTDistr(df={0},mu={1})#{2}".format(self.df, self.mu, id(self))
+        return "NoncentralTDistr(df={0},mu={1})#{2}".format(self.df, self.mu, self.id())
     def getName(self):
         return "NoncT({0},{1})".format(self.df, self.mu)
 
@@ -31,7 +31,7 @@ class NoncentralChiSquareDistr(SumDistr):
     def __init__(self, df, lmbda = 0):
         pass
     def __str__(self):
-        return "NoncentralChiSquare(df={0},lambda={1})#{2}".format(self.df, self.lmbda, id(self))
+        return "NoncentralChiSquare(df={0},lambda={1})#{2}".format(self.df, self.lmbda, self.id())
     def getName(self):
         return "NoncChi2({0},{1})".format(self.df, self.lmbda)
 
@@ -43,7 +43,7 @@ class NoncentralBetaDistr(InvDistr):
         self.beta = beta
         self.lmbda = lmbda
     def __str__(self):
-        return "NoncentralBetaDistr(alpha={0},beta={1},lambda={2})#{3}".format(self.alpha, self.beta, self.lmbda, id(self))
+        return "NoncentralBetaDistr(alpha={0},beta={1},lambda={2})#{3}".format(self.alpha, self.beta, self.lmbda, self.id())
     def getName(self):
         return "NoncBeta({0},{1},{2})".format(self.alpha, self.beta, self.lmbda)
     
@@ -56,6 +56,6 @@ class NoncentralFDistr(DivDistr):
         self.df2 = df2
         self.lmbda = lmbda
     def __str__(self):
-        return "NoncentralFDistr(df1={0},df2={1},lambda={2})#{3}".format(self.df1, self.df2, self.lmbda, id(self))
+        return "NoncentralFDistr(df1={0},df2={1},lambda={2})#{3}".format(self.df1, self.df2, self.lmbda, self.id())
     def getName(self):
         return "NoncF({0},{1},{2})".format(self.df1, self.df2, self.lmbda)

@@ -34,7 +34,7 @@ class general(params_class):
     warn_on_dependent = True
     class distr(params_class):
         independent = True
-    parallel = False#True
+    parallel = True
     nprocs = None
     process_pool = None
 

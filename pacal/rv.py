@@ -1,6 +1,7 @@
 """Random Variable class"""
 
 import numbers
+from os import getpid
 
 import numpy
 from numpy import unique
@@ -9,6 +10,7 @@ from numpy import add, subtract, divide, prod, multiply
 import sympy
 from sympy import var
 
+import params
 from sympy_utils import sympy_min, sympy_max, sympy_abs
 
 class RV(object):
@@ -18,53 +20,63 @@ class RV(object):
         self.b = b
         if sym is not None:         # ====set symbolic name of r.v
             if isinstance(sym, basestring):
-                self.sym = sympy.Symbol(sym) 
+                self.sym = sympy.Symbol(sym)
             else:
-                self.sym = sym      # users defined symbolic name of r.v.                            
+                self.sym = sym      # user defined symbolic name of r.v.
         else:
-            self.sym = var("X{0}".format(id(self))) # default symbolic name of r.v.
+            self.sym = var("X{0}".format(self.id())) # default symbolic name of r.v.
         if self.sym.is_Atom:
             #print "atom: ", self.sym
             self.symname = self.sym
         else:
             #print "complex: ", self.sym
-            self.symname = sympy.Symbol("X{0}".format(id(self)))
+            self.symname = sympy.Symbol("X{0}".format(self.id()))
+    def id(self):
+        """Return an object id which can survive pickling in parallel
+        mode."""
+        if params.general.parallel:
+            if not hasattr(self, "_id"):
+                self._id = str(getpid()) + "_" + str(id(self))
+            rvid = self._id
+        else:
+            rvid = id(self)
+        return rvid
     def __str__(self):
         return "RV(" + str(self.sym) + ")"
     def __repr__(self):
-        return str(self)   
+        return str(self)
 
     def getAncestorIDs(self, anc = None):
         """Get ID's of all ancestors"""
         if anc is None:
             anc = set()
         for p in self.parents:
-            if id(p) not in anc:
+            if p.id() not in anc:
                 anc.update(p.getAncestorIDs(anc))
-        anc.add(id(self))
+        anc.add(self.id())
         return anc
-    
+
     def range(self):
         return self.a, self.b
-    
+
     def getName(self):
         """return, string representation of RV"""
         return str(self)
     #def getExpr
     def getSym(self):
         """return, symbolic representation of RV"""
-        return self.sym              
-    
+        return self.sym
+
     def setSym(self, sym):
         """it set, symbolic name of RV"""
         if isinstance(sym, str):
-            self.symname = sympy.Symbol(sym) 
+            self.symname = sympy.Symbol(sym)
         else:
-            self.symname = sym                            
+            self.symname = sym
     #def getSymbol
     def getSymname(self):
         return self.symname
-                
+
     def getEquations(self, node=None, l=None, r=None):
         if l is None:
             l = []
@@ -74,11 +86,11 @@ class RV(object):
             node = self
         p = node.parents
         if not node.getSym().is_Atom and not node.getSym() in set(l):
-            l.append(node.getSym()) 
+            l.append(node.getSym())
             r.append(node.getSymname())
         if p is None or len(p)==0:
             return l, r
-        elif len(p)==1: 
+        elif len(p)==1:
             l, r = self.getEquations(p[0], l,r)
             return l, r
         else:
@@ -88,7 +100,7 @@ class RV(object):
 #    def getSymFree(self):
 #        def _get_rv(rootrv, sym):
 #            if isinstance(sym, str):
-#                sym = sympy.Symbol(sym) 
+#                sym = sympy.Symbol(sym)
 #            rvs  = rootrv.getParentsAll()
 #            print rvs
 #            for rv in rvs:
@@ -96,7 +108,7 @@ class RV(object):
 #                if rv.getSymname() == sym:
 #                    return rv
 #            return None
-#             
+#
 #        l, r  = self.getEquations()
 #        for var in r:
 #            free  = self.getParentsFree()
@@ -108,7 +120,7 @@ class RV(object):
 #        print r
 #        print l
 #        print _get_rv(self, "x")
-        
+
 #    def clear(self, node=None):
 #        if node is None:
 #            node = self
@@ -117,17 +129,17 @@ class RV(object):
 #        if p is None or len(p)==0:
 #            print "+", node.getSym()
 #            return
-#        elif len(p)==1: 
-#            self.clear(p[0])   
-#            print "-", p[0].getSym()         
+#        elif len(p)==1:
+#            self.clear(p[0])
+#            print "-", p[0].getSym()
 #        elif len(p)==2:
 #            self.clear(p[0])
 #            self.clear(p[1])
 #            print "--", p[0].getSym()
 #            print "--", p[1].getSym()
-#        #del node            
+#        #del node
 #        return
-                                
+
     def getOperation(self):
         """return string representation of operation when is used, None otherwise."""
         return None
@@ -142,24 +154,24 @@ class RV(object):
         return len(self.parents)>0
     def getParentsAll(self):
         l = set([self])
-        for p in self.parents:            
+        for p in self.parents:
             l.update(p.getParentsDep())
         return l
     def getParentsFree(self):
         l = set()
         if len(self.parents) == 0:
             l.add(self)
-        for p in self.parents:    
+        for p in self.parents:
             l.update(p.getParentsFree())
         return l
     def getParentsDep(self):
         l = set()
         if len(self.parents) > 0:
             l.add(self)
-        for p in self.parents:    
+        for p in self.parents:
             l.update(p.getParentsDep())
         return l
-    
+
     # overload arithmetic operators
     def __neg__(self):
         """Overload negation distribution of -X."""
@@ -228,8 +240,8 @@ class RV(object):
             return d * InvRV(self)
         raise NotImplemented()
     def __pow__(self, d):
-        """Overload power: distribution of X**Y, 
-        and special cases: X**(-1), X**2, X**0. X must be positive definite."""        
+        """Overload power: distribution of X**Y,
+        and special cases: X**(-1), X**2, X**0. X must be positive definite."""
         if isinstance(d, RV):
             return ExpRV(MulRV(LogRV(self), d))
         if isinstance(d, numbers.Real):
@@ -246,7 +258,7 @@ class RV(object):
                 #return PowRV(self, alpha = d)
         raise NotImplemented()
     def __rpow__(self, x):
-        """Overload power: distribution of X**r"""        
+        """Overload power: distribution of X**r"""
         if isinstance(x, numbers.Real):
             if x == 0:
                 return 0
@@ -268,7 +280,7 @@ def _wrapped_name(d, incl_classes = None):
         d_name = "(" + d_name + ")"
     return d_name
 
-    
+
 class OpRV(RV):
     """Base class for operations on RVs."""
     def __str__(self):
@@ -306,13 +318,13 @@ class ShiftedScaledRV(OpRV):
         self.d = d
     def __str__(self):
         if self.shift == 0 and self.scale == 1:
-            return str(id(self.d))
+            return str(self.d.id())
         elif self.shift == 0:
-            return "{0}*#{1}".format(self.scale, id(self.d))
+            return "{0}*#{1}".format(self.scale, self.d.id())
         elif self.scale == 1:
-            return "#{0}{1:+}".format(id(self.d), self.shift)
+            return "#{0}{1:+}".format(self.d.id(), self.shift)
         else:
-            return "#{0}*{1}{2:+}".format(id(self.d), self.scale, self.shift)
+            return "#{0}*{1}{2:+}".format(self.d.id(), self.scale, self.shift)
     def getName(self):
         if self.shift == 0 and self.scale == 1:
             return self.d.getName()
@@ -337,7 +349,7 @@ class LogRV(FuncRV):
         if not d.is_nonneg():
             raise ValueError("logarithm of a nonpositive distribution")
         super(LogRV, self).__init__(d, fname = "log", sym = sympy.log(d.getSymname()))
-    
+
 class AtanRV(FuncRV):
     """Arcus tangent of a random variable"""
     def __init__(self, d):
@@ -349,9 +361,9 @@ class InvRV(OpRV):
         super(InvRV, self).__init__([d], sym = 1 / d.getSymname())
         self.d = d
     def __str__(self):
-        return "1/#{0}".format(id(self.d))    
+        return "1/#{0}".format(self.d.id())
     #def getName(self):
-    #    return "1/{0}".format(self.d.getName())    
+    #    return "1/{0}".format(self.d.getName())
     def getName(self):
         d_name = self.d.getName()
         if isinstance(self.d, OpRV) and not isinstance(self.d, FuncRV):
@@ -365,17 +377,17 @@ class PowRV(FuncRV):
         self.d = d
         self.alpha = alpha
     def __str__(self):
-        return "#{0}**{1}".format(id(self.d1), self.alpha)
+        return "#{0}**{1}".format(self.d1.id(), self.alpha)
     def getName(self):
-        return "{0}**{1}".format(_wrapped_name(self.d), self.alpha)    
-    
+        return "{0}**{1}".format(_wrapped_name(self.d), self.alpha)
+
 class AbsRV(OpRV):
     """Absolute value of a distribution."""
     def __init__(self, d):
         super(AbsRV, self).__init__([d], sym = sympy_abs(d.getSymame())) # TODO abs unpleasant in sympy
         self.d = d
     def __str__(self):
-        return "|#{0}|".format(id(self.d))
+        return "|#{0}|".format(self.d.id())
     def getName(self):
         return "|{0}|".format(self.d.getName())
 
@@ -384,17 +396,17 @@ class SignRV(RV):
         self.d = d
         super(SignRV, self).__init__(d, sym = sympy.sign(d.getSymname()))
     def __str__(self):
-        return "sign({0})".format(id(self.d))
+        return "sign({0})".format(self.d.id())
     def getName(self):
         return "sign({0})".format(self.d.getName())
-        
+
 class SquareRV(OpRV):
     """Injective function of random variable"""
     def __init__(self, d):
         super(SquareRV, self).__init__([d], sym = d.getSymname()**2)
         self.d = d
     def __str__(self):
-        return "#{0}**2".format(id(self.d))
+        return "#{0}**2".format(self.d.id())
     def getName(self):
         return "sqr({0})".format(self.d.getName())
 
@@ -411,7 +423,7 @@ class SumRV(OpRV):
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
-        return "#{0}+#{1}".format(id(self.d1), id(self.d2))
+        return "#{0}+#{1}".format(self.d1.id(), self.d2.id())
     def getName(self):
         return "{0}+{1}".format(self.d1.getName(), self.d2.getName())
     def getOperation(self):
@@ -428,7 +440,7 @@ class SubRV(OpRV):
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
-        return "#{0}-#{1}".format(id(self.d1), id(self.d2))
+        return "#{0}-#{1}".format(self.d1.id(), self.d2.id())
     def getName(self):
         n2 = _wrapped_name(self.d2, incl_classes = [SumRV])
         return "{0}-{1}".format(self.d1.getName(), n2)
@@ -443,29 +455,29 @@ class MulRV(OpRV):
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
-        return "#{0}*#{1}".format(id(self.d1), id(self.d2))
+        return "#{0}*#{1}".format(self.d1.id(), self.d2.id())
     def getName(self):
         n1 = _wrapped_name(self.d1, incl_classes = [SumRV, SubRV, ShiftedScaledRV])
         n2 = _wrapped_name(self.d2, incl_classes = [SumRV, SubRV, ShiftedScaledRV])
         return "{0}*{1}".format(n1, n2)
     def getOperation(self):
         return "*"
-    
+
 class DivRV(OpRV):
     def __init__(self, d1, d2):
         super(DivRV, self).__init__([d1, d2], sym = d1.getSymname() / d2.getSymname())
-        d1range = list(d1.range()) 
+        d1range = list(d1.range())
         d2range = list(d2.range())
         if prod(d1range)<0:
             d1range.append(0.0)
         if prod(d2range)<0:
-            d2range.append(0.0)          
+            d2range.append(0.0)
         breaks = unique(divide.outer(d1range, d2range))
         self.a, self.b = min(breaks), max(breaks)
         self.d1 = d1
         self.d2 = d2
     def __str__(self):
-        return "#{0}/#{1}".format(id(self.d1), id(self.d2))
+        return "#{0}/#{1}".format(self.d1.id(), self.d2.id())
     def getName(self):
         n1 = _wrapped_name(self.d1)
         n2 = _wrapped_name(self.d2)
@@ -479,7 +491,7 @@ class MinRV(OpRV):
         self.d1 = d1
         self.d2 = d2
     def __str(self):
-        #return "min(#{0}, #{1})".format(id(self.d1), id(self.d2))
+        #return "min(#{0}, #{1})".format(self.d1.id(), self.d2.id())
         return "min({0},{1})".format(self.d1, self.d2)
     def getName(self):
         return "min({0}, {1})".format(self.d1.getName(), self.d2.getName())
@@ -492,7 +504,7 @@ class MaxRV(OpRV):
         self.d1 = d1
         self.d2 = d2
     def __str(self):
-        return "max(#{0}, #{1})".format(id(self.d1), id(self.d2))
+        return "max(#{0}, #{1})".format(self.d1.id(), self.d2.id())
     def getName(self):
         return "max({0}, {1})".format(self.d1.getName(), self.d2.getName())
     def getOperation(self):
@@ -533,15 +545,15 @@ if __name__ == "__main__":
     print ">>", u.getParentsFree()
     u.setSym("u")
     print u.getEquations()
-    v = u + z 
+    v = u + z
     v.setSym("v")
-    
+
     print v.getEquations()
-    
+
     print u.getSym()
     print v.getSym()
-    
-    
+
+
 #    print d;
 #    print e;
 #    print d.getEquations();
@@ -551,7 +563,7 @@ if __name__ == "__main__":
 #    z=RV(sym="z")
 #    u=x+z/x
 #    print u.getSym()
-#    print u.isFree()    
+#    print u.isFree()
 #    print u.getParentsDep()
 #    print u.getParentsFree()
 #    print u.getParentsAll()
@@ -559,4 +571,4 @@ if __name__ == "__main__":
 #    print e.getEquations()
 #    u.clear()
 #    print e.getEquations()
-#    
+#
