@@ -269,6 +269,13 @@ class InterpRunner(object):
         else:
             return self.interp_f(*xt)
 
+def _cond_f(f, arg, c_var, var, Xcond, *Xfree):
+    """Helper function for intepolating after conditional density."""
+    for i, j in enumerate(var):
+        arg[j] = zeros(Xfree[0].shape) + Xcond[i]
+    for i, j in enumerate(c_var):
+        arg[j] = Xfree[i]
+    return f(*arg)
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
         super(NDDistr, self).__init__(d, Vars, self.pdf)
@@ -287,13 +294,7 @@ class NDDistr(NDFun):
             X = [X]
         assert len(X) == len(var)
         arg = [None] * self.d
-        def cond_f(f, arg, c_var, var, Xcond, *Xfree):
-            for i, j in enumerate(var):
-                arg[j] = zeros(Xfree[0].shape) + Xcond[i]
-            for i, j in enumerate(c_var):
-                arg[j] = Xfree[i]
-            return f(*arg)
-        unnormalized = NDInterpolatedDistr(len(c_var), partial(cond_f, self, arg, c_var, var, X), [self.Vars[i] for i in c_var])
+        unnormalized = NDInterpolatedDistr(len(c_var), partial(_cond_f, self, arg, c_var, var, X), [self.Vars[i] for i in c_var])
         normalize = kwargs.get("normalize", True)
         if normalize:
             nrm = unnormalized.eliminate(range(unnormalized.d))
