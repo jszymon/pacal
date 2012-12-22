@@ -756,7 +756,7 @@ class MollifierDistr(Distr):
                 y = 0
             else:
                 t = x / self.epsilon
-                y = exp(-1.0 / (1 - t*t))
+                y = self.nrm * exp(-1.0 / (1 - t*t))
         else:
             y = zeros_like(asfarray(x))
             mask = abs(x) < self.epsilon
