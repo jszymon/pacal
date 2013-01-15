@@ -278,10 +278,24 @@ def integrate_iter(f, a1, b1, a2, b2):
         else:
             z = zeros_like(y)
             for i in range(len(y)):
+                print ";;;", i, len(y)
                 z[i], err = integrate_fejer2(lambda x : f(x, y[i]), a1, b1)
         return z
     cheb  = ChebyshevInterpolator1(fun1, a2,b2) 
     return integrate_fejer2(cheb, a2, b2)
+
+def integrate_iter2(f, a1, b1, a2, b2):
+    def fun1(x):
+        if isscalar(x):
+            z = integrate_fejer2(lambda y : f(x, y), a2, b2)
+        else:
+            z = zeros_like(x)
+            for i in range(len(x)):
+                print ";;;", i, len(x)
+                z[i], err = integrate_fejer2(lambda y : f(x[i], y), a2, b2)
+        return z
+    cheb  = ChebyshevInterpolator1(fun1, a1,b1) 
+    return integrate_fejer2(cheb, a1, b1)
 
 def integrate_with_pminf_guess(f, a, b, *args, **kwargs):
     """Automatically guess if pinf or minf transformation should be used."""
