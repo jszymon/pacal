@@ -55,7 +55,7 @@ class NDFun(object):
             i+=-1
             Vars = [RV(sym=LETTERS[i]) for i in xrange(d)]
         self.Vars = Vars
-        var_ids = [id(v) for v in self.Vars]
+        var_ids = [v.id() for v in self.Vars]
         self.id_to_idx = dict((id, idx) for idx, id in enumerate(var_ids))
         self.idx_to_id = [id_ for idx, id_ in enumerate(var_ids)]
         self.symVars = [v.getSymname() for v in Vars]
@@ -94,8 +94,9 @@ class NDFun(object):
             y = abs(y)
         return y
     def _prepare_single_var(self, var):
-        if id(var) in self.id_to_idx:
-            var = self.id_to_idx[id(var)]
+        if not isinstance(var, numbers.Integral):
+            if var.id() in self.id_to_idx:
+                var = self.id_to_idx[var.id()]
         if not isinstance(var, numbers.Integral) or not 0 <= var < self.d:
             raise RuntimeError("Incorrect marginal index " + str(var))
         return var
@@ -115,7 +116,7 @@ class NDFun(object):
 
 #        vars_change = []
 #        for i in range(len(self.Vars)):
-#            if id(vari)==id(self.Vars[i]):
+#            if id(vari)==self.Vars[i].id():
 #                vars_change.append(varj)
 #            else:
 #                vars_change.append(self.Vars[i])
@@ -268,6 +269,13 @@ class InterpRunner(object):
         else:
             return self.interp_f(*xt)
 
+def _cond_f(f, arg, c_var, var, Xcond, *Xfree):
+    """Helper function for intepolating after conditional density."""
+    for i, j in enumerate(var):
+        arg[j] = zeros(Xfree[0].shape) + Xcond[i]
+    for i, j in enumerate(c_var):
+        arg[j] = Xfree[i]
+    return f(*arg)
 class NDDistr(NDFun):
     def __init__(self, d, Vars=None):
         super(NDDistr, self).__init__(d, Vars, self.pdf)
@@ -286,13 +294,7 @@ class NDDistr(NDFun):
             X = [X]
         assert len(X) == len(var)
         arg = [None] * self.d
-        def cond_f(f, arg, c_var, var, Xcond, *Xfree):
-            for i, j in enumerate(var):
-                arg[j] = zeros(Xfree[0].shape) + Xcond[i]
-            for i, j in enumerate(c_var):
-                arg[j] = Xfree[i]
-            return f(*arg)
-        unnormalized = NDInterpolatedDistr(len(c_var), partial(cond_f, self, arg, c_var, var, X), [self.Vars[i] for i in c_var])
+        unnormalized = NDInterpolatedDistr(len(c_var), partial(_cond_f, self, arg, c_var, var, X), [self.Vars[i] for i in c_var])
         normalize = kwargs.get("normalize", True)
         if normalize:
             nrm = unnormalized.eliminate(range(unnormalized.d))
@@ -711,9 +713,9 @@ class NDProductDistr(NDDistr):
         kept_factors = []
         elim_factors = []
         if hasattr(v, "__iter__"):
-            v = set([id(vi) for vi in v])
+            v = set([vi.id() for vi in v])
         else:
-            v = set([id(v)])
+            v = set([v.id()])
         for f in self.factors:
             if v & set(f.id_to_idx.keys()):
                 elim_factors.append(f)
@@ -723,7 +725,7 @@ class NDProductDistr(NDDistr):
     def get_n_terms(self, var):
         var, c_var = self.prepare_var(var)
         assert len(var) == 1
-        idv = id(self.Vars[var[0]])
+        idv = self.Vars[var[0]].id()
         return len([f for f in self.factors if idv in f.id_to_idx])
     def eliminate(self, var, a=None, b=None):
         var, c_var = self.prepare_var(var)
@@ -731,7 +733,7 @@ class NDProductDistr(NDDistr):
             return self
         Var = [self.Vars[i] for i in var]
         # heuristic to eliminate variable on which fewest factors depend
-        Ns = [len([f for f in self.factors if id(V) in f.id_to_idx]) for V in Var]
+        Ns = [len([f for f in self.factors if V.id() in f.id_to_idx]) for V in Var]
         best_v = argmin(Ns)
         v1 = Var[best_v]
         # factor out

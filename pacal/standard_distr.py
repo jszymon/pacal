@@ -114,7 +114,7 @@ class NormalDistr(Distr):
     def rand_raw(self, n = None):  # None means return scalar
         return normal(self.mu, self.sigma, n)
     def __str__(self):
-        return "Normal({0},{1})#{2}".format(self.mu, self.sigma, id(self))
+        return "Normal({0},{1})#{2}".format(self.mu, self.sigma, self.id())
     def getName(self):
         return "N({0},{1})".format(self.mu, self.sigma)
     def range(self):
@@ -132,7 +132,7 @@ class UniformDistr(Distr):
     def rand_raw(self, n = None):
         return uniform(self.a, self.b, n)
     def __str__(self):
-        return "Uniform({0},{1})#{2}".format(self.a, self.b, id(self))
+        return "Uniform({0},{1})#{2}".format(self.a, self.b, self.id())
     def getName(self):
         return "U({0},{1})".format(self.a, self.b)
     def range(self):
@@ -163,7 +163,7 @@ class TrapezoidalDistr(Distr):
     def rand_raw(self, n=None):
         return  self.rand_invcdf(n) # TODO !to improve it! 
     def __str__(self):
-        return "Trapz({0},{1},{2},{3})#{4}".format(self.a, self.b,self.c, self.d, id(self))
+        return "Trapz({0},{1},{2},{3})#{4}".format(self.a, self.b,self.c, self.d, self.id())
     def getName(self):
         return "Trapz({0},{1},{2},{3})".format(self.a, self.b,self.c, self.d)
     def range(self):
@@ -189,9 +189,9 @@ class CauchyDistr(Distr):
         return self.center + normal(0, 1, n) / normal(0, 1, n) * self.gamma
     def __str__(self):
         if self.gamma == 1 and self.center == 0:
-            return "Cauchy#{0}".format(id(self))
+            return "Cauchy#{0}".format(self.id())
         else:
-            return "Cauchy(gamma={0}, center={1})#{2}".format(self.gamma, self.center, id(self))
+            return "Cauchy(gamma={0}, center={1})#{2}".format(self.gamma, self.center, self.id())
     def getName(self):
         return "Cauchy({0},{1})".format(self.center, self.gamma)    
     def range(self):
@@ -266,7 +266,7 @@ class ChiSquareDistr(Distr):
     def rand_raw(self, n = None):
         return chisquare(self.df, n)
     def __str__(self):
-        return "ChiSquare(df={0})#{1}".format(self.df, id(self))
+        return "ChiSquare(df={0})#{1}".format(self.df, self.id())
     def getName(self):
         return "Chi2({0})".format(self.df)
     def range(self):
@@ -295,7 +295,7 @@ class ExponentialDistr(Distr):
     def rand_raw(self, n = None):
         return exponential(1.0/self.lmbda, n)
     def __str__(self):
-        return "Exponential(lambda={0})#{1}".format(self.lmbda, id(self))
+        return "Exponential(lambda={0})#{1}".format(self.lmbda, self.id())
     def getName(self):
         return "ExpD({0})".format(self.lmbda)
     def range(self):
@@ -354,7 +354,7 @@ class GammaDistr(Distr):
     def rand_raw(self, n = None):
         return gamma(self.k, self.theta, n)
     def __str__(self):
-        return "Gamma(k={0},theta={1})#{2}".format(self.k, self.theta, id(self))
+        return "Gamma(k={0},theta={1})#{2}".format(self.k, self.theta, self.id())
     def getName(self):
         return "Gamma({0},{1})".format(self.k, self.theta)
     def range(self):
@@ -402,7 +402,7 @@ class BetaDistr(Distr):
     def rand_raw(self, n = None):
         return beta(self.alpha, self.beta, n)
     def __str__(self):
-        return "Beta(alpha={0},beta={1})#{2}".format(self.alpha, self.beta, id(self))
+        return "Beta(alpha={0},beta={1})#{2}".format(self.alpha, self.beta, self.id())
     def getName(self):
         return "Beta({0},{1})".format(self.alpha, self.beta)
     def range(self):
@@ -435,7 +435,7 @@ class ParetoDistr(Distr):
     def rand_raw(self, n = None):
         return self.xmin + pareto(self.alpha, n) * self.xmin
     def __str__(self):
-        return "ParetoDistr(alpha={0},xmin={1})#{2}".format(self.alpha, self.xmin, id(self))
+        return "ParetoDistr(alpha={0},xmin={1})#{2}".format(self.alpha, self.xmin, self.id())
     def getName(self):
         return "Pareto({0},{1})".format(self.alpha, self.xmin)
     def range(self):
@@ -468,7 +468,7 @@ class LevyDistr(Distr):
         sigma = 1.0 / sqrt(self.c)
         return self.xmin + 1.0 / normal(0, sigma, n) ** 2
     def __str__(self):
-        return "LevyDistr(c={0},xmin={1})#{2}".format(self.c, self.xmin, id(self))
+        return "LevyDistr(c={0},xmin={1})#{2}".format(self.c, self.xmin, self.id())
     def getName(self):
         return "Levy({0},{1})".format(self.c, self.xmin)
     def range(self):
@@ -494,7 +494,7 @@ class LaplaceDistr(Distr):
     def rand_raw(self, n = None):
         return laplace(self.mu, self.lmbda, n)
     def __str__(self):
-        return "LaplaceDistr(lambda={0},mu={1})#{2}".format(self.lmbda, self.mu, id(self))
+        return "LaplaceDistr(lambda={0},mu={1})#{2}".format(self.lmbda, self.mu, self.id())
     def getName(self):
         return "Laplace({0},{1})".format(self.lmbda, self.mu)
     def range(self):
@@ -520,7 +520,7 @@ class StudentTDistr(Distr):
     def rand_raw(self, n = None):
         return standard_t(self.df, n)
     def __str__(self):
-        return "StudentTDistr(df={0})#{1}".format(self.df, id(self))
+        return "StudentTDistr(df={0})#{1}".format(self.df, self.id())
     def getName(self):
         return "StudentT({0})".format(self.df)
     def range(self):
@@ -551,7 +551,7 @@ class SemicircleDistr(Distr):
     def rand_raw(self, n = None):
         return self.R * sqrt(uniform(0, 1, n)) * cos(uniform(0, 1, n) * pi)
     def __str__(self):
-        return "Semicircle(R={0})#{1}".format(self.R, id(self))
+        return "Semicircle(R={0})#{1}".format(self.R, self.id())
     def getName(self):
         return "Semicircle({0})".format(self.R)
     def range(self):
@@ -602,7 +602,7 @@ class FDistr(Distr):
     def rand_raw(self, n = None):
         return f_rand(self.df1, self.df2, n)
     def __str__(self):
-        return "F(df1={0},df2={1})#{2}".format(self.df1, self.df2, id(self))
+        return "F(df1={0},df2={1})#{2}".format(self.df1, self.df2, self.id())
     def getName(self):
         return "F({0},{1})".format(self.df1, self.df2)
     def range(self):
@@ -656,7 +656,7 @@ class WeibullDistr(Distr):
     def rand_raw(self, n = None):
         return self.lmbda * weibull(self.k, n)
     def __str__(self):
-        return "Weibull(k={0},lambda={1})#{2}".format(self.k, self.lmbda, id(self))
+        return "Weibull(k={0},lambda={1})#{2}".format(self.k, self.lmbda, self.id())
     def getName(self):
         return "Weibull({0},{1})".format(self.k, self.lmbda)
     def range(self):
@@ -693,7 +693,7 @@ class GumbelDistr(Distr):
     def rand_raw(self, n = None):
         return gumbel(self.mu, self.sigma, n)
     def __str__(self):
-        return "GumbelDistr(mu={0},sigma={1})#{2}".format(self.mu, self.sigma, id(self))
+        return "GumbelDistr(mu={0},sigma={1})#{2}".format(self.mu, self.sigma, self.id())
     def getName(self):
         return "Gumbel({0},{1})".format(self.mu, self.sigma)
     def range(self):
@@ -736,7 +736,7 @@ class FrechetDistr(Distr):
         x = uniform(0,1,n)
         return self.m + self.s*(-log(x))**(-1.0/self.alpha)
     def __str__(self):
-        return "FrechetDistr(alpha={0},s={1},m={2})#{3}".format(self.alpha, self.s, self.m, id(self))
+        return "FrechetDistr(alpha={0},s={1},m={2})#{3}".format(self.alpha, self.s, self.m, self.id())
     def getName(self):
         return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
     def range(self):
@@ -774,7 +774,7 @@ class MollifierDistr(Distr):
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
     def __str__(self):
-        return "MollifierDistr(epsilon={0})#{1}".format(self.epsilon, id(self))
+        return "MollifierDistr(epsilon={0})#{1}".format(self.epsilon, self.id())
     def getName(self):
         return "Mollifier({0})".format(self.epsilon)
     def range(self):
@@ -809,7 +809,7 @@ class BinomialDistr(DiscreteDistr):
             pi.append(P)
         super(BinomialDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
-        return "Binomial({0}.{1})#{2}".format(self.n, self.p, id(self))
+        return "Binomial({0}.{1})#{2}".format(self.n, self.p, self.id())
     def getName(self):
         return "Binom({0},{1})".format(self.n, self.p)
 
@@ -817,7 +817,7 @@ class BernoulliDistr(DiscreteDistr):
     def __init__(self, p=0.5, **kwargs):
         super(BernoulliDistr, self).__init__(xi=[0, 1], pi=[1.0-p, p], **kwargs)
     def __str__(self):
-        return "Bernoulli({0})#{1}".format(self.pi[1], id(self))
+        return "Bernoulli({0})#{1}".format(self.pi[1], self.id())
     def getName(self):
         return "Bernoulli({0})".format(self.pi[1])
 

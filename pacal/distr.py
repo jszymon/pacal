@@ -300,9 +300,9 @@ class Distr(RV):
             return self.rand_raw(n)
         if cache is None:
             cache = {}
-        if id(self) not in cache:
-            cache[id(self)] = self.rand_raw(n)
-        return cache[id(self)]
+        if self.id() not in cache:
+            cache[self.id()] = self.rand_raw(n)
+        return cache[self.id()]
     def plot(self, *args, **kwargs):
         """Plot of PDF.
         
@@ -519,9 +519,9 @@ class OpDistr(Distr):
             return self.rand_op(n, None)
         if cache is None:
             cache = {}
-        if id(self) not in cache:
-            cache[id(self)] = self.rand_op(n, cache)
-        return cache[id(self)]
+        if self.id() not in cache:
+            cache[self.id()] = self.rand_op(n, cache)
+        return cache[self.id()]
 
 class FuncDistr(FuncRV, OpDistr):
     """Injective function of random variable"""
@@ -943,7 +943,7 @@ class DiscreteDistr(Distr):
         return array(self.xi)[i]
     def __str__(self):
         pstr = ", ".join("{0}:{1}".format(x, p) for x, p in self.px)
-        return "Discrete({0})#{1}".format(pstr, id(self))
+        return "Discrete({0})#{1}".format(pstr, self.id())
     def getName(self):
         return "Di({0})".format(len(self.xi))
 
