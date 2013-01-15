@@ -17,7 +17,7 @@ from distr import Distr, DiscreteDistr, ConstDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
 import distr
-
+import numpy as np
 try:
     from numpy import Inf
 except:
@@ -424,7 +424,7 @@ class ParetoDistr(Distr):
                 y = self.nrm / x ** (self.alpha + 1)
         else:
             y = zeros_like(asfarray(x))
-            mask = (x >= self.xmin)
+            mask = (np.real(x) >= self.xmin)
             y[mask] = self.nrm / x[mask] ** (self.alpha + 1)
         return y
     def init_piecewise_pdf(self):

@@ -28,7 +28,7 @@ from numpy import zeros, sort
 from numpy.linalg import eigvals
 from numpy.fft.fftpack import fft, ifft
 from numpy import real, concatenate, linspace, argmin
-
+import numpy as np
 
 #from scipy.fftpack.basic import fft
 from scipy.optimize import fmin_cg,fmin, fmin_tnc
@@ -207,6 +207,10 @@ def cheb1companion(c):
     return CT
 def chebroots(c):
     return sort(eigvals(cheb1companion(c)))
+
+def difffun(fun, h=1e-8, x=None):
+    return np.imag(fun(x+1j*h))/np.abs(h)
+
 def epsunique(tab, eps = params.segments.unique_eps):
     ub = unique(tab[isnan(tab)==False])
     return ub[~isfinite(ub) | hstack((True, (diff(ub)/maximum(1,abs(ub[1:])))>eps))]

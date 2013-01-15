@@ -39,6 +39,7 @@ from utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
 
 from vartransforms import *
 
+import numpy as np
 
 # import faster Cython versions if possible
 try:
@@ -525,7 +526,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         return log(abs(self.wrapped_f(self.xt(x))))
     def interp_at(self, x):
         if isscalar(x):
-            if x > self.orig_b:
+            if np.real(x) > self.orig_b:
                 y = 0
             else:
                 y = exp(super(LogTransformInterpolator, self).interp_at(self.xtinv(x)))
@@ -533,7 +534,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         else:
             x = asfarray(x)
             y = zeros_like(x)
-            mask = (x <= self.orig_b)
+            mask = (np.real(x) <= self.orig_b)
             y[mask] = exp(super(LogTransformInterpolator, self).interp_at(self.xtinv(x[mask])))
         return y
     def getNodes(self):
@@ -606,7 +607,10 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
     def spec_f(self, x):
         return log1p(self.sign * self.wrapped_f(self.xt(x)))
     def interp_at(self, x):
-        y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
+        # !!!abs!!! removed -- it is needed for complex dervative
+        # y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
+        #                       ### 
+        y = self.sign * expm1((super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
         return y
     def getNodes(self):
         return self.xt(self.Xs), self.sign * expm1(self.Ys) 
@@ -831,10 +835,10 @@ class PInfInterpolator(object):
             #print "vb.minmax", L, Ut
             if self.vl is not None:
                 print "vl.minmax", self.vl.orig_a, self.vl.orig_b
-            print "self.x_vb_max", self.x_vb_max, #self.f(self.x_vb_max)
+            print "self.x_vb_max", self.x_vb_max, self.f(self.x_vb_max)
     def interp_at(self, x):
         if isscalar(x):
-            if self.x_vb_max is None or x <= self.x_vb_max:
+            if self.x_vb_max is None or np.real(x) <= self.x_vb_max:
                 y = self.vb(x)
             else:
                 y = self.vl(x)
@@ -843,9 +847,14 @@ class PInfInterpolator(object):
                 y = self.vb(x)
             else:
                 y = empty_like(x)
-                mask = (x <= self.x_vb_max)
+                mask = (np.real(x) <= self.x_vb_max)
+                
                 y[mask] = self.vb(x[mask])
                 y[~mask] = self.vl(x[~mask])
+#                print x
+#                print mask
+#                print y
+#                print self.__class__, self.x_vb_max
         return y
     def __call__(self, x):
         return self.interp_at(x)
@@ -863,6 +872,7 @@ class PInfInterpolator(object):
         if self.vl is not None:
             s += "\n" + str(self.vl)
         return s
+    
 
 #MInfInterpolator = ChebyshevInterpolator_MInf
 class MInfInterpolator(PInfInterpolator):
@@ -876,7 +886,7 @@ class MInfInterpolator(PInfInterpolator):
     def spec_f(self, x):
         return self.wrapped_f(-x)
     def interp_at(self, x):
-        return super(MInfInterpolator, self).interp_at(-x)
+        return super(MInfInterpolator, self).interp_at(-np.conj(x))
     def getNodes(self):
         Xs, Ys = super(MInfInterpolator, self).getNodes()
         return -Xs, Ys

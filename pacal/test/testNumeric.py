@@ -2,11 +2,13 @@ import random
 import unittest
 import time
 
+from functools import partial
+
 from numpy import sin, cos, pi, exp
 from numpy import linspace
 from numpy import finfo, double, unique, isnan, maximum, isfinite, diff
 
-from pylab import figure, subplot, plot
+from pylab import figure, subplot, plot, legend
 #from distr import *
 from pacal.integration import *
 from pacal.interpolation import ChebyshevInterpolator, ChebyshevInterpolator_PMInf
@@ -14,7 +16,8 @@ from pacal.interpolation import ChebyshevInterpolator_PInf, ChebyshevInterpolato
 
 from pacal.segments import PiecewiseFunction
 from pacal import *
-from pacal.utils import chebt2, ichebt2
+from pacal.utils import chebt2, ichebt2, difffun
+
 
 eps = finfo(double).eps
 
@@ -302,16 +305,20 @@ class TestInterpolators(unittest.TestCase):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         seg = S.segments[0]
         Xs, Ys = seg.f.Xs, seg.f.Ys
-        print "Xs=", Xs
-        print "Ys=", Ys
-        print "Cs=", chebt2(Ys)
-        print "Xs=", ichebt2(chebt2(Ys))
+        #print "Xs=", Xs
+        #print "Ys=", Ys
+        #print "Cs=", chebt2(Ys)
+        #print "Ys=", ichebt2(chebt2(Ys))
+        Cs = chebt2(Ys)
+        YsStar= ichebt2(Cs)
+        err = Ys- YsStar[-1::-1]
+        print "Ys*-Ys", err
         figure()
         S.plot(color="r")
         D = S.diff()
         D.plot(color="k")
         #show()
-        self.assert_(0 < 1)
+        self.assert_(max(err) < 1e-14)
     def testTrim(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         I = S.trimInterpolators(abstol=1e-15)
@@ -376,14 +383,50 @@ class TestInterpolators(unittest.TestCase):
         D = S.get_piecewise_pdf().diff()
         D.plot(color="k")
         show()
+    def testDiffPdf(self):     
+        #params.interpolation_asymp.debug_info = True   
+        test = True
+        for distr in [ChiSquareDistr(), NormalDistr(), UniformDistr(), CauchyDistr(), 
+              ExponentialDistr(), BetaDistr(), ParetoDistr(), LevyDistr(), LaplaceDistr(),
+              StudentTDistr(), SemicircleDistr(), FDistr(), BetaDistr(2.5,1.5), NormalDistr()]:
+#        for distr in [NormalDistr()]:
+            funcdf = distr.get_piecewise_cdf()
+            
+            funpdf = distr.get_piecewise_pdf()
+            fun = funcdf.toInterpolated()
+            ri  = distr.ci(1e-12)
+            dw = fun.diff()
+            dfun =  partial(difffun, fun, 1e-12)
+            figure()
+            x=linspace(ri[0], ri[1], 10000)
+            y = dfun(x)
+            err1 = funpdf(x)-y
+            err2 = funpdf(x)-dw(x)
+            plot(x,err1, color='r', label="complex dfiidiff")
+            plot(x,err2, color='k', label="cheb. diff")
+            #figure()
+            #fun.plot(color='r', linewidth=6)
+            #dw.plot(color='k', linewidth=2)
+            print funpdf(x)
+            print ":::::::::::", fun(array([-10, 10])+1e-8j)
+            legend()
+            max(abs(err1))<1e-8
+            test = test and max(abs(err1))<1e-8
+            test = test and max(abs(err2))<1e-8
+            print fun
+            print distr, max(abs(err1)), max(abs(err2))
+            #assert(max(abs(err2))<1e-8)
+            #assert(max(abs(err2))<1e-8)
+        assert(test)
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(TestInterpolators("testChebcoef"))
-    suite.addTest(TestInterpolators("testTrim"))
-    suite.addTest(TestInterpolators("testDiff"))
-    suite.addTest(TestInterpolators("testRoots"))
-    suite.addTest(TestInterpolators("testMinmax"))
-    suite.addTest(TestInterpolators("testDiffInf"))
+#    suite.addTest(TestInterpolators("testChebcoef"))
+#    suite.addTest(TestInterpolators("testTrim"))
+#    suite.addTest(TestInterpolators("testDiff"))
+#    suite.addTest(TestInterpolators("testRoots"))
+#    suite.addTest(TestInterpolators("testMinmax"))
+#    suite.addTest(TestInterpolators("testDiffInf"))
+    suite.addTest(TestInterpolators("testDiffPdf"))
 #    suite.addTest(TestBasicstat("testNormal"))
 #    suite.addTest(TestBasicstat("testChi2"))
 #    suite.addTest(TestBasicstat("testUniform"))
