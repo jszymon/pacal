@@ -38,7 +38,7 @@ def _mgf_fun(distr, t):
 #class Distr(object):
 #    def __init__(self, parents = [], indep = None):
 class Distr(RV):
-    def __init__(self, parents = [], indep = True, sym = None):
+    def __init__(self, parents = [], indep = False, sym = None):
         super(Distr, self).__init__(parents, sym)
         # indep = True means the distribution is treated as
         # independent from all others.  For examples this results in
@@ -97,7 +97,7 @@ class Distr(RV):
             self.piecewise_ccdf = 1 - self.get_piecewise_cdf()
             # integrals are computed directly - much slower
             #self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
-        return self.piecewise_cdf
+        return self.piecewise_ccdf
     def get_piecewise_ccdf_interp(self):
         """return, CDF function as CumulativePiecewiseFunction object
         
