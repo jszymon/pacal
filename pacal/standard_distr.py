@@ -13,10 +13,10 @@ _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
 from utils import lgamma, wrap_pdf
-from distr import Distr, DiscreteDistr, ConstDistr
+from distr import Distr, DiscreteDistr, ConstDistr, LifeTime
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
-import distr
+#import distr
 import numpy as np
 try:
     from numpy import Inf
@@ -33,7 +33,7 @@ class FunDistr(Distr):
         if kwargs.has_key("sym"):
             kwargs.pop("sym")
         self.kwargs = kwargs
-        self.interpolated = interpolated
+        self.interpolated = interpolated  
     def pdf(self, x):
         return self.fun(x)
     def getName(self):
@@ -76,11 +76,46 @@ class MixDistr(Distr):
         self.probs = probs
         self.distrs = distrs
     def init_piecewise_pdf(self):   
-        mixdistr = ConstDistr(1, self.probs[0]) * self.distrs[0]
+#        mixdistr = ConstDistr(1, self.probs[0]) * self.distrs[0]
+#        for i in range(1,len(self.probs)):
+#            mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
+#            print self.probs[i], self.distrs[i]
+#            mixdistr.piecewise_pdf = mixdistr.get_piecewise_pdf() + mixi.get_piecewise_pdf()  
+#        self.piecewise_pdf = mixdistr.piecewise_pdf 
+        mix_pdf =  self.probs[0] * self.distrs[0].get_piecewise_pdf()
         for i in range(1,len(self.probs)):
-            mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
-            mixdistr.piecewise_pdf = mixdistr.get_piecewise_pdf() + mixi.get_piecewise_pdf()  
-        self.piecewise_pdf = mixdistr.piecewise_pdf 
+            #mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
+            #print self.probs[i], self.distrs[i]
+            mix_pdf += self.probs[i] * self.distrs[i].get_piecewise_pdf()
+        self.piecewise_pdf = mix_pdf 
+        #self.piecewise_pdf = PiecewiseDistribution(fun=mixdistr.piecewise_pdf, breakPoints = mixdistr.piecewise_pdf.getBreaks())              
+    def getName(self):
+        return "MIX()".format()
+    
+    #def pdf(self, x):
+    #    return self.fun(x)
+    #def init_piecewise_pdf(self):
+    #    self.piecewise_pdf = PiecewiseDistribution(fun = self.fun, breakPoints = self.breakPoints)
+class ExtremeMixDistr(Distr):
+    """Mixture of distributions"""
+    def __init__(self, probs, distrs, cuts):
+        """Keyword arguments:
+        probs -- list of pi's
+        distrs -- list of distributions        
+        """
+        super(MixDistr, self).__init__()
+        assert len(probs) == len(distrs)
+        self.nmix = len(probs)
+        self.probs = probs
+        self.distrs = distrs
+        self.cuts = cuts
+    def init_piecewise_pdf(self):   
+        mix_pdf =  self.probs[0] * self.distrs[0].get_piecewise_pdf()
+        for i in range(1,len(self.probs)):
+            #mixi = ConstDistr(1,self.probs[i]) * self.distrs[i]
+            #print self.probs[i], self.distrs[i]
+            mix_pdf += self.probs[i] * self.distrs[i].get_piecewise_pdf()
+        self.piecewise_pdf = mix_pdf 
         #self.piecewise_pdf = PiecewiseDistribution(fun=mixdistr.piecewise_pdf, breakPoints = mixdistr.piecewise_pdf.getBreaks())              
     def getName(self):
         return "MIX()".format()
@@ -120,7 +155,7 @@ class NormalDistr(Distr):
     def range(self):
         return -Inf, Inf   
      
-class UniformDistr(Distr):
+class UniformDistr(Distr, LifeTime):
     def __init__(self, a = 0.0, b = 1.0, **kwargs):
         super(UniformDistr, self).__init__(**kwargs)
         self.a = a
@@ -142,7 +177,7 @@ def _lin_fun1(a, b, u, x):
     return u * (x - a) / (b - a)
 def _lin_fun2(c, d, u, x):
     return u * (d - x) / (d - c)
-class TrapezoidalDistr(Distr):
+class TrapezoidalDistr(Distr, LifeTime):
     def __init__(self, a=0.0, b=0.0, c=1.0, d=1.0, **kwargs):
         super(TrapezoidalDistr, self).__init__(**kwargs)
         self.a = a
@@ -153,12 +188,10 @@ class TrapezoidalDistr(Distr):
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
         if self.a<self.b:
-#            self.piecewise_pdf.addSegment(Segment(self.a, self.b, lambda x: self.u * (x - self.a) / (self.b - self.a)))
             self.piecewise_pdf.addSegment(Segment(self.a, self.b, partial(_lin_fun1, self.a, self.b, self.u)))
         if self.b<self.c:
             self.piecewise_pdf.addSegment(ConstSegment(self.b, self.c, self.u))
         if self.c<self.d:
- #           self.piecewise_pdf.addSegment(Segment(self.c, self.d, lambda x: self.u * (self.d  - x) / (self.d - self.c)))
             self.piecewise_pdf.addSegment(Segment(self.c, self.d, partial(_lin_fun2, self.c, self.d, self.u)))
     def rand_raw(self, n=None):
         return  self.rand_invcdf(n) # TODO !to improve it! 
@@ -272,7 +305,7 @@ class ChiSquareDistr(Distr):
     def range(self):
         return 0.0, Inf  
     
-class ExponentialDistr(Distr):
+class ExponentialDistr(Distr, LifeTime):
     def __init__(self, lmbda = 1, **kwargs):
         super(ExponentialDistr, self).__init__(**kwargs)
         self.lmbda = lmbda
@@ -301,7 +334,7 @@ class ExponentialDistr(Distr):
     def range(self):
         return 0.0, Inf  
     
-class GammaDistr(Distr):
+class GammaDistr(Distr, LifeTime):
     def __init__(self, k = 2, theta = 2, **kwargs):
         super(GammaDistr, self).__init__(**kwargs)
         assert k > 0
@@ -408,7 +441,7 @@ class BetaDistr(Distr):
     def range(self):
         return 0.0, 1.0
     
-class ParetoDistr(Distr):
+class ParetoDistr(Distr, LifeTime):
     def __init__(self, alpha = 1, xmin = 1, **kwargs):
         assert alpha > 0
         assert xmin > 0
@@ -488,8 +521,9 @@ class LaplaceDistr(Distr):
         self.piecewise_pdf = PiecewiseDistribution([])
         wrapped_pdf = wrap_pdf(self.pdf)
         self.piecewise_pdf.addSegment(MInfSegment(self.mu - 2 * self.lmbda, wrapped_pdf))
-        self.piecewise_pdf.addSegment(Segment(self.mu - 2 * self.lmbda, 0, wrapped_pdf))
-        self.piecewise_pdf.addSegment(Segment(0, self.mu + 2 * self.lmbda, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(self.mu - 2 * self.lmbda, self.mu, wrapped_pdf))
+        self.piecewise_pdf.addSegment(Segment(self.mu, self.mu + 2 * self.lmbda, wrapped_pdf))
+        #self.piecewise_pdf.addSegment(Segment(self.mu - 2 * self.lmbda, self.mu + 2 * self.lmbda, wrapped_pdf))
         self.piecewise_pdf.addSegment(PInfSegment(self.mu + 2 * self.lmbda, wrapped_pdf))
     def rand_raw(self, n = None):
         return laplace(self.mu, self.lmbda, n)
@@ -608,7 +642,7 @@ class FDistr(Distr):
     def range(self):
         return 0.0, Inf
     
-class WeibullDistr(Distr):
+class WeibullDistr(Distr, LifeTime):
     def __init__(self, k = 3, lmbda = 1, **kwargs):
         super(WeibullDistr, self).__init__(**kwargs)
         assert k > 0
@@ -662,7 +696,7 @@ class WeibullDistr(Distr):
     def range(self):
         return 0.0, Inf
 
-class GumbelDistr(Distr):
+class GumbelDistr(Distr, LifeTime):
     def __init__(self, mu = 0, sigma = 1, **kwargs):
         assert sigma > 0
         super(GumbelDistr, self).__init__(**kwargs)
@@ -699,7 +733,7 @@ class GumbelDistr(Distr):
     def range(self):
         return 0.0, Inf # TODO check it
 
-class FrechetDistr(Distr):
+class FrechetDistr(Distr, LifeTime):
     def __init__(self, alpha = 2, s = 1, m = 0, **kwargs):
         assert alpha > 0
         assert s > 0
@@ -783,16 +817,39 @@ class MollifierDistr(Distr):
 ### Discrete distributions
 
 class ZeroDistr(ConstDistr):
-    """One point distribution at point zero"""
+    """One point distribution at point zero."""
     def __init__(self, **kwargs):
         super(ZeroDistr, self).__init__(c = 0.0, **kwargs)
     
 class OneDistr(ConstDistr):
-    """One point distribution at point one"""
+    """One point distribution at point one."""
     def __init__(self, **kwargs):
         super(OneDistr, self).__init__(c = 1.0, **kwargs)
 
+class PoissonDistr(DiscreteDistr):
+    """The truncated Poisson distribution."""
+    def __init__(self, lmbda=1, trunk_eps=1e-16, **kwargs):
+        self.lmbda = float(lmbda)
+        self.trunk_eps = trunk_eps 
+        xi = []
+        pi = []
+        P = 1.0 * exp(-lmbda)
+        k = 0
+        while P >= trunk_eps:
+            k += 1
+            xi.append(k)
+            pi.append(P)        
+            P *= lmbda 
+            P /= k
+        self.k_max = len(xi)
+        super(PoissonDistr, self).__init__(xi, pi, **kwargs)
+    def __str__(self):
+        return "Poisson({0})#{1}".format(self.lmbda, self.p, self.id())
+    def getName(self):
+        return "Poisson({0},{1})".format(self.lmbda, self.trunk_eps)
+
 class BinomialDistr(DiscreteDistr):
+    """The binomial distribution."""
     def __init__(self, n, p, **kwargs):
         self.n = n
         self.p = p
@@ -812,7 +869,7 @@ class BinomialDistr(DiscreteDistr):
         return "Binomial({0}.{1})#{2}".format(self.n, self.p, self.id())
     def getName(self):
         return "Binom({0},{1})".format(self.n, self.p)
-
+    
 class BernoulliDistr(DiscreteDistr):
     def __init__(self, p=0.5, **kwargs):
         super(BernoulliDistr, self).__init__(xi=[0, 1], pi=[1.0-p, p], **kwargs)
@@ -829,7 +886,20 @@ if __name__ == "__main__":
     import numpy
     from numpy import ceil, log1p
 
-
+    P = PoissonDistr(lmbda=0.2)
+    P.summary()
+    D  = OneDistr()/P
+    D.summary()
+    P.plot(color="k")
+    figure()
+    D.plot(color="r")
+    P = D * P
+    figure()
+    P.plot(color="r")
+    P.get_piecewise_cdf().plot(color="r")
+    
+    P.summary()
+    
     # M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
     #              [UniformDistr(-0.5,0.5)+4**0,
     #               UniformDistr(-0.5,0.5)+4**1,
@@ -1358,7 +1428,7 @@ if __name__ == "__main__":
     # gg = g + g2
     # demo_distr(gg)
 
-    figure()
-    f = FrechetDistr(s=3)
-    demo_distr(f, xmax=10)
+    # figure()
+    # f = FrechetDistr(s=3)
+    # demo_distr(f, xmax=10)
     show()

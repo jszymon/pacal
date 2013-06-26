@@ -15,7 +15,7 @@ from numpy import histogram
 
 from pacal.utils import Inf
 
-from pylab import bar
+from pylab import bar, plot
 
 import time
 import traceback
@@ -38,7 +38,7 @@ def _mgf_fun(distr, t):
 #class Distr(object):
 #    def __init__(self, parents = [], indep = None):
 class Distr(RV):
-    def __init__(self, parents = [], indep = True, sym = None):
+    def __init__(self, parents = [], indep = False, sym = None):
         super(Distr, self).__init__(parents, sym)
         # indep = True means the distribution is treated as
         # independent from all others.  For examples this results in
@@ -97,7 +97,7 @@ class Distr(RV):
             self.piecewise_ccdf = 1 - self.get_piecewise_cdf()
             # integrals are computed directly - much slower
             #self.piecewise_cdf_interp = self.get_piecewise_cdf().toInterpolated()   # interpolated version - much faster
-        return self.piecewise_cdf
+        return self.piecewise_ccdf
     def get_piecewise_ccdf_interp(self):
         """return, CDF function as CumulativePiecewiseFunction object
         
@@ -128,7 +128,7 @@ class Distr(RV):
     def ccdf(self,x):
         """Complementary cumulative piecewise function.
         Not implemented yet. """
-        pass
+        #pass
         # TODO temporary solution, to remove  
         return self.get_piecewise_ccdf()(x) #TODO implement it
 
@@ -225,7 +225,6 @@ class Distr(RV):
     
     def mode(self):
         """Mode of distribution."""
-        #print "mode=", self.get_piecewise_pdf().max_()[1], self.get_piecewise_pdf().max_()[1]-self.get_piecewise_pdf().maximum()[0]
         return self.get_piecewise_pdf().maximum()[0]
     
     def int_error(self):
@@ -1029,6 +1028,7 @@ class MaxDistr(MaxRV, OpDistr):
     def rand_op(self, n, cache):
         r1 = self.d1.rand(n, cache)
         r2 = self.d2.rand(n, cache)
+        #print "----", r1,r2
         return maximum(r1, r2)
     def init_piecewise_pdf(self):
         self.piecewise_pdf = convmax(self.d1.get_piecewise_pdf(),
@@ -1147,7 +1147,61 @@ class Between(Condition):
         self.U = U              
 
 
-
+class LifeTime(object):
+    """The lifetime random variable, time to first failure """
+    
+    def __init__(self, **kwargs):
+        super(LifeTime, self).__init__(**kwargs)
+    def get_piecewise_pdf(self):
+        pass
+    def get_piecewise_cdf(self):
+        pass
+    def get_piecewise_ccdf(self):
+        pass
+    def get_survival_fcn(self):
+        """It returns the survival function as PiecewiseFunction object."""        
+        return self.get_piecewise_ccdf(self)
+    def S(self, x):
+        """It returns the value of survival function at point x."""
+        return self.get_piecewise_ccdf()(x)
+    def get_hazard_fcn(self):
+        """It returns the hazard function as PiecewiseFunction object."""        
+        return self.get_piecewise_pdf()/self.get_piecewise_ccdf()
+    def h(self, x):
+        """It returns the value of hazard function at point x."""
+        return self.get_hazard_fcn()(x)
+    def get_cumulative_hazard_fcn(self):
+        """It returns the cumulative hazard function as PiecewiseFunction object."""        
+        return -log(self.get_piecewise_ccdf())
+    def H(self, x):
+        """It returns the mortality function function.
+        
+        H(t) = - log(S(t) = \int__0^t h(s) ds, 
+        h(t) = H'(t).
+        """
+        return log(self.get_hazard_fcn(self)(x))
+    def mtbf(self):
+        return self.mean()
+    def afr(self):
+        return self.cdf(1.0)
+    def summaryf(self, show_moments=False):
+        """Summary statistics for a given distribution."""
+        print "============= summary ============="
+        summ = self.summary_map()
+        summ['afr'] = self.afr()
+        summ['mtbf'] = self.mtbf()
+        print " ", self.getName()
+        for i in ['mtbf', 'afr', 'median', 'ci(0.05)',  'range',  'int_err']:
+            if summ.has_key(i): 
+                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
+            else:
+                print "---", i
+        if show_moments:
+            print "      moments:"
+            for i in range(11):
+                mi = self.moment(i,0)
+                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(mi)
+        #print "=====", time.time() - t0, "sec."
 import pylab
 from pylab import plot, subplot, xlim, ylim, show, figure
 def demo_distr(d,
