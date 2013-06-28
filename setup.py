@@ -3,6 +3,7 @@
 from distutils.core import setup
 from distutils.extension import Extension
 
+import numpy as np
 try:
     from Cython.Distutils import build_ext
     have_Cython = True
@@ -13,8 +14,7 @@ except ImportError:
 if have_Cython:
     Cython_args = {
         "cmdclass" : {'build_ext': build_ext},
-        "ext_modules" : [Extension("pacal.bary_interp", ["pacal/bary_interp.pyx"])],
-        #"ext_modules" : [Extension("pacal.bary_interp", ["pacal/bary_interp.pyx"], include_dirs=["c:/Python27/Lib/site-packages/numpy/core/include/"])],
+        "ext_modules" : [Extension("pacal.bary_interp", ["pacal/bary_interp.pyx"], include_dirs=[np.get_include()])],
         }
 else:
     Cython_args = {}
