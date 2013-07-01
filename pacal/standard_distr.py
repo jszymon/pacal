@@ -13,7 +13,7 @@ _MAX_EXP_ARG = log(finfo(double).max)
 
 import params
 from utils import lgamma, wrap_pdf
-from distr import Distr, DiscreteDistr, ConstDistr, LifeTime
+from distr import Distr, DiscreteDistr, ConstDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
 #import distr
@@ -155,7 +155,7 @@ class NormalDistr(Distr):
     def range(self):
         return -Inf, Inf   
      
-class UniformDistr(Distr, LifeTime):
+class UniformDistr(Distr):
     def __init__(self, a = 0.0, b = 1.0, **kwargs):
         super(UniformDistr, self).__init__(**kwargs)
         self.a = a
@@ -177,7 +177,7 @@ def _lin_fun1(a, b, u, x):
     return u * (x - a) / (b - a)
 def _lin_fun2(c, d, u, x):
     return u * (d - x) / (d - c)
-class TrapezoidalDistr(Distr, LifeTime):
+class TrapezoidalDistr(Distr):
     def __init__(self, a=0.0, b=0.0, c=1.0, d=1.0, **kwargs):
         super(TrapezoidalDistr, self).__init__(**kwargs)
         self.a = a
@@ -305,7 +305,7 @@ class ChiSquareDistr(Distr):
     def range(self):
         return 0.0, Inf  
     
-class ExponentialDistr(Distr, LifeTime):
+class ExponentialDistr(Distr):
     def __init__(self, lmbda = 1, **kwargs):
         super(ExponentialDistr, self).__init__(**kwargs)
         self.lmbda = lmbda
@@ -334,7 +334,7 @@ class ExponentialDistr(Distr, LifeTime):
     def range(self):
         return 0.0, Inf  
     
-class GammaDistr(Distr, LifeTime):
+class GammaDistr(Distr):
     def __init__(self, k = 2, theta = 2, **kwargs):
         super(GammaDistr, self).__init__(**kwargs)
         assert k > 0
@@ -441,7 +441,7 @@ class BetaDistr(Distr):
     def range(self):
         return 0.0, 1.0
     
-class ParetoDistr(Distr, LifeTime):
+class ParetoDistr(Distr):
     def __init__(self, alpha = 1, xmin = 1, **kwargs):
         assert alpha > 0
         assert xmin > 0
@@ -642,7 +642,7 @@ class FDistr(Distr):
     def range(self):
         return 0.0, Inf
     
-class WeibullDistr(Distr, LifeTime):
+class WeibullDistr(Distr):
     def __init__(self, k = 3, lmbda = 1, **kwargs):
         super(WeibullDistr, self).__init__(**kwargs)
         assert k > 0
@@ -696,7 +696,7 @@ class WeibullDistr(Distr, LifeTime):
     def range(self):
         return 0.0, Inf
 
-class GumbelDistr(Distr, LifeTime):
+class GumbelDistr(Distr):
     def __init__(self, mu = 0, sigma = 1, **kwargs):
         assert sigma > 0
         super(GumbelDistr, self).__init__(**kwargs)
@@ -733,7 +733,7 @@ class GumbelDistr(Distr, LifeTime):
     def range(self):
         return 0.0, Inf # TODO check it
 
-class FrechetDistr(Distr, LifeTime):
+class FrechetDistr(Distr):
     def __init__(self, alpha = 2, s = 1, m = 0, **kwargs):
         assert alpha > 0
         assert s > 0
