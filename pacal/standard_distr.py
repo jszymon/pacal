@@ -826,6 +826,29 @@ class OneDistr(ConstDistr):
     def __init__(self, **kwargs):
         super(OneDistr, self).__init__(c = 1.0, **kwargs)
 
+
+class FunTrunkatedDistr(DiscreteDistr):
+    """The truncated discrete distribution for ."""
+    def __init__(self, fun=None, trunk_eps=1e-16, **kwargs):        
+        self.trunk_eps = trunk_eps 
+        xi = []
+        pi = []
+        P = fun(0.0)
+        k = 0.0
+        S = 0.0
+        while np.abs(S - 1.0) >= trunk_eps:
+            xi.append(k)
+            pi.append(fun(k))                    
+            S = np.sum(pi)
+            k += 1
+            #print k,S
+        self.k_max = k
+        super(FunTrunkatedDistr, self).__init__(xi, pi, **kwargs)
+    def __str__(self):
+        return "FunTrunkDistr({0})#{1}".format(self.trunk_epsself.id())
+    def getName(self):
+        return "FunTrunkDistr({0})".format(self.trunk_eps)
+    
 class PoissonDistr(DiscreteDistr):
     """The truncated Poisson distribution."""
     def __init__(self, lmbda=1, trunk_eps=1e-16, **kwargs):
@@ -835,12 +858,14 @@ class PoissonDistr(DiscreteDistr):
         pi = []
         P = 1.0 * exp(-lmbda)
         k = 0
-        while P >= trunk_eps:
-            k += 1
+        S = 0.0
+        while (1.0-S) >= trunk_eps:
             xi.append(k)
             pi.append(P)        
+            k += 1
             P *= lmbda 
             P /= k
+            S += P
         self.k_max = len(xi)
         super(PoissonDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
@@ -885,19 +910,29 @@ if __name__ == "__main__":
 
     import numpy
     from numpy import ceil, log1p
-
-    P = PoissonDistr(lmbda=0.2)
-    P.summary()
-    D  = OneDistr()/P
-    D.summary()
-    P.plot(color="k")
-    figure()
-    D.plot(color="r")
-    P = D * P
-    figure()
-    P.plot(color="r")
-    P.get_piecewise_cdf().plot(color="r")
+    from scipy.special import gamma
+    def poiss(k, lmbda=57.2):
+        return lmbda**k * exp(-lmbda) /gamma(k+1.0) 
+    def powi(k, pow=2):
+        return 1.0/(k+1.0)**(pow) * (6.0 / np.pi**2)
     
+    
+    P1 = PoissonDistr(lmbda=117.2)
+    P1.summary()
+    P2 = FunTrunkatedDistr(fun=powi, trunk_eps=1e-3)
+    P2.summary()
+    #print "c"
+    #D  = OneDistr()/(P+0.1)
+    #D.summary()
+#    P.plot(color="k")
+#    figure()
+#    D.plot(color="r")
+    P = P1 + P2
+    figure()
+#    
+#    P.plot(color="r")
+#    P.get_piecewise_cdf().plot(color="r")
+#    
     P.summary()
     
     # M = MixDistr([0.5, 0.25, 0.125, 0.0625, 0.03125], 
