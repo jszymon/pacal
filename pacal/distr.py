@@ -219,6 +219,14 @@ class Distr(RV):
         Keyword arguments:
         p : significance level"""    
         return (self.quantile(p/2), self.quantile(1-p/2.0))
+    def interval(self, p = 0.95):    
+        """Returns symmetrical interval that supports 
+        p-percent of probability mass.
+        
+        Keyword arguments:
+        p : significance level"""
+        p_lim = (1.0 - p) / 2.0   
+        return self.quantile(p_lim), self.quantile(1.0 - p_lim)
     def tailexp(self):
         """Left and right tail exponent estimates"""
         return self.get_piecewise_pdf().tailexp()
@@ -255,7 +263,7 @@ class Distr(RV):
             r['median'] = self.median()
             r['iqrange(0.025)'] = self.iqrange()
             r['medianad'] = self.medianad()  
-            r['ci(0.05)'] = self.ci()       
+            r['interval(0.95)'] = self.interval()       
         except Exception, e:           
             traceback.print_exc() 
         return r
@@ -266,7 +274,7 @@ class Distr(RV):
         #t0  = time.time()
         summ = self.summary_map()
         print " ", self.getName()
-        for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'mode', 'medianad', 'iqrange(0.025)', 'ci(0.05)',  'range',  'tailexp', 'int_err']:
+        for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'mode', 'medianad', 'iqrange(0.025)', 'interval(0.95)',  'range',  'tailexp', 'int_err']:
             if summ.has_key(i): 
                 print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
             else:
@@ -353,7 +361,7 @@ class Distr(RV):
     def five_number_summary(self):
         m = self.median()
         iqr = self.iqrange(0.25)        
-        c = self.ci(0.5)    
+        c = self.interval(0.95)    
         r = self.range()
         if isfinite(r[0]) and isfinite(r[1]):
             return [r[0], c[0], m, c[1], r[1]]
@@ -367,7 +375,7 @@ class Distr(RV):
     def boxplot(self, pos=1, width=0.3, useci=None, showMean=True, vertical=True, color="k", label=None, **kwargs):
         five = self.five_number_summary()
         if useci is not None:
-            c = self.ci(useci)
+            c = self.interval(useci)
             five[0] = c[0]
             five[-1] = c[1]
         #if label is None:

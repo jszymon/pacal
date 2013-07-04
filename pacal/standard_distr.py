@@ -827,8 +827,8 @@ class OneDistr(ConstDistr):
         super(OneDistr, self).__init__(c = 1.0, **kwargs)
 
 
-class FunTrunkatedDistr(DiscreteDistr):
-    """The truncated discrete distribution for ."""
+class FunTruncatedDistr(DiscreteDistr):
+    """The truncated discrete distribution defined by sequence fun(k)."""
     def __init__(self, fun=None, trunk_eps=1e-16, **kwargs):        
         self.trunk_eps = trunk_eps 
         xi = []
@@ -843,11 +843,11 @@ class FunTrunkatedDistr(DiscreteDistr):
             k += 1
             #print k,S
         self.k_max = k
-        super(FunTrunkatedDistr, self).__init__(xi, pi, **kwargs)
+        super(FunTruncatedDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
-        return "FunTrunkDistr({0})#{1}".format(self.trunk_epsself.id())
+        return "FunTruncDistr({0})#{1}".format(self.trunk_epsself.id())
     def getName(self):
-        return "FunTrunkDistr({0})".format(self.trunk_eps)
+        return "FunTruncDistr({0})".format(self.trunk_eps)
     
 class PoissonDistr(DiscreteDistr):
     """The truncated Poisson distribution."""
@@ -919,7 +919,7 @@ if __name__ == "__main__":
     
     P1 = PoissonDistr(lmbda=117.2)
     P1.summary()
-    P2 = FunTrunkatedDistr(fun=powi, trunk_eps=1e-3)
+    P2 = FunTruncatedDistr(fun=powi, trunk_eps=1e-2)
     P2.summary()
     #print "c"
     #D  = OneDistr()/(P+0.1)
