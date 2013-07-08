@@ -11,7 +11,7 @@ class VarTransform(object):
     def inv_var_change_with_mask(self, t):
         eq = equal.outer(t, self.var_inf)
         mask = ~eq.any(axis=-1)
-        if mask.any():
+        if (~mask).any():
             if isscalar(t):
                 x = 0 # must masked; can pick any value, use 0
             else:

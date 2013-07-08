@@ -318,7 +318,7 @@ class ExponentialDistr(Distr):
         else:
             y = zeros_like(asfarray(x))
             mask = (x >= 0)
-            y[mask] = self.lmbda * exp(-self.lmbda * x)
+            y[mask] = self.lmbda * exp(-self.lmbda * x[mask])
         return y
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])
