@@ -872,13 +872,19 @@ class Sq2Distr(FuncNoninjectiveDistr):
     def is_nonneg(self):
         return True
     
+def _pi_m_arcsin(x):
+    return 2*pi-arccos(x)
+def _arcsin_der1(x):
+    return (1-x**2)**(-0.5)
+def _arcsin_der2(x):
+    return -(1-x**2)**(-0.5)
 class SinDistr(FuncNoninjectiveDistr):
     """Exponent of a random variable"""
     def __init__(self, d):
         self.intervals = [[-pi/2, pi/2], [pi/2, 3*pi/2]]
-        self.fs = [sin, sin]
-        self.f_invs = [arcsin, lambda x: pi-arcsin(x)] 
-        self.f_inv_derivs = [lambda x: (1-x**2)**(-0.5),lambda x: -(1-x**2)**(-0.5)]        
+        self.fs = [numpy.sin, numpy.sin]
+        self.f_invs = [numpy.arcsin, _pi_m_arcsin] 
+        self.f_inv_derivs = [_arcsin_der1, _arcsin_der1]
         self.pole_at_zero = False        
         super(SinDistr, self).__init__(d, fname = "sin")
     def is_nonneg(self):
@@ -889,14 +895,20 @@ def sin(d):
         return SinDistr(d)
     return numpy.sin(d)
 
+def _twopi_m_arccos(x):
+    return 2*pi-arccos(x)
+def _arccos_der1(x):
+    return -(1-x**2)**(-0.5)
+def _arccos_der2(x):
+    return (1-x**2)**(-0.5)
 class CosDistr(FuncNoninjectiveDistr):
     """Exponent of a random variable"""
     def __init__(self, d):
         self.intervals = [[0.0, pi], [pi, 2.0*pi]]
-        self.fs = [cos, cos]
-        self.f_invs = [arccos, lambda x: 2*pi-arccos(x)] 
-        self.f_inv_derivs = [lambda x: -(1-x**2)**(-0.5),lambda x: (1-x**2)**(-0.5)]
-        self.pole_at_zero = False        
+        self.fs = [numpy.cos, numpy.cos]
+        self.f_invs = [numpy.arccos, _twopi_m_arccos] 
+        self.f_inv_derivs = [_arccos_der1, _arccos_der2]
+        self.pole_at_zero = False
         super(CosDistr, self).__init__(d, fname = "cos")
     def is_nonneg(self):
         return True
