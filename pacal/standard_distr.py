@@ -1,7 +1,7 @@
 """Standard distributions."""
 
 
-from numpy import Inf
+import numpy as np
 from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
 from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel
@@ -16,13 +16,12 @@ from utils import lgamma, wrap_pdf
 from distr import Distr, DiscreteDistr, ConstDistr
 from segments import PiecewiseFunction, PiecewiseDistribution, Segment
 from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
-#import distr
-import numpy as np
+
 try:
     from numpy import Inf
 except:
     Inf = float('inf')
-    
+
 class FunDistr(Distr):
     """General distribution defined as function with
     singularities at given breakPoints."""
@@ -457,7 +456,7 @@ class ParetoDistr(Distr):
                 y = self.nrm / x ** (self.alpha + 1)
         else:
             y = zeros_like(asfarray(x))
-            mask = (np.real(x) >= self.xmin)
+            mask = (x >= self.xmin)
             y[mask] = self.nrm / x[mask] ** (self.alpha + 1)
         return y
     def init_piecewise_pdf(self):

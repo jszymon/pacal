@@ -7,9 +7,7 @@ from functools import partial
 
 from integration import *
 from interpolation import *
-from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent
-from utils import is_instance_method, difffun
-
+from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent, is_instance_method
 
 import params
 
@@ -507,7 +505,7 @@ class MInfSegment(Segment):
         else:
             i, e = 0, 0
         #i,e = integrate_fejer2_minf(self.f, b)
-        return i  
+        return i    
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""        
         return MInfSegment(self.b, partial(call_segint, self, y0))
@@ -516,8 +514,6 @@ class MInfSegment(Segment):
             return self.integrate(b = x)
         else:
             return array([self.integrate(b = xi) for xi in x])
-    def diff(self): 
-        return MInfSegment(self.b, partial(difffun,self.f, 1e-8))   
     def shiftAndScale(self, shift, scale):
         """It produce f((x - shift)/scale) for given f(x)
         """
@@ -557,7 +553,8 @@ class PInfSegment(Segment):
             if isnan(self.f(y)) | isinf(self.f(y)):
                 #print "fidRightEps()=", x, self.f(x), self.f(y)
                 break
-            x = x+1.2*abs(x-self.a)            
+            x = x+1.2*abs(x-self.a)
+            
         return x
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
@@ -578,8 +575,6 @@ class PInfSegment(Segment):
             return self.integrate(a = x)
         else:
             return array([self.integrate(a = xi) for xi in x])
-    def diff(self): 
-        return PInfSegment(self.a, partial(difffun,self.f, 1e-8)) 
     def shiftAndScale(self, shift, scale):
         """It produce f((x - shift)/scale) for given f(x)
         """
@@ -885,17 +880,14 @@ class MInfInterpolatedSegment(InterpolatedSegment, MInfSegment):
     def __init__(self, b, interpolatorOfF):
         MInfSegment.__init__(self, b, interpolatorOfF)
     def diff(self):
-        fun = partial(difffun,self.f, -1e-8)
-        #print ">>>>", fun(linspace(-10,-2,10))
-        return MInfSegment(self.b, partial(difffun,self.f, -1e-8))    
+        return MInfInterpolatedSegment(self.a, self.f.diff())    
 class PInfInterpolatedSegment(InterpolatedSegment, PInfSegment):    
     """Interpolated Segment on interval [a, inf]
     """
     def __init__(self, a, interpolatorOfF):
         PInfSegment.__init__(self, a, interpolatorOfF)
     def diff(self):
-        return PInfSegment(self.a, partial(difffun,self.f, 1e-8))    
-
+        return PInfInterpolatedSegment(self.a, self.f.diff())
 class breakPoint(object):
     """Decribe a breakpoint of a piecewise function."""
     def __init__(self, x, negPole, posPole, Cont = True):
@@ -1100,22 +1092,15 @@ class PiecewiseFunction(object):
         if not integralPFun.segments[0].isMInf():
             integralPFun.addSegment(MInfSegment(integralPFun.segments[0].a, ConstFun(0)))
         return integralPFun
-    def limit(self, x):
-        if isinf(x) and x>0:
-            pass
     def diff(self):
         diffPFun = PiecewiseFunction([])        
         for seg in self.segments:
             if seg.isMInf() or seg.isPInf():
-                #pass
+                pass
                 #raise NotImplemented("not implemented")
-                #if seg.isMInf():
-                #    print ";;;;;", seg.f(np.linspace(-10,2,20) +1e-8j) 
-                #    print ";;;;;", seg.f(np.linspace(-10,2,20) + 1e-8j)                             
-                segi = seg.diff()
             else:
                 segi = seg.diff()
-            diffPFun.addSegment(segi)            
+                diffPFun.addSegment(segi)            
         return diffPFun
     def roots(self):
         r = array([])        
