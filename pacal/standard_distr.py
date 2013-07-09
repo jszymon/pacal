@@ -826,10 +826,10 @@ class OneDistr(ConstDistr):
         super(OneDistr, self).__init__(c = 1.0, **kwargs)
 
 
-class FunTruncatedDistr(DiscreteDistr):
+class TruncDiscreteFunDistr(DiscreteDistr):
     """The truncated discrete distribution defined by sequence fun(k)."""
-    def __init__(self, fun=None, trunk_eps=1e-16, **kwargs):        
-        self.trunk_eps = trunk_eps 
+    def __init__(self, fun=None, trunk_eps=1e-16, **kwargs):
+        self.trunk_eps = trunk_eps
         xi = []
         pi = []
         P = fun(0.0)
@@ -840,19 +840,19 @@ class FunTruncatedDistr(DiscreteDistr):
             pi.append(fun(k))                    
             S = np.sum(pi)
             k += 1
-            #print k,S
         self.k_max = k
-        super(FunTruncatedDistr, self).__init__(xi, pi, **kwargs)
+        pi = [p/S for p in pi]
+        super(TruncDiscreteFunDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
-        return "FunTruncDistr({0})#{1}".format(self.trunk_epsself.id())
+        return "TruncDiscreteFunDistr({0})#{1}".format(self.trunk_epsself.id())
     def getName(self):
-        return "FunTruncDistr({0})".format(self.trunk_eps)
+        return "TruncDiscreteFunDistr({0})".format(self.trunk_eps)
     
 class PoissonDistr(DiscreteDistr):
     """The truncated Poisson distribution."""
     def __init__(self, lmbda=1, trunk_eps=1e-16, **kwargs):
         self.lmbda = float(lmbda)
-        self.trunk_eps = trunk_eps 
+        self.trunk_eps = trunk_eps
         xi = []
         pi = []
         P = 1.0 * exp(-lmbda)
@@ -860,9 +860,9 @@ class PoissonDistr(DiscreteDistr):
         S = 0.0
         while (1.0-S) >= trunk_eps:
             xi.append(k)
-            pi.append(P)        
+            pi.append(P)
             k += 1
-            P *= lmbda 
+            P *= lmbda
             P /= k
             S += P
         self.k_max = len(xi)
@@ -918,8 +918,10 @@ if __name__ == "__main__":
     
     P1 = PoissonDistr(lmbda=117.2)
     P1.summary()
-    P2 = FunTruncatedDistr(fun=powi, trunk_eps=1e-2)
+    P2 = TruncDiscreteFunDistr(fun=powi, trunk_eps=1e-2)
     P2.summary()
+    P1.plot()
+    P2.plot()
     #print "c"
     #D  = OneDistr()/(P+0.1)
     #D.summary()
@@ -929,8 +931,8 @@ if __name__ == "__main__":
     P = P1 + P2
     figure()
 #    
-#    P.plot(color="r")
-#    P.get_piecewise_cdf().plot(color="r")
+    P.plot(color="r")
+    P.get_piecewise_cdf().plot(color="r")
 #    
     P.summary()
     
