@@ -278,7 +278,6 @@ def integrate_iter(f, a1, b1, a2, b2):
         else:
             z = zeros_like(y)
             for i in range(len(y)):
-                print ";;;", i, len(y)
                 z[i], err = integrate_fejer2(lambda x : f(x, y[i]), a1, b1)
         return z
     cheb  = ChebyshevInterpolator1(fun1, a2,b2) 

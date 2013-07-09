@@ -63,7 +63,7 @@ class Copula(NDDistr):
             #assert len(self.marginals) >= len(X)
             mi = ones_like(X[0])
             for i in range(len(X)):
-                mi *= self.marginals[i].get_piecewise_pdf()(X[i])
+                mi = mi * self.marginals[i].get_piecewise_pdf()(X[i])
             F = [self.marginals[i].get_piecewise_cdf_interp()(X[i]) for i in range(len(X))]
             return np.nan_to_num(self.cpdf(*F) * mi)
             #return self.cpdf(*F) * mi
@@ -440,11 +440,11 @@ class ArchimedeanCopula(Copula):
         assert len(X) == len(self.marginals), "incorrect copula dimension"
         si = zeros_like(X[0])    
         for xi in X:
-            si += self.fi(xi)        
+            si = si + self.fi(xi)        
         si = self.fi_inv_nth_deriv(si)
         pi = ones_like(X[0])
         for xi in X:
-            pi *= self.fi_deriv(xi)        
+            pi = pi * self.fi_deriv(xi)        
         return si * pi
     def ccdf(self, *X):
         assert len(X) == len(self.marginals), "incorrect copula dimension"
