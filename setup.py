@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding: utf-8 -*-
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -23,7 +24,7 @@ setup(
     name='PaCal',
     version='1.5',
     description ='PaCal - ProbAbilistic CALculator',
-    author='Szymon Jaroszewicz, Marcin Korzen',
+    author='Szymon Jaroszewicz, Marcin Korzeń',
     author_email='s.jaroszewicz@ipipan.waw.pl, mkorzen@wi.zut.edu.pl',
     license='GNU General Public License V.3 or later',
     url='http://pacal.sf.net',
