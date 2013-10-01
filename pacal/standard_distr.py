@@ -850,21 +850,23 @@ class TruncDiscreteFunDistr(DiscreteDistr):
     
 class PoissonDistr(DiscreteDistr):
     """The truncated Poisson distribution."""
-    def __init__(self, lmbda=1, trunk_eps=1e-16, **kwargs):
+    def __init__(self, lmbda=1, trunk_eps=1e-15, **kwargs):
         self.lmbda = float(lmbda)
         self.trunk_eps = trunk_eps
         xi = []
         pi = []
         P = 1.0 * exp(-lmbda)
-        k = 0
-        S = 0.0
+        k = 0.0
+        S = P
         while (1.0-S) >= trunk_eps:
             xi.append(k)
             pi.append(P)
-            k += 1
+            k += 1.0
             P *= lmbda
             P /= k
             S += P
+        xi.append(k)
+        pi.append(P)
         self.k_max = len(xi)
         super(PoissonDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
@@ -915,10 +917,11 @@ if __name__ == "__main__":
     def powi(k, pow=2):
         return 1.0/(k+1.0)**(pow) * (6.0 / np.pi**2)
     
-    
-    P1 = PoissonDistr(lmbda=117.2)
+    B1 = BinomialDistr(n =10, p=0.2)
+    B1.summary()
+    P1 = PoissonDistr(lmbda=1.2)
     P1.summary()
-    P2 = TruncDiscreteFunDistr(fun=powi, trunk_eps=1e-2)
+    P2 = TruncDiscreteFunDistr(fun=powi, trunk_eps=1e-1)
     P2.summary()
     P1.plot()
     P2.plot()
@@ -928,7 +931,7 @@ if __name__ == "__main__":
 #    P.plot(color="k")
 #    figure()
 #    D.plot(color="r")
-    P = P1 + P2
+    P = P1 + B1
     figure()
 #    
     P.plot(color="r")
