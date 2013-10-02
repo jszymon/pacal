@@ -34,6 +34,7 @@ from standard_distr import OneDistr
 from standard_distr import ZeroDistr
 from standard_distr import BinomialDistr
 from standard_distr import BernoulliDistr
+from standard_distr import PoissonDistr
 from standard_distr import MixDistr
 from distr import CondGtDistr
 from distr import CondLtDistr
