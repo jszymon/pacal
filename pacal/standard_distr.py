@@ -870,7 +870,7 @@ class PoissonDistr(DiscreteDistr):
         self.k_max = len(xi)
         super(PoissonDistr, self).__init__(xi, pi, **kwargs)
     def __str__(self):
-        return "Poisson({0})#{1}".format(self.lmbda, self.p, self.id())
+        return "Poisson({0})#{1}".format(self.lmbda, self.id())
     def getName(self):
         return "Poisson({0},{1})".format(self.lmbda, self.trunk_eps)
 
