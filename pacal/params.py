@@ -67,7 +67,7 @@ class interpolation(params_class):
     maxn = 100
     debug_info = False
     debug_plot = False
-    use_cheb_2nd = False    # always use interpolator based on  
+    use_cheb_2nd = True    # always use interpolator based on  
                             # chebyshev nodes of 2nd kind (faster and accurate at ends of intervals)
                             # if False use interpolator based on nodes
                             # of 1st kind (no nodes at ends of intervals)
