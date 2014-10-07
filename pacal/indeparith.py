@@ -236,7 +236,7 @@ class Convxrunner(object):
         if isscalar(xx):
             xx=asfarray([xx])
         p_map = get_parmap()
-        res = p_map(self.convprod_at_point, xx)
+        res = p_map(self.convdiv_at_point, xx)
         res = array(res)
         return res
     def convmaxx(self, xx):
@@ -457,15 +457,15 @@ class Convxrunner(object):
         # Integrand for division along X axis
         def funi(t):
             y = segi.f(t)*segj.f(x/t)*1.0/abs(t)
-            y[t==0] = 0
+            y[t==0] = 0.0
             return y
         # Integrand for division along Y axis
         def funj(t):
             y = segi.f(x/t)*segj.f(t)*1.0/abs(t)
-            y[t==0] = 0
+            y[t==0] = 0.0
             return y
-        I = 0
-        err = 0
+        I = 0.0
+        err = 0.0
         for segi, segj in segList:
             if segi.isSegment() and segj.isSegment():            
                 cwiartka = (segi.a + segi.b) * (segj.a + segj.b)
@@ -494,12 +494,12 @@ class Convxrunner(object):
                 i = segi.f*segj.f(x/segi.a)*1.0/abs(segi.a)   # TODO 
                 if x== 0.0 :
                     i = i + segi.f
-                e = 0
+                e = 0.0
             elif segi.isSegment() and segj.isDirac():
                 i = segj.f*segi.f(x/segj.a)*1.0/abs(segj.a)
                 if x== 0.0 :
                     i = i + segj.f
-                e = 0
+                e = 0.0
             I += i
             err += e         
         return I
@@ -556,11 +556,11 @@ class Convxrunner(object):
 
             elif segi.isDirac() and segj.isSegment():
                 i = segi.f * segj.f(segi.a/x) * abs(segi.a)/x/x
-                e = 0
+                e = 0.0
                 assert (segi.a != 0.0)                
             elif segi.isSegment() and segj.isDirac():
                 i = segj.f*segi.f(segj.a)*abs(segj.a)
-                e = 0
+                e = 0.0
                 assert (segj.a != 0.0)
             I += i
             err += e
