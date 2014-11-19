@@ -1,3 +1,7 @@
+New in development version:
+
+* fixes for newest versions of numpy and scipy
+
 New in version 1.5:
 
 * Initial implementation of arithmetic of dependent random variables

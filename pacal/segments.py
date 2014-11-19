@@ -13,7 +13,7 @@ import params
 
 from numpy import asfarray
 from numpy import linspace, multiply, add, divide, size
-from numpy import unique, isnan, isscalar, diff, size
+from numpy import unique, union1d, isnan, isscalar, diff, size
 from numpy import Inf, NaN, sign, isinf, isfinite, exp
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
 from numpy import append, nan_to_num, select
@@ -2062,9 +2062,7 @@ def _conv_diracs(f, g, fun = operator.add):
     return fg
 
 def _makeCommonSegmentList(f, g):
-    bf = set(f.getBreaks())
-    bg = set(g.getBreaks())
-    allbreaks = unique(bf | bg)
+    allbreaks = union1d(f.getBreaks(), g.getBreaks())
     commonList = []
     for i in range(len(allbreaks)-1):
         a = allbreaks[i]
