@@ -1,6 +1,7 @@
 New in development version:
 
 * fixes for newest versions of numpy and scipy
+* fix for parallel computation with openblas
 
 New in version 1.5:
 
