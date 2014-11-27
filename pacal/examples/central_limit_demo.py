@@ -49,6 +49,12 @@ if __name__ == "__main__":
     central_limit_demo(X, N=5, ymax=1.5, xmax=3)
     
     #!----------------------
+    #! Student T w. 2df
+    #!----------------------
+    X = StudentTDistr(2)
+    central_limit_demo(X, N = 5, xmin=-5, xmax=5)
+
+    #!----------------------
     #! a ratio distribution
     #!----------------------
     X = UniformDistr(1,3) / UniformDistr(-2,1)
