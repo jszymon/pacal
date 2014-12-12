@@ -636,7 +636,7 @@ class AtanDistr(FuncDistr):
     """Arcus tangent of a random variable"""
     def __init__(self, d):
         super(AtanDistr, self).__init__(d, pole_at_zero= False, fname ="atan")
-    
+
     def f(self, x):
         return numpy.arctan(x)  
     def f_inv(self, x):
@@ -669,6 +669,44 @@ def atan(d):
     if isinstance(d, RV):
         return AtanRV(d)
     return numpy.arctan(d)
+
+class TanhDistr(FuncDistr):
+    """Hyperbolic tangent of a random variable"""
+    def __init__(self, d):
+        super(TanhDistr, self).__init__(d, pole_at_zero= False, fname ="tanh")
+
+    def f(self, x):
+        return numpy.tanh(x)
+    def f_inv(self, x):
+        if isscalar(x):
+            if x <= -1 or x >= 1:
+                y = 0
+            else:
+                y = 0.5 * numpy.log((1.0+x) / (1.0-x))
+        else:
+            mask = (x > -1) & (x < 1)
+            y = zeros_like(asfarray(x))
+            y[mask] = 0.5 * numpy.log((1.0+x[mask]) / (1.0-x[mask]))
+        return y
+    def f_inv_deriv(self, x):
+        if isscalar(x):
+            if x <= -1 or x >= 1:
+                y = 0
+            else:
+                y = 1.0 / (1 - x**2)
+        else:
+            mask = (x > -1) & (x < 1)
+            y = zeros_like(asfarray(x))
+            y[mask] = 1.0 / (1 - x[mask]**2)
+        return y
+
+def tanh(d):
+    """Overload the tanh function."""
+    if isinstance(d, Distr):
+        return TanhDistr(d)
+    if isinstance(d, RV):
+        return TanhRV(d)
+    return numpy.tanh(d)
 
 class InvDistr(InvRV, OpDistr):
     """Inverse of random variable."""

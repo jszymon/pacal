@@ -1,5 +1,6 @@
 New in development version:
 
+* implement the tanh function
 * fixes for newest versions of numpy and scipy
 * fix for parallel computation with openblas
 

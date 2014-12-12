@@ -355,6 +355,11 @@ class AtanRV(FuncRV):
     def __init__(self, d):
         super(AtanRV, self).__init__(d, fname ="atan", sym = sympy.atan(d.getSymname()))
 
+class TanhRV(FuncRV):
+    """Hyperbolic tangent of a random variable"""
+    def __init__(self, d):
+        super(TanhRV, self).__init__(d, fname ="tanh", sym = sympy.tanh(d.getSymname()))
+
 class InvRV(OpRV):
     """Inverse of random variable."""
     def __init__(self, d):
