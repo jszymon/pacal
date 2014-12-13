@@ -1,4 +1,4 @@
-New in development version:
+New in version 1.5.1:
 
 * implement the tanh function
 * fixes for newest versions of numpy and scipy

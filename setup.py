@@ -22,14 +22,14 @@ else:
     
 setup(
     name='PaCal',
-    version='1.5',
+    version='1.5.1',
     description ='PaCal - ProbAbilistic CALculator',
     author='Szymon Jaroszewicz, Marcin Korzeń',
     author_email='s.jaroszewicz@ipipan.waw.pl, mkorzen@wi.zut.edu.pl',
     license='GNU General Public License V.3 or later',
     url='http://pacal.sf.net',
     long_description=open('README.txt').read(),
-    requires=['Python (>=2.6,<3.0)', 'numpy (>=1.6)', 'matplotlib (>=1.0)', 'Cython', 'Sympy (>=0.6.7)'],
+    requires=['Python (>=2.6,<3.0)', 'numpy (>=1.6)', 'matplotlib (>=1.0)', 'Cython', 'Sympy (>=0.6.7)', 'scipy (>=13.0)'],
 
     packages=['pacal', 'pacal.stats', 'pacal.depvars',
               'pacal.examples', 'pacal.examples.springer_book',
