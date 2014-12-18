@@ -1225,8 +1225,8 @@ class PiecewiseFunction(object):
             args["color"] = "k"
         if cl is not None and xmin is None and xmax is None:
             xmin, xmax = self.ci(cl)
-        h0 = h1 = 0        
-        for seg in self.segments:
+        h0 = h1 = 0
+        for i, seg in enumerate(self.segments):
             xi = seg.a
             try:
                 if seg.isDirac():
@@ -1246,7 +1246,12 @@ class PiecewiseFunction(object):
             try:
                 h0 = float(seg.f(seg.b-1e-10))
             except Exception, e:           
-                h0 = 0.0   
+                h0 = 0.0
+            # plot right dashed line if next segment further off
+            if i < len(self.segments) - 1 and self.segments[i+1].a > seg.b + params.segments.unique_eps:
+                if (not seg.isPInf()) and (xmin is None or xmin<=xi) and (xmax is None or xi<=xmax): 
+                    plot([seg.b,seg.b], [h0, 0], 'k--')
+                    h0 = 0.0
             if "label" in args:
                 # avoid a label in legend for every segment
                 del args["label"]
