@@ -1232,7 +1232,10 @@ class PiecewiseFunction(object):
                 if seg.isDirac():
                     h1 = seg.f
                 else:
-                    h1 = float(seg.f(xi+1e-10)) 
+                    if xi+1e-10 >= seg.b:
+                        h1 = float(seg.f((seg.a + seg.b)/2))
+                    else:
+                        h1 = float(seg.f(xi+1e-10))
             except Exception, e:           
                 h1 = 0.0
                 h0 = 0.0
@@ -1244,7 +1247,10 @@ class PiecewiseFunction(object):
             if (not seg.isMInf()) and (not seg.hasLeftPole()) and (xmin is None or xmin<=xi) and (xmax is None or xi<=xmax): 
                 plot([xi,xi], [h0, h1], 'k--')
             try:
-                h0 = float(seg.f(seg.b-1e-10))
+                if seg.b-1e-10 <= seg.a:
+                    h0 = float(seg.f((seg.a + seg.b)/2))
+                else:
+                    h0 = float(seg.f(seg.b-1e-10))
             except Exception, e:           
                 h0 = 0.0
             # plot right dashed line if next segment further off
