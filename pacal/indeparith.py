@@ -262,7 +262,7 @@ class Convxrunner(object):
         #print x, multiprocessing.current_process().name
         segList = self.segList
         integration_par = self.integration_par
-        I = 0
+        I = 0.0
         err = 0
         for segi, segj in segList:
             fun1 = partial(fun_c1, segi, segj, x)
@@ -369,7 +369,7 @@ class Convxrunner(object):
     def convminx_at_point(self, x):
         segList = self.segList
         integration_par = self.integration_par
-        I = 0
+        I = 0.0
         err = 0
         for segi, segj in segList:
             if segj.a <= x <= segj.b and segj.a != segj.b:
@@ -410,7 +410,7 @@ class Convxrunner(object):
         """    
         segList = self.segList
         integration_par = self.integration_par
-        I = 0
+        I = 0.0
         err = 0
         for segi, segj in segList:
             i, e = 0, 0
