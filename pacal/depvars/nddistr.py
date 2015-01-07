@@ -654,8 +654,8 @@ class ConditionalDistr(NDFun):
         cd = ConditionalDistr(self.nd.condition(var, *X, **kwargs), [self.Vars[i] for i in new_cond], marg=self.marg)
         return cd
 
-def _get_sym_name(v):
-    return v.getSymname()
+def _get_str_sym_name(v):
+    return str(v.getSymname())
 class NDProductDistr(NDDistr):
     def __init__(self, factors):
         new_factors = []
@@ -664,7 +664,7 @@ class NDProductDistr(NDDistr):
                 f = Factor1DDistr(f)
             new_factors.append(f)
         Vars = list(set.union(*[set(f.Vars) for f in new_factors]))
-        Vars.sort(key = _get_sym_name) #lambda v: v.getSymname())
+        Vars.sort(key = _get_str_sym_name) #lambda v: v.getSymname())
         super(NDProductDistr, self).__init__(len(Vars), Vars)
         self.factors = self.optimize(new_factors)
         self.a = [-inf] * len(self.Vars)

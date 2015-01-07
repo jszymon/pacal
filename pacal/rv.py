@@ -24,7 +24,7 @@ class RV(object):
             else:
                 self.sym = sym      # user defined symbolic name of r.v.
         else:
-            self.sym = var("X{0}".format(self.id())) # default symbolic name of r.v.
+            self.sym = sympy.Symbol("X{0}".format(self.id())) # default symbolic name of r.v.
         if self.sym.is_Atom:
             #print "atom: ", self.sym
             self.symname = self.sym

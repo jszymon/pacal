@@ -22,6 +22,8 @@ from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
 
 
+def _get_str_sym_name(v):
+    return str(v.getSymname())
 class Model(object):
     def __init__(self, nddistr, rvs=[]):
         if not isinstance(nddistr, NDFun):
@@ -34,8 +36,8 @@ class Model(object):
         for rv in rvs:
             dep_rvs.update(rv.getParentsDep())
         self.free_rvs = free_rvs
-        self.dep_rvs = list(sorted(dep_rvs))
-        self.all_vars = list(sorted(set(free_rvs) | dep_rvs))
+        self.dep_rvs = list(sorted(dep_rvs, key = _get_str_sym_name))
+        self.all_vars = list(sorted(set(free_rvs) | dep_rvs, key = _get_str_sym_name))
         self.sym_to_rv = {}
         for rv in self.all_vars:
             self.sym_to_rv[rv.getSymname()] = rv
@@ -136,7 +138,7 @@ class Model(object):
                 hvj[v]=self.sym_to_rv[v].range()[1]                
             if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
                 continue
-            uj_symbols = list(sorted(uj.atoms(sympy.Symbol)))
+            uj_symbols = list(sorted(uj.atoms(sympy.Symbol), key = str))
             inv_transf = my_lambdify(uj_symbols, uj, "numpy")
             inv_transf_vars = [self.sym_to_rv[s] for s in uj_symbols]
 
