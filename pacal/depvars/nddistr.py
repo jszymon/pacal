@@ -655,6 +655,7 @@ class ConditionalDistr(NDFun):
         return cd
 
 def _get_sym_name(v):
+    print "??", v, v.getSymname()
     return v.getSymname()
 class NDProductDistr(NDDistr):
     def __init__(self, factors):
@@ -664,6 +665,7 @@ class NDProductDistr(NDDistr):
                 f = Factor1DDistr(f)
             new_factors.append(f)
         Vars = list(set.union(*[set(f.Vars) for f in new_factors]))
+        print ":::", Vars
         Vars.sort(key = _get_sym_name) #lambda v: v.getSymname())
         super(NDProductDistr, self).__init__(len(Vars), Vars)
         self.factors = self.optimize(new_factors)
