@@ -16,7 +16,7 @@ from pylab import legend, figure, plot, axis
 from pacal.sympy_utils import eq_solve
 from pacal.sympy_utils import my_lambdify
 from pacal.standard_distr import FunDistr, PDistr
-from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, Segment
+from pacal.segments import PiecewiseDistribution, PInfSegment, MInfSegment, DiracSegment, Segment
 from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
@@ -357,11 +357,9 @@ class Model(object):
         return pfun
     
     def as_const(self):
-        if len(self.dep_rvs) ==1:
+        if len(self.dep_rvs) == 1:
             return float(self.rv_to_equation[self.dep_rvs[0]])
-        else:
-            raise RuntimeError("unimplemented")
-        return pfun
+        raise RuntimeError("unimplemented")
     
     def summary(self):
         if len(self.free_rvs) == 1:
@@ -384,6 +382,8 @@ class Model(object):
             ax = plot_1d1d_distr(self.nddistr, a, b, fun)
             ax.set_xlabel(self.free_rvs[0].getSymname())
             ax.set_ylabel(self.dep_rvs[0].getSymname())
+        elif len(self.all_vars) == 1 and len(self.free_rvs) == 0:
+            DiracSegment(self.as_const(), 1).plot(**kwargs)
         else:
             raise RuntimeError("Too many variables.")
     def is_free(self, var):
