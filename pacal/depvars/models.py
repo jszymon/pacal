@@ -377,8 +377,8 @@ class Model(object):
             plot_2d_distr(self.nddistr, **kwargs)
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
             a, b = self.free_rvs[0].range()
-            freesym = self.free_rvs[0].getSym()
-            fun = my_lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
+            freesym = self.free_rvs[0].getSymname()
+            fun = my_lambdify([freesym], self.rv_to_equation[self.dep_rvs[0]], "numpy")
             ax = plot_1d1d_distr(self.nddistr, a, b, fun)
             ax.set_xlabel(self.free_rvs[0].getSymname())
             ax.set_ylabel(self.dep_rvs[0].getSymname())
