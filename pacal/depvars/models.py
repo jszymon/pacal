@@ -290,8 +290,8 @@ class Model(object):
                     for fv in M.get_parents(dv):
                         nchildren = len(M.get_children(fv))
                         nterms = 0#M.nddistr.get_n_terms(fv) # TODO!!!
-                        #key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
-                        key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
+                        key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
+                        #key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
                 if len(pairs) > 0:
                     pairs.sort()
