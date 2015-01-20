@@ -21,6 +21,7 @@ from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
 
+import pygraphviz as pgv
 
 def _get_str_sym_name(v):
     return str(v.getSymname())
@@ -29,7 +30,7 @@ class Model(object):
         if not isinstance(nddistr, NDFun):
             nddistr = NDProductDistr(nddistr)
         self.nddistr = nddistr
-        self._segint = nddistr._segint 
+        self._segint = nddistr._segint
         free_rvs = list(self.nddistr.Vars)
         # fetch all necessary RVs
         dep_rvs = set(rvs)
@@ -57,7 +58,7 @@ class Model(object):
         #s += "free vars: " + ", ".join(str(rv.getSymname())+ "(" + str(self.eval_var(rv)) +")" for rv in self.free_rvs) + "\n"
         s += "free_vars:\n"
         for rv in self.free_rvs:
-            s += "   " + str(rv.getSymname()) + " ~ " + str(rv.getName()) + "\n" 
+            s += "   " + str(rv.getSymname()) + " ~ " + str(rv.getName()) + "\n"
         s += "dep vars:  " + ", ".join(str(rv.getSymname()) for rv in self.dep_rvs) + "\n"
         s += "Equations:\n"
         for rv, eq in self.rv_to_equation.iteritems():
@@ -133,9 +134,9 @@ class Model(object):
             # remove complex valued solutions
             vj = uj.atoms(sympy.Symbol)
             hvj = {}
-            for v in vj: 
+            for v in vj:
                 #print self.sym_to_rv[v].range()
-                hvj[v]=self.sym_to_rv[v].range()[1]                
+                hvj[v]=self.sym_to_rv[v].range()[1]
             if len(solutions)>1 and not sympy.im(uj.subs(hvj))==0:
                 continue
             uj_symbols = list(sorted(uj.atoms(sympy.Symbol), key = str))
@@ -151,6 +152,7 @@ class Model(object):
             # Jacobian
             #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
             J = sympy.diff(uj, dep_var.getSymname())
+            print J.atoms
             J_symbols = list(sorted(J.atoms(sympy.Symbol)))
             if len(J_symbols) > 0:
                 jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
@@ -198,15 +200,15 @@ class Model(object):
             assert False
     def eliminate_other(self, vars):
         vars_to_eliminate = list(set(self.dep_rvs) - set(vars))
-        #print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)  
+        #print "eliminate variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_eliminate)
         for var in vars_to_eliminate:
             self.eliminate(var)
     def unchain(self, vars, excluded=[]):
         vars_to_unchain = set(vars) - set(self.free_rvs)
-        print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)  
+        print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)
         print "unchain variables: ",self.are_free(vars)
         print "unchain variables: ",self.are_free(vars_to_unchain)
-        print ": ", vars_to_unchain        
+        print ": ", vars_to_unchain
         for i in range(len(vars_to_unchain)):
             for var in vars_to_unchain:
                 #print ">>>>>>.", var.getSymname(), self.rv_to_equation[var]
@@ -220,10 +222,10 @@ class Model(object):
                         if self.is_free(av) and not av in set(excluded):
                             print "varschangeL:", av.getSymname(), var.getSymname()
                             self.varschange(av, var)
-                            break   
-                 
+                            break
+
     def inference_to_remove(self, vars, condvars, condvals):
-        assert len(condvars)==len(condvals), "condvars, condvals must be equal size" 
+        assert len(condvars)==len(condvals), "condvars, condvals must be equal size"
         self.eliminate_other(set(vars) | set(condvars))
         self.unchain(set(vars) | set(condvars), excluded=vars)
         for i in range(len(condvars)):
@@ -239,6 +241,7 @@ class Model(object):
         cond = {}
         for v, x in zip(cond_rvs, cond_X):
             cond[v] = x
+        ii=0
         while wanted_rvs != set(M.all_vars):
             # print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
             # eliminate all dangling variables
@@ -262,10 +265,21 @@ class Model(object):
                     M.subst_for_rv_in_children(v, M.rv_to_equation[v])
             # a single itertion below reverses the DAG
             exchanged_vars = set()
+
             while wanted_rvs | exchanged_vars != set(M.all_vars):
                 #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
                 #print M.nddistr
                 # find a free var to eliminate
+                ii += 1
+                if params.models.debug_info:
+                    print "---------------step:", ii
+                    M.toGraphwiz(f =open("file"+str(ii)+".dot","w+"))
+                    print M
+                    print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
+                    print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
+                    G = pgv.AGraph("file"+str(ii)+".dot")
+                    G.layout("dot")
+                    G.draw("file"+str(ii)+".pdf","pdf")
                 to_remove = []
                 for v in M.free_rvs:
                     if v not in wanted_rvs:
@@ -293,6 +307,7 @@ class Model(object):
                         #key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
                         key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
+                print pairs
                 if len(pairs) > 0:
                     pairs.sort()
                     _key, fv, dv = pairs[0]
@@ -304,8 +319,18 @@ class Model(object):
                 else:
                     # whole graph has been reversed, may need to do it again in the outer loop...
                     break
+        if params.models.debug_info:
+            ii += 1
+            print "---===-=-=-===-=--=", ii
+            print "==",M.toGraphwiz(f =open("file"+str(ii)+".dot","w+"))
+            print M
+            print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
+            print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
+            G = pgv.AGraph("file"+str(ii)+".dot")
+            G.layout("dot")
+            G.draw("file"+str(ii)+".pdf","pdf")
         return M
-    def are_free(self, vars):        
+    def are_free(self, vars):
         for v in vars:
             if not self.is_free(v): return False
             return True
@@ -319,7 +344,7 @@ class Model(object):
         elif not self.is_free(var):
             # wybieramy najlepsza znienna zalezna i podmieniamy z wolna
             pass
-    def eval_var(self, var):        
+    def eval_var(self, var):
         var = self.prepare_var(var)
         note = 0
         if self.is_dependent(var):
@@ -329,15 +354,15 @@ class Model(object):
                     note += 1
                 elif self.is_dependent(a):
                     note += 10
-                else: 
+                else:
                     note += 1000
         else:
             for rv, eq in self.rv_to_equation.iteritems():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                     note += 1
-        return note                    
-               
-    def condition(self, var, X, **kwargs):        
+        return note
+
+    def condition(self, var, X, **kwargs):
         var = self.prepare_var(var)
         if params.models.debug_info:
             print "condition on variable: ",  var.getSymname(), "=" ,X
@@ -347,7 +372,7 @@ class Model(object):
         self.free_rvs.remove(var)
         self.all_vars.remove(var)
         self.nddistr = self.nddistr.condition([var], X)
-        
+
     def as1DDistr(self):
         if len(self.dep_rvs) > 0:
             raise RuntimeError("Cannot get distribution of dependent variable.")
@@ -355,19 +380,19 @@ class Model(object):
             raise RuntimeError("Too many free variables")
         pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
         return pfun
-    
+
     def as_const(self):
         if len(self.dep_rvs) == 1:
             return float(self.rv_to_equation[self.dep_rvs[0]])
         raise RuntimeError("unimplemented")
-    
+
     def summary(self):
         if len(self.free_rvs) == 1:
             pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
             pfun.summary()
         else:
-            raise RuntimeError("Too many variables.")        
-    
+            raise RuntimeError("Too many variables.")
+
     def plot(self, **kwargs):
         if len(self.all_vars) == 1 and len(self.free_rvs) == 1:
             pfun = FunDistr(self.nddistr, breakPoints = self.nddistr.Vars[0].range())
@@ -377,8 +402,8 @@ class Model(object):
             plot_2d_distr(self.nddistr, **kwargs)
         elif len(self.all_vars) == 2 and len(self.free_rvs) == 1:
             a, b = self.free_rvs[0].range()
-            freesym = self.free_rvs[0].getSym()
-            fun = my_lambdify(freesym, self.rv_to_equation[self.dep_rvs[0]], "numpy")
+            freesym = self.free_rvs[0].getSymname()
+            fun = my_lambdify([freesym], self.rv_to_equation[self.dep_rvs[0]], "numpy")
             ax = plot_1d1d_distr(self.nddistr, a, b, fun)
             ax.set_xlabel(self.free_rvs[0].getSymname())
             ax.set_ylabel(self.dep_rvs[0].getSymname())
@@ -389,11 +414,11 @@ class Model(object):
     def is_free(self, var):
         var = self.prepare_var(var)
         return var in self.free_rvs
-    
+
     def is_dependent(self, var):
         var = self.prepare_var(var)
         return var in self.dep_rvs
-    
+
     def toGraphwiz(self, f = sys.stdout):
         print >>f, "digraph G {rankdir = BT"
         for key in self.free_rvs:
@@ -404,9 +429,9 @@ class Model(object):
             for a in eq.atoms(sympy.Symbol):
                 print >>f, "\"{0}\" -> \"{1}\"".format(str(a), str(rv.getSymname()))
         print >>f, "}"
-            
-class TwoVarsModel(Model):    
-    """Two dimensional model with one equation""" 
+
+class TwoVarsModel(Model):
+    """Two dimensional model with one equation"""
     def __init__(self, nddistr=None, d=None):
         super(TwoVarsModel, self).__init__(nddistr, [d])
         self.eliminate_other([d])
@@ -415,13 +440,13 @@ class TwoVarsModel(Model):
         self.symvars = []
         for var in nddistr.Vars: #self.free_rvs:
             self.vars.append(var)
-            self.symvars.append(var.getSymname()) 
+            self.symvars.append(var.getSymname())
         #print "=====", self.vars
         #print self.symvars
         #print self.dep_rvs
         #print self.rv_to_equation
         self.symop = self.rv_to_equation[d]
-        
+
         if len(self.vars) != 2:
             raise Exception("use it with two variables")
         x = self.symvars[0]
@@ -430,7 +455,7 @@ class TwoVarsModel(Model):
         self.fun_alongx = eq_solve(self.symop, z, y)[0]
         self.fun_alongy = eq_solve(self.symop, z, x)[0]
 
-        self.lfun_alongx = my_lambdify([x, z], self.fun_alongx, "numpy")    
+        self.lfun_alongx = my_lambdify([x, z], self.fun_alongx, "numpy")
         self.lfun_alongy = my_lambdify([y, z], self.fun_alongy, "numpy")
         self.Jx = 1 * sympy.diff(self.fun_alongx, z)
         #print "Jx=", self.Jx
@@ -439,11 +464,11 @@ class TwoVarsModel(Model):
         self.lJx = my_lambdify([x, z], self.Jx, "numpy")
         self.lJy = my_lambdify([y, z], self.Jy, "numpy")
         self.z = z
-    def solveCutsX(self, fun, ay, by):        
+    def solveCutsX(self, fun, ay, by):
         axc = eq_solve(fun, ay, self.symvars[0])[0]
         bxc = eq_solve(fun, by, self.symvars[0])[0]
         return (axc, bxc)
-    def solveCutsY(self, fun, ax, bx):        
+    def solveCutsY(self, fun, ax, bx):
         #ayc = eq_solve(fun - ay, self.z)[0]
         #byc = eq_solve(fun - by, self.z)[0]
         ayc = fun.subs(self.symvars[0], ax)
@@ -467,7 +492,7 @@ class TwoVarsModel(Model):
         #print "========"
         #print ay, ayc, by
         #print ay, byc, by
-        #print ax,bx,axc, bxc 
+        #print ax,bx,axc, bxc
         if (ay < ayc and ayc < by):
             L = ax
         else:
@@ -477,22 +502,22 @@ class TwoVarsModel(Model):
         else:
             U = max(max(axc, ax), min(bxc, bx))
         if L < U:
-            pass 
+            pass
         else:
-            L, U = U, L 
-        return max(ax, L), min(bx, U) 
-    
+            L, U = U, L
+        return max(ax, L), min(bx, U)
+
     def plotFrame(self, ax, bx, ay, by):
         figure()
         h = 0.1
         axis((ax - h, bx + h, ay - h, by + h))
-        #print self.symvars         
+        #print self.symvars
         #print self.d.getSym()
         #print self.symop
         x = self.symvars[0]
         y = self.symvars[1]
-        
-        lop = my_lambdify([x, y], self.symop, "numpy") 
+
+        lop = my_lambdify([x, y], self.symop, "numpy")
         tmp = [lop(ax, ay), lop(ax, by), lop(bx, ay), lop(bx, by)]
         i0, i1 = min(tmp), max(tmp)
         for i in linspace(i0, i1, 20):
@@ -510,34 +535,34 @@ class TwoVarsModel(Model):
                 ##print "==", axc,bxc
                 #plot(axc,ay, 'k.')
                 #plot(bxc,by, 'b.')
-                #aycz, bycz = self.solveCutsY(self.fun_alongx, ax,bx)   
-                ##print "====", axcz,bxcz 
+                #aycz, bycz = self.solveCutsY(self.fun_alongx, ax,bx)
+                ##print "====", axcz,bxcz
                 #ayc = aycz.subs(self.z, i)
                 #byc = bycz.subs(self.z, i)
                 ##print "====", ayc,byc
                 #plot(ax, ayc, 'r.')
-                #plot(bx, byc, 'g.')     
+                #plot(bx, byc, 'g.')
             except:
-                traceback.print_exc()  
+                traceback.print_exc()
         plot([ax, ax], [ay, by], "k:")
         plot([bx, bx], [ay, by], "k:")
         plot([ax, bx], [ay, ay], "k:")
         plot([ax, bx], [by, by], "k:")
         plot()
         pass
-        
-        
+
+
     #def getAlongX(self):
     #        z = var('z');
     #        print "symop=", d.get
-    
+
     def convmodel(self):
         """Probabilistic operation defined by model
         """
         op = self.symop#d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
-        lop = my_lambdify([x, y], op, "numpy") 
+        lop = my_lambdify([x, y], op, "numpy")
         F = self.vars[0]
         G = self.vars[1]
         #self.nddistr.setMarginals(F, G)
@@ -545,7 +570,7 @@ class TwoVarsModel(Model):
         g = self.vars[1].get_piecewise_pdf()
         bf = f.getBreaks()
         bg = g.getBreaks()
-        
+
         bi = zeros(len(bf) * len(bg))
         k = 0;
         for xi in bf:
@@ -557,10 +582,10 @@ class TwoVarsModel(Model):
                     #print "not a number, xi=", xi, "yi=", yi, "result=", lop(xi,yi)
                 k += 1
         ub = array(unique(bi))
-        
-        fun = lambda x : self.convmodelx(segList, x)            
+
+        fun = lambda x : self.convmodelx(segList, x)
         fg = PiecewiseDistribution([]);
-        
+
         if isinf(ub[0]):
             segList = _findSegList(f, g, ub[1] -1, lop)
             seg = MInfSegment(ub[1], fun)
@@ -579,7 +604,7 @@ class TwoVarsModel(Model):
             #seg = Segment(ub[i],ub[i+1], fun)
             segint = seg.toInterpolatedSegment()
             fg.addSegment(segint)
-    
+
         # Discrete parts of distributions
         #fg_discr = convdiracs(f, g, fun = lambda x,y : x * p + y * q)
         #for seg in fg_discr.getDiracs():
@@ -587,15 +612,15 @@ class TwoVarsModel(Model):
         return fg
 
     def convmodelx(self, segList, xx):
-        """Probabilistic weighted mean of f and g, integral at points xx 
-        """    
+        """Probabilistic weighted mean of f and g, integral at points xx
+        """
         op = self.symop #d.getSym()
         x = self.symvars[0]
         y = self.symvars[1]
         lop = sympy.lambdify([x, y], op, "numpy")
         if size(xx) == 1:
             xx = asfarray([xx])
-        wyn = zeros_like(xx)   
+        wyn = zeros_like(xx)
         P = self.nddistr
         #fun = lambda t : P.cdf(t, self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))
 #        if isinstance(P, pacal.depvars.copulas.MCopula) | isinstance(P, pacal.depvars.copulas.WCopula):
@@ -603,15 +628,15 @@ class TwoVarsModel(Model):
 #            #funPdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
 #            funCdf = lambda t : P.cdf(t, self.lfun_alongx(t, zj)) #* abs(self.lJx(t, zj))
 #            fun = funCdf
-        #if isinstance(P, pacal.depvars.copulas.PiCopula):        
+        #if isinstance(P, pacal.depvars.copulas.PiCopula):
         #    print "Piiii"
-        #    fun = lambda t : segi(t) * segj(self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))             
+        #    fun = lambda t : segi(t) * segj(self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))
         #else:
         fun = lambda t : P.pdf(t, self.lfun_alongx(t, zj)) * abs(self.lJx(t, zj))
         ##fun = lambda t : P.jpdf_(F, G, t, self.lfun_alongx(t, array([zj])))  * abs(self.lJx(t, array([zj])))
 
-        
-        for j in range(len(xx)) :  
+
+        for j in range(len(xx)) :
             zj = xx[j]
 #            if isinstance(P, pacal.depvars.copulas.WCopula):
 #                I = 1
@@ -624,11 +649,11 @@ class TwoVarsModel(Model):
                     L, U = self.getUL(segi.a, segi.b, segj.a, segj.b, zj)
                     L, U  = min(U, L), max(U, L)
                     if L < U:
-                        i, e = self._segint(fun, float(L), float(U), debug_info=False)            
-                    else:  
+                        i, e = self._segint(fun, float(L), float(U), debug_info=False)
+                    else:
                         i, e = 0, 0
                 #elif segi.isDirac() and segj.isSegment():
-                #    i = segi.f*segj((x-segi.a)/q)/q   # TODO 
+                #    i = segi.f*segj((x-segi.a)/q)/q   # TODO
                 #    e=0;
                 #elif segi.isSegment() and segj.isDirac():
                 #    i = segj.f*segi((x-segj.a)/p)/p   # TODO
@@ -647,26 +672,26 @@ class TwoVarsModel(Model):
                 err += e
             wyn[j] = I
         return wyn
-    
+
     def eval(self):
         return PDistr(self.convmodel())
     def varchange_and_eliminate(self):
         return self.eval()
 
 def _findSegList(f, g, z, op):
-    """It find list of segments for integration purposes, for given z 
+    """It find list of segments for integration purposes, for given z
     input: f, g - piecewise function, z = op(x,y), op - operation (+ - * /)
-    output: list of segment products depends on z 
+    output: list of segment products depends on z
     """
     slist = []
     for segi in f.segments:
-        for segj in g.segments: 
-            R1 = array([segi.a, segi.b, segi.a, segi.b]) 
-            R2 = array([segj.a, segj.b, segj.b, segj.a]) 
+        for segj in g.segments:
+            R1 = array([segi.a, segi.b, segi.a, segi.b])
+            R2 = array([segj.a, segj.b, segj.b, segj.a])
             R = op(R1, R2)
             R = unique(R[isnan(R) == False])
             if min(R) < z < max(R):
-                slist.append((segi, segj))    
+                slist.append((segi, segj))
     return slist
     #fun = lambda t : segi( t ) * segj( lxfun(t,xj) )# * abs(lJy(t,xj))
 
@@ -692,11 +717,12 @@ if __name__ == "__main__":
     #M2 = M.inference(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
     #M2 = M.inference(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
     M2 = M.inference(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
-    print M2
-    M.plot()
+    print "===", M2
+
+    #M.plot()
     show()
     0/0
-    
+
     figure()
     N = X * Y; N.setSym("N")
     D = X + Y; D.setSym("D")
@@ -713,7 +739,7 @@ if __name__ == "__main__":
     M.plot()
     show()
     0/0
-    
+
     X1 = UniformDistr(1.5, 2.5, sym="x1")
     X2 = UniformDistr(1.5, 2.5, sym="x2")
     X3 = UniformDistr(1.5, 2.5, sym="x3")
@@ -727,13 +753,13 @@ if __name__ == "__main__":
     X = NormalDistr(0,1, sym="X")
     Y = NormalDistr(2, 3, sym="Y")
     Z = BetaDistr(2, 3, sym="Z")
-    
+
     X = NormalDistr(sym="X")
     Y = ExponentialDistr(sym="Y")
-    
+
     #X = UniformDistr(0, 1, sym="x1")
     #Y = UniformDistr(0, 2, sym="x2")
-    
+
 #    # ==== probability boxex ===============================
 #    cw = WCopula(marginals=[X, Y])
 #    cw.plot()
@@ -742,11 +768,11 @@ if __name__ == "__main__":
 #    #show()
 #    cp = PiCopula(marginals=[X, Y])
 #    U = X + Y #/ (Y + 1)# * X
-#    
+#
 #    Mw = TwoVarsModel(cw, U)
 #    Mm = TwoVarsModel(cm ,U)
 #    #Mp = TwoVarsModel(cp ,U)
-#    
+#
 #    funw = Mw.eval()
 #    funm = Mm.eval()
 #    #funp = Mp.eval()
@@ -756,9 +782,9 @@ if __name__ == "__main__":
 #    funm.plot()
 #    funp.get_piecewise_cdf().plot()
 #    funp.summary()
-    
-    
-    
+
+
+
 #    for theta in [5, 10]:
 #        print "::", theta
 #        ci = GumbelCopula2d(marginals=[X, Y], theta=theta)
@@ -789,8 +815,8 @@ if __name__ == "__main__":
 #    fun.plot()
 #    show()
 #    0/0
-    
-    
+
+
     cij = IJthOrderStatsNDDistr(X, 8, 2, 7)
     X1, X2 = cij.Vars
     plot_2d_distr(cij)
@@ -800,33 +826,33 @@ if __name__ == "__main__":
     X1.summary()
     X2.plot(color="g")
     X2.summary()
-    
+
     V=X2-X1
-    
+
     print "p=", V.parents[1].getSym()
     mR = TwoVarsModel(cij, V)
     funR = mR.eval()
     funR.summary()
     funR.plot(color="k")
-    
+
 #    cc = ClaytonCopula(marginals=[X1, X2], theta=1.0/10.0)
 #    cc.plot()
 #    mC = TwoVarsModel(cc,V)
 #    funC = mC.eval()
 #    funC.summary()
 #    funC.plot(color="m")
-    
+
     K = V
     K.plot(color="b")
     K.summary()
-    
+
     show()
     0/0
-        
-    
+
+
     #funm.summary()
     show()
-    0/0 
-    
+    0/0
+
     # ====================================================
 
