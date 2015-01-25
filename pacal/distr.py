@@ -959,10 +959,14 @@ def cos(d):
 class TanDistr(FuncDistr):
     """Tangent of a random variable"""
     def __init__(self, d):
-        super(TanDistr, self).__init__(d, numpy.tan, numpy.arctan,
-                                       lambda x: 1.0/(1.0 + x**2), pole_at_zero = False, fname = "tan")
-    def init_piecewise_pdf(self):
-        self.piecewise_pdf = self.d.get_piecewise_pdf().copyComposition(self.f, self.f_inv, self.f_inv_deriv, pole_at_zero = self.pole_at_zero)
+        super(TanDistr, self).__init__(d, pole_at_zero = False, fname = "tan")
+    def f(self, x):
+        return numpy.tan(x)
+    def f_inv(self, x):
+        return numpy.arctan(x)
+    def f_inv_deriv(self, x):
+        y = 1.0 / (1 + x**2)
+        return y
     
 def tan(d):
     """Overload the exp function."""
