@@ -708,6 +708,68 @@ def tanh(d):
         return TanhRV(d)
     return numpy.tanh(d)
 
+
+class SigmoidDistr(FuncDistr):
+    """Sigmoid function of a random variable"""
+    def __init__(self, d):
+        super(SigmoidDistr, self).__init__(d, pole_at_zero= False, fname ="tanh")
+
+    def f(self, x):
+        if isscalar(x):
+            if x > 0:
+                y = 1.0 / (1.0 + numpy.exp(-x))
+            else:
+                ex = numpy.exp(x)
+                y =  ex / (ex + 1.0)
+        else:
+            y = zeros_like(asfarray(x))
+            mask = (x > 0)
+            y[mask] = 1.0 / (1.0 + numpy.exp(-x[mask]))
+            ex = numpy.exp(x[~mask])
+            y[~mask] = ex / (ex + 1.0)
+        return y
+    def f_inv(self, x):
+        if isscalar(x):
+            if x <= -1 or x >= 1:
+                y = 0
+            else:
+                y = numpy.log(x / (1.0-x))
+        else:
+            mask = (x > -1) & (x < 1)
+            y = zeros_like(asfarray(x))
+            y[mask] = numpy.log(x[mask] / (1.0-x[mask]))
+        return y
+    def f_inv_deriv(self, x):
+        if isscalar(x):
+            if x <= -1 or x >= 1:
+                y = 0
+            else:
+                y = 1.0 / (x*(1 - x))
+        else:
+            mask = (x > -1) & (x < 1)
+            y = zeros_like(asfarray(x))
+            y[mask] = 1.0 / (x[mask] * (1 - x[mask]))
+        return y
+
+def sigmoid(d):
+    """Overload the tanh function."""
+    if isinstance(d, Distr):
+        return SigmoidDistr(d)
+    if isscalar(x):
+        if x > 0:
+            y = 1.0 / (1.0 + numpy.exp(-x))
+        else:
+            ex = numpy.exp(x)
+            y =  ex / (ex + 1.0)
+    else:
+        y = zeros_like(asfarray(x))
+        mask = (x > 0)
+        y[mask] = 1.0 / (1.0 + numpy.exp(-x[mask]))
+        ex = numpy.exp(x[~mask])
+        y[~mask] = ex / (ex + 1.0)
+    return y
+
+
 class InvDistr(InvRV, OpDistr):
     """Inverse of random variable."""
     def __init__(self, d):
