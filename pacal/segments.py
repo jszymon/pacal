@@ -307,11 +307,13 @@ class Segment(object):
             else:
                 return MInfSegment(g(self.a), fun)
         else:
-            if g(self.a)<=g(self.b):
+            if g(self.a) < g(self.b):
                 if g(self.a)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.a), g(self.b), fun)
                 else:
                     return Segment(g(self.a),g(self.b), fun)
+            elif g(self.a) == g(self.b):
+                return DiracSegment(g(self.a), self.integrate())
             else:
                 if g(self.b)==0.0 and pole_at_zero:
                     return SegmentWithPole(g(self.b), g(self.a), fun, left_pole = False)
