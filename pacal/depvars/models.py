@@ -248,7 +248,7 @@ class Model(object):
             cond[v] = x
         ii=0
         while wanted_rvs != set(M.all_vars):
-            # print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
+            print "OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars]
             # eliminate all dangling variables
             to_remove = []
             for v in M.dep_rvs:
@@ -272,7 +272,7 @@ class Model(object):
             exchanged_vars = set()
 
             while wanted_rvs | exchanged_vars != set(M.all_vars):
-                #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
+                print "INNER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "exchanged:", [tmp_rv.getSymname() for tmp_rv in exchanged_vars], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars]
                 #print M.nddistr
                 # find a free var to eliminate
                 ii += 1
@@ -313,7 +313,7 @@ class Model(object):
                         key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
                         #key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
-                print pairs
+                print [(key, fv.getSymname(), dv.getSymname()) for key, fv, dv in sorted(pairs)]
                 if len(pairs) > 0:
                     pairs.sort()
                     _key, fv, dv = pairs[0]
