@@ -248,7 +248,7 @@ class Model(object):
             cond[v] = x
         ii=0
         while wanted_rvs != set(M.all_vars):
-            print "OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars]
+            print "OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars], "dep:", [tmp_rv.getSymname() for tmp_rv in M.dep_rvs]
             # eliminate all dangling variables
             to_remove = []
             for v in M.dep_rvs:
@@ -299,6 +299,12 @@ class Model(object):
                         M.condition(v, cond[v])
                 if len(to_remove) > 0:
                     continue
+                # check if exchanging vars can bring any benefits at all
+                dep_rvs_and_anc = set(M.dep_rvs) - exchanged_vars
+                for rv in set(M.dep_rvs) - exchanged_vars:
+                    dep_rvs_and_anc.update(M.get_parents(rv))
+                if dep_rvs_and_anc.issubset(wanted_rvs):
+                    break
                 # find an unwanted free var and a dep var to exchange
                 exchangeable_dep_vars = []
                 for v in M.dep_rvs:
