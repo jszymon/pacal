@@ -21,7 +21,12 @@ from pacal.depvars.nddistr import NDFun, NDConstFactor, NDProductDistr
 from pacal.depvars.nddistr import plot_2d_distr, plot_1d1d_distr
 from pacal import params
 
-import pygraphviz as pgv
+try:
+    import pygraphviz as pgv
+    have_pgv = True
+except:
+    have_pgv = False
+
 
 def _get_str_sym_name(v):
     return str(v.getSymname())
@@ -243,7 +248,7 @@ class Model(object):
             cond[v] = x
         ii=0
         while wanted_rvs != set(M.all_vars):
-            # print "OUTER LOOP| wanted:", wanted_rvs, "all:", M.all_vars
+            print "OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars], "dep:", [tmp_rv.getSymname() for tmp_rv in M.dep_rvs]
             # eliminate all dangling variables
             to_remove = []
             for v in M.dep_rvs:
@@ -267,7 +272,7 @@ class Model(object):
             exchanged_vars = set()
 
             while wanted_rvs | exchanged_vars != set(M.all_vars):
-                #print "INNER LOOP| \nwanted:", wanted_rvs, "\nexchanged:", exchanged_vars, "\nall:", M.all_vars
+                print "INNER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "exchanged:", [tmp_rv.getSymname() for tmp_rv in exchanged_vars], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars]
                 #print M.nddistr
                 # find a free var to eliminate
                 ii += 1
@@ -277,9 +282,10 @@ class Model(object):
                     print M
                     print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
                     print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
-                    G = pgv.AGraph("file"+str(ii)+".dot")
-                    G.layout("dot")
-                    G.draw("file"+str(ii)+".pdf","pdf")
+                    if have_pgv:
+                        G = pgv.AGraph("file"+str(ii)+".dot")
+                        G.layout("dot")
+                        G.draw("file"+str(ii)+".pdf","pdf")
                 to_remove = []
                 for v in M.free_rvs:
                     if v not in wanted_rvs:
@@ -293,6 +299,12 @@ class Model(object):
                         M.condition(v, cond[v])
                 if len(to_remove) > 0:
                     continue
+                # check if exchanging vars can bring any benefits at all
+                dep_rvs_and_anc = set(M.dep_rvs) - exchanged_vars
+                for rv in set(M.dep_rvs) - exchanged_vars:
+                    dep_rvs_and_anc.update(M.get_parents(rv))
+                if dep_rvs_and_anc.issubset(wanted_rvs):
+                    break
                 # find an unwanted free var and a dep var to exchange
                 exchangeable_dep_vars = []
                 for v in M.dep_rvs:
@@ -304,10 +316,10 @@ class Model(object):
                     for fv in M.get_parents(dv):
                         nchildren = len(M.get_children(fv))
                         nterms = 0#M.nddistr.get_n_terms(fv) # TODO!!!
-                        #key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
-                        key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
+                        key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
+                        #key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
-                print pairs
+                print [(key, fv.getSymname(), dv.getSymname()) for key, fv, dv in sorted(pairs)]
                 if len(pairs) > 0:
                     pairs.sort()
                     _key, fv, dv = pairs[0]
@@ -326,9 +338,10 @@ class Model(object):
             print M
             print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
             print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
-            G = pgv.AGraph("file"+str(ii)+".dot")
-            G.layout("dot")
-            G.draw("file"+str(ii)+".pdf","pdf")
+            if have_pgv:
+                G = pgv.AGraph("file"+str(ii)+".dot")
+                G.layout("dot")
+                G.draw("file"+str(ii)+".pdf","pdf")
         return M
     def are_free(self, vars):
         for v in vars:
