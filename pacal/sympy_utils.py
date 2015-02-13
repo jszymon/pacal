@@ -4,6 +4,7 @@ Mainly work around incompatibilities between versions."""
 
 from functools import partial
 from numpy import isfinite
+import numpy as np
 import sympy
 import sympy.printing.lambdarepr
 
@@ -59,9 +60,10 @@ def eq_solve(lhs, rhs, x):
         _eq_cache[key] = solutions
     return solutions
 
+_numpy_funcs = [("sqrt", np.sqrt), ("log", np.log), ("exp", np.exp)]
 def _my_lambdify_helper(expr_str, argnames, *argvals):
-    #print expr_str, argnames, argvals, dict(zip(argnames, argvals))
-    return eval(expr_str, globals(), dict(zip(argnames, argvals)))
+    #print expr_str, argnames, argvals, dict(_numpy_funcs + zip(argnames, argvals))
+    return eval(expr_str, globals(), dict(_numpy_funcs + zip(argnames, argvals)))
 def my_lambdify(args, expr, modules=None, printer=None, use_imps=True):
     """Lambdify sympy expressions without using lambda functions."""
     if params.general.parallel:
