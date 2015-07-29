@@ -2,6 +2,7 @@
 #! Simple differential equation
 #! ============================
 from pacal import *
+from pacal.standard_distr import PDistr
 from pylab import figure, show, subplot, title, plot, xlabel, ylabel, legend, rc
 
 from matplotlib.lines import Line2D
@@ -20,7 +21,7 @@ from pacal.depvars.nddistr import NDProductDistr, Factor1DDistr
 from numpy import array, zeros
 import time
 t0 = time.time()
-params.interpolation_nd.maxq = 7
+params.interpolation_nd.maxq = 6
 params.interpolation.maxn = 100
 params.interpolation_pole.maxn =100
 params.interpolation_nd.debug_info = False
@@ -34,18 +35,29 @@ params.models.debug_info = False
 #!
 #! O(i) = Y(i) + E(i), i=1,...,n-1
 #!
-
-A = BetaDistr(3, 3, sym="A")    # parameter of equation
-Y0 = BetaDistr(3, 3, sym="Y0")  # initial value
+Ax = UniformDistr(0,2)# + MollifierDistr(0.1)
+Y0x = UniformDistr(0,2)# + MollifierDistr(0.1)
+A =  FunDistr(Ax.get_piecewise_pdf(), Ax.get_piecewise_pdf().getBreaks(), sym="A")
+Y0 =  FunDistr(Y0x.get_piecewise_pdf(), Y0x.get_piecewise_pdf().getBreaks(), sym="Y0")
+    
+# A = BetaDistr(3, 3, sym="A")    # parameter of equation
+# Y0 = BetaDistr(3, 3, sym="Y0")  # initial value
 n = 10                          # number time points
 h = 1.0 / n
 K = (1 + h * A)
 K.setSym("K") 
-Y, O, E, U  = [], [], [], []           # lists of states, observations and errors
+Y, O, E, U, Us  = [], [], [], [], []           # lists of states, observations and errors
 for i in xrange(n):
     #Y.append(Y[i] * K)
-    #Y[i + 1].setSym("Y" + str(i + 1))  
-    U.append(UniformDistr(-0.1,0.1, sym="U{0}".format(i)))
+    #Y[i + 1].setSym("Y" + str(i + 1))
+    D = UniformDistr(-0.1,0.1)# + MollifierDistr(0.1)
+    print D.get_piecewise_pdf().getBreaks()
+    #U.append()
+    X =  FunDistr(D.get_piecewise_pdf(), D.get_piecewise_pdf().getBreaks())
+    U.append(X)
+    #Us[i].setSym("U{0}".format(i))
+    #U.append(Us[i])
+    U[i].setSym("U{0}".format(i))
     # U will be conditioned on, so in effect constant
     if i==0:
         Y.append(Y0 * K+ h*U[i])
@@ -61,10 +73,12 @@ for i in xrange(n):
 #! Model
 #! -----
 P = NDProductDistr([A, Y0] + E + U)
+show()
 M = Model(P, O)
 print M
+#0/0
 M.eliminate_other(E + Y + O + [A, Y0] + U)
-print M
+#print M
 M.toGraphwiz(f=open('bn.dot', mode="w+"))
 
 #!
@@ -78,12 +92,13 @@ figure()
 for yend in [0.25, 1.25, 2.25]:
     M2 = M.inference(wanted_rvs=[A, Y0], cond_rvs=[O[-1]] + U, cond_X=[yend] + ui)
     subplot(1, 3, i + 1)
+    #figure()
     title("O_{0}={1}".format(n, yend))
     M2.plot()
     ay0.append(M2.nddistr.mode())           # "most probable" state
     print "yend=", yend, ",  MAP  est. of A, Y0 =", ay0[i]
     i += 1
-show()
+
 #!
 #! Trajectory
 #! ----------

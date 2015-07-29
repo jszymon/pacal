@@ -112,6 +112,7 @@ class Model(object):
             for vc in var_changes:
                 print vc[0]
             raise RuntimeError("Equations with multiple solutions are not supported")
+            #var_changes = var_changes[:1]
 
         inv_transf, inv_transf_lamdified, inv_transf_vars, jacobian = var_changes[0]
         self.free_rvs.remove(free_var)
@@ -157,8 +158,8 @@ class Model(object):
             # Jacobian
             #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
             J = sympy.diff(uj, dep_var.getSymname())
-            print J.atoms
-            J_symbols = list(sorted(J.atoms(sympy.Symbol)))
+            print J.atoms()
+            J_symbols = list(sorted(J.atoms(sympy.Symbol), key = str))
             if len(J_symbols) > 0:
                 jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
                 jacobian = my_lambdify(J_symbols, J, "numpy")
@@ -168,7 +169,7 @@ class Model(object):
                 jacobian_vars = []
 
             if params.models.debug_info:
-                print ";  Jaccobian=", J
+                print ";  Jacobian=", J
             #print "variables: ", J_symbols, jacobian_vars
 
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
@@ -868,4 +869,3 @@ if __name__ == "__main__":
     0/0
 
     # ====================================================
-

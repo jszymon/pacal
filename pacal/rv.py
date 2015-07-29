@@ -67,12 +67,18 @@ class RV(object):
         """return, symbolic representation of RV"""
         return self.sym
 
-    def setSym(self, sym):
-        """it set, symbolic name of RV"""
+    def setSym(self, sym, make_free = False):
+        """Set the symbolic name of RV."""
+
         if isinstance(sym, str):
             self.symname = sympy.Symbol(sym)
         else:
             self.symname = sym
+    def make_free(self):
+        """Removes the equation of the variable and its parents.  The variable
+        becomes free."""
+        self.sym = self.symname
+        self.parents = []
     #def getSymbol
     def getSymname(self):
         return self.symname
