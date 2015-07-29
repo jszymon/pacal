@@ -43,6 +43,8 @@ class FunDistr(Distr):
             self.piecewise_pdf = self.piecewise_pdf.toInterpolated()
     def rand_raw(self, n = 1):
         return self.rand_invcdf(n)
+    def range(self):
+        return self.breakPoints[0], self.breakPoints[-1]   
     
 class PDistr(Distr):
     """General distribution defined as piecewise function."""
