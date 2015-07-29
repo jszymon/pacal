@@ -504,7 +504,8 @@ class Distr(RV):
                 assert self.range_()[1]>restriction.L, "Lower value out of range"+str(self.range_())+str(self)
                 return CondGtDistr(self, restriction.L)
             if isinstance(restriction, Between):
-                return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
+                return CondBetweenDistr(self, restriction.L, restriction.U)
+                #return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
         raise NotImplemented()
 
 def _wrapped_name(d, incl_classes = None):
@@ -1253,7 +1254,32 @@ class CondLtDistr(Distr):
         return self.rand_invcdf(n)
     def range(self):
         return self.d.range()[0], self.U
+
+class CondBetweenDistr(Distr):
+    def __init__(self, d, L=None, U=None, **kwargs):
+        self.L = L
+        self.U = U
+        self.d = d
+        super(CondBetweenDistr, self).__init__([], **kwargs)
+    def init_piecewise_pdf(self):
+        #Z = MaxDistr(ConstDistr(self.L), self.d)    
+        #Z = MinDistr(Z, ConstDistr(self.U))
+        #Z = min(max(self.d, self.L), self.U)
+        Z = max(min(self.d, self.U), self.L)
+        diracL = Z.get_piecewise_pdf().segments.pop(0)
+        diracU = Z.get_piecewise_pdf().segments.pop(-1)
+        pmass = 1. - (diracL.f + diracU.f)        
+        self.piecewise_pdf = (Z * DiscreteDistr(xi=[1.0], pi=[1./pmass])).get_piecewise_pdf()
         
+    def __str__(self):
+        return "{0} | {1}<X<{2}".format(self.d, self.L, self.U)
+    def getName(self):
+        return "{0} | {1}<X<{2}".format(self.d.getName(), self.L, self.U)
+    def rand_raw(self, n):
+        return self.rand_invcdf(n)
+    def range(self):
+        return self.L, self.U        
+
 class Condition(object):
     pass
 class Gt(Condition):
