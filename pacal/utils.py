@@ -302,6 +302,7 @@ class convergence_monitor(object):
         self.min_quit_no_improvement = par.min_quit_no_improvement # quit early if no improvement for this # of steps
         self.min_improvement_ratio = par.min_improvement_ratio # by what factor the error needs to improve
         self.min_quit_iter = max(2, self.min_quit_iter)
+        self.force_nonzero = par.force_nonzero
 
         self.ae_list = []
         self.y_list = []
@@ -319,7 +320,7 @@ class convergence_monitor(object):
         ae = self.ae_list[-1]
         step = len(self.ae_list)
         tol = max(self.abstol, yest * self.reltol)
-        if ae <= tol:
+        if ae <= tol and (not self.force_nonzero or yest > 0):
             self.converged = True
             return True, "converged"
         if len(self.ae_list) > 0:
@@ -330,7 +331,7 @@ class convergence_monitor(object):
                 self.n_no_improvement += 1
         if step >= self.min_quit_iter:
             if self.n_no_improvement >= self.min_quit_no_improvement:
-                return True, "diverged"
+                return True, "did not converge"
         return False, "continue"
     def get_best_result(self, err_decr = 0.75):
         """Return currently best result.  A result is considered only

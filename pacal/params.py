@@ -61,6 +61,9 @@ class convergence(params_class):
                                 # steps
     min_improvement_ratio = 0.5 # minimum decrease in error considered
                                 # an improvement
+    force_nonzero = False # stop only when targer value is nonzero
+                          # helps avoiding too sparse grids missing
+                          # all nonzero points
 
 # default interpolation parameters
 class interpolation(params_class):
@@ -106,6 +109,7 @@ class interpolation_nd(interpolation):
     class convergence(interpolation.convergence):
         abstol = 1e-8
         reltol = 1e-8
+        force_nonzero = True
     debug_info = True
     debug_plot = False
     
