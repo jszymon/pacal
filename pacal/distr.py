@@ -1050,7 +1050,7 @@ class DiscreteDistr(Distr):
         self.cumP = cumsum(self.pi)
     def pdf(self, x):
         """it override pdf() method to obtain discrete probabilities"""
-        yy = zeros_like(x)
+        yy = zeros_like(x, dtype=float)
         for i in range(len(self.pi)):
             yy[x==self.xi[i]] += float(self.pi[i])
         return yy
