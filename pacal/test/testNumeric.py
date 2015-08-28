@@ -31,16 +31,16 @@ def epsunique(tab, eps =1e-13):
 class TestBasicstat(unittest.TestCase):
 
     def setUp(self):
-        #print """====Test starting============================="""        
+        #print """====Test starting============================="""
         self.tol = 1e-8
         self.errMsg = "tolerance ({0}) exceeded".format(self.tol)
         self.ts = time.time()
-        
+
     def tearDown(self):
         te = time.time()
         #print 'mean(X)={0} (EX=df={2}), var={1} (VX=2*df={3})'.format(self.m, self.v, self.EX, self.VX)
-        #print 'test done,   time=%7.5f s' % (te - self.ts)      
-    
+        #print 'test done,   time=%7.5f s' % (te - self.ts)
+
     def testNormal(self):
         #print """basic stats of normal distribution"""
         mu = -17.0
@@ -51,7 +51,7 @@ class TestBasicstat(unittest.TestCase):
         self.EX = mu
         self.VX = sigma**2
         self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
-        
+
     def testChi2(self):
         #print """basic stats of Chi2 distribution"""
         df = 50
@@ -61,7 +61,7 @@ class TestBasicstat(unittest.TestCase):
         self.EX = df
         self.VX = df*2
         self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
-        
+
     def testUniform(self):
         #print """basic stats of uniform distribution"""
         a = 0.0
@@ -75,7 +75,7 @@ class TestBasicstat(unittest.TestCase):
 
 class TestIntegral(unittest.TestCase):
     def setUp(self):
-        #print """====Test starting============================="""        
+        #print """====Test starting============================="""
         self.tol = 8 * eps
         self.ts = time.time()
     def _assert_integ(self, err, I):
@@ -84,8 +84,8 @@ class TestIntegral(unittest.TestCase):
         te = time.time()
         #print self.iClenshaw - self.exact, self.errClenshaw, self.tClenshaw - self.ts
         #print self.iQuad - self.exact, self.errQuad, self.tQuad - self.ts
-        #print 'test done,   time=%7.5f s' % (te - self.ts)      
-       
+        #print 'test done,   time=%7.5f s' % (te - self.ts)
+
     def testClenshaw(self):
         #print """Test clenshaw integration"""
         exact = sin(2)
@@ -166,7 +166,7 @@ class TestInterpolation(unittest.TestCase):
         Y = f2.interp_at(X)
         err = abs(exact - Y).max()
         return err
-       
+
     def testBasicInterp(self):
         """Test basic Chebyshev interpolation on finite interval."""
         ci = ChebyshevInterpolator(cos, -2, 8)
@@ -211,15 +211,15 @@ class TestInterpolation(unittest.TestCase):
         self.assert_(err < self.tol, self._str_error(err, ci))
 class TestVectorisation(unittest.TestCase):
     def setUp(self):
-        #print """====Test starting============================="""        
+        #print """====Test starting============================="""
         self.x = linspace(-2,2,10001)
         self.x_mat = (arange(25, dtype=float) / 25)#.reshape(5,5)
         self.xleft = linspace(-10,0,10000)
         self.xright = linspace(0,10,10000)
-        self. ts = time.time()     
+        self. ts = time.time()
     def tearDown(self):
         te = time.time()
-        #print 'test done,   time=%7.5f s' % (te - self.ts) 
+        #print 'test done,   time=%7.5f s' % (te - self.ts)
     def testNormal(self):
         N1 = NormalDistr(0,1)
         y=N1.pdf(self.x)
@@ -229,35 +229,35 @@ class TestVectorisation(unittest.TestCase):
         y=U1.pdf(self.x)
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1)    
+        self.assert_(0 < 1)
     def testChi2(self):
         Ch = ChiSquareDistr(4)
         y=Ch.pdf(self.x)
-        self.assert_(0 < 1)      
+        self.assert_(0 < 1)
     def testUniformFor(self):
         U1 = UniformDistr(0,1)
         y1 = [U1.pdf(x) for x in self.x]
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1)    
+        self.assert_(0 < 1)
     def testChebFor(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
         y = [c.interp_at(x) for x in self.x]
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1) 
+        self.assert_(0 < 1)
     def testCheb(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
-        y = c.interp_at(self.x)       
+        y = c.interp_at(self.x)
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1) 
+        self.assert_(0 < 1)
     def testChebMat(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
-        y = c.interp_at(self.x_mat)       
+        y = c.interp_at(self.x_mat)
         #print self.x_mat
         #print y
-        self.assert_(0 < 1) 
+        self.assert_(0 < 1)
 
 class TestVarTransform(unittest.TestCase):
     def setUp(self):
@@ -293,11 +293,11 @@ class TestVarTransform(unittest.TestCase):
 
 class TestInterpolators(unittest.TestCase):
     def setUp(self):
-        #print """====Test starting============================="""        
-        self. ts = time.time()     
+        #print """====Test starting============================="""
+        self. ts = time.time()
     def tearDown(self):
         te = time.time()
-        print 'test done,   time=%7.5f s' % (te - self.ts) 
+        print 'test done,   time=%7.5f s' % (te - self.ts)
     def testChebcoef(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         seg = S.segments[0]
@@ -335,7 +335,7 @@ class TestInterpolators(unittest.TestCase):
         D.plot(color="k")
         for i in range (n):
             D = D.diff()
-            D.plot(color="k")        
+            D.plot(color="k")
         #show()
     def testRoots(self):
         n=8
@@ -343,7 +343,7 @@ class TestInterpolators(unittest.TestCase):
         for i in range (n):
             S += UniformDistr(0,2)
         D = S.get_piecewise_pdf().diff().diff()
-        
+
         r = D.roots()
         mi, xi = D.characteristicPoints()
         figure()
@@ -409,15 +409,15 @@ def suite():
 #    suite.addTest(TestInterpolation("testInterpPInf"))
 #    suite.addTest(TestInterpolation("testInterpMInf"))
 #    #suite.addTest(TestInterpolation("testNormalPMInf"))
-#    
+#
 #    suite.addTest(TestVectorisation("testNormal"))
-#    suite.addTest(TestVectorisation("testUniform"))    
+#    suite.addTest(TestVectorisation("testUniform"))
 #    suite.addTest(TestVectorisation("testUniformFor"))
 #    suite.addTest(TestVectorisation("testChi2"))
 #    suite.addTest(TestVectorisation("testChebFor"))
 #    suite.addTest(TestVectorisation("testCheb"))
 #    suite.addTest(TestVectorisation("testChebMat"))
-#    
+#
 #    suite.addTest(TestVarTransform("testVarChangeWMask1"))
 #    suite.addTest(TestVarTransform("testVarChangeWMask2"))
 #    suite.addTest(TestVarTransform("testVarChangeWMask3"))
@@ -428,7 +428,7 @@ def suite():
 #    suite.addTest(TestVarTransform("testApplyWithTransform3"))
 
     return suite;
-   
+
 if __name__ == "__main__":
     #suite = unittest.TestLoader().loadTestsFromTestCase(TestFunc)
     #unittest.TextTestRunner(verbosity=2).run(suite)
