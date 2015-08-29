@@ -111,7 +111,7 @@ class Distr(RV):
         """Initialize the pdf represented as a piecewise function.
 
         This method should be overridden by subclasses."""
-        raise NotImplemented()
+        raise NotImplementedError()
     def get_piecewise_invcdf(self, use_interpolated=True):
         """return, inverse CDF function, as PiecewiseFunction object"""
         if use_interpolated:
@@ -410,24 +410,24 @@ class Distr(RV):
             return SumDistr(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledDistr(self, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __radd__(self, d):
         """Overload sum with real number: distribution of X+r."""
         if isinstance(d, numbers.Real):
             return ShiftedScaledDistr(self, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __sub__(self, d):
         """Overload subtraction: distribution of X-Y."""
         if isinstance(d, Distr):
             return SubDistr(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledDistr(self, shift = -d)
-        raise NotImplemented()
+        return NotImplemented
     def __rsub__(self, d):
         """Overload subtraction with real number: distribution of X-r."""
         if isinstance(d, numbers.Real):
             return ShiftedScaledDistr(self, scale = -1, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __mul__(self, d):
         """Overload multiplication: distribution of X*Y."""
         if isinstance(d, Distr):
@@ -437,7 +437,7 @@ class Distr(RV):
                 return 0
             else:
                 return ShiftedScaledDistr(self, scale = d)
-        raise NotImplemented()
+        return NotImplemented
     def __rmul__(self, d):
         """Overload multiplication by real number: distribution of X*r."""
         if isinstance(d, numbers.Real):
@@ -447,7 +447,7 @@ class Distr(RV):
                 if d == 1:
                     return self
                 return ShiftedScaledDistr(self, scale = d)
-        raise NotImplemented()
+        return NotImplemented
     def __div__(self, d):
         """Overload division: distribution of X/r."""
         if isinstance(d, Distr):
@@ -456,7 +456,7 @@ class Distr(RV):
             if d == 1:
                 return self
             return ShiftedScaledDistr(self, scale = 1.0 / d)
-        raise NotImplemented()
+        return NotImplemented
     def __rdiv__(self, d):
         """Overload division by real number: distribution of X*r."""
         if isinstance(d, numbers.Real):
@@ -464,7 +464,7 @@ class Distr(RV):
                 return 0
             d = float(d)
             return d * InvDistr(self)
-        raise NotImplemented()
+        return NotImplemented
     def __pow__(self, d):
         """Overload power: distribution of X**Y,
         and special cases: X**(-1), X**2, X**0. X must be positive definite."""
@@ -482,7 +482,7 @@ class Distr(RV):
             else:
                 return ExpDistr(ShiftedScaledDistr(LogDistr(self), scale = d))
                 #return PowDistr(self, alpha = d)
-        raise NotImplemented()
+        return NotImplemented
     def __rpow__(self, x):
         """Overload power: distribution of X**r"""
         if isinstance(x, numbers.Real):
@@ -493,7 +493,7 @@ class Distr(RV):
             if x < 0:
                 raise ValueError()
             return ExpDistr(ShiftedScaledDistr(self, scale = numpy.log(x)))
-        raise NotImplemented()
+        return NotImplemented
     def __or__(self, restriction):
         """Overload or: Conditional distribution """
         if isinstance(restriction, Condition):
@@ -506,7 +506,7 @@ class Distr(RV):
             if isinstance(restriction, Between):
                 return CondBetweenDistr(self, restriction.L, restriction.U)
                 #return CondLtDistr(CondGtDistr(self, restriction.L), restriction.U)
-        raise NotImplemented()
+        return NotImplemented
 
 def _wrapped_name(d, incl_classes = None):
     """Return name of d wrapped in parentheses if necessary"""
@@ -1172,7 +1172,7 @@ def min(*args):
     elif isinstance(d1, numbers.Real) and isinstance(d2, Distr):
         return MinDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
-        raise NotImplemented()
+        raise TypeError("unorderable types: {}() < {}()".format(type(d1).__name__, type(d2).__name__))
     elif isinstance(d1, RV) and isinstance(d2, RV):
         return MinRV(d1, d2)
     else:
@@ -1190,7 +1190,7 @@ def max(*args):
     elif isinstance(d1, numbers.Real) and isinstance(d2, Distr):
         return MaxDistr(ConstDistr(d1), d2)
     elif isinstance(d1, Distr) or isinstance(d2, Distr):
-        raise NotImplemented()
+        raise TypeError("unorderable types: {}() > {}()".format(type(d1).__name__, type(d2).__name__))
     elif isinstance(d1, RV) and isinstance(d2, RV):
         return MaxRV(d1, d2)
     else:

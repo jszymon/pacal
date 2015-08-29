@@ -1099,7 +1099,7 @@ class PiecewiseFunction(object):
         for seg in self.segments:
             if seg.isMInf() or seg.isPInf():
                 pass
-                #raise NotImplemented("not implemented")
+                #raise NotImplementedError("not implemented")
             else:
                 segi = seg.diff()
                 diffPFun.addSegment(segi)
@@ -1507,46 +1507,46 @@ class PiecewiseFunction(object):
             return self._operation__(other, operation = operator.add)
         elif isinstance(other, numbers.Real):
             return self.__radd__(other)
-        raise NotImplemented()
+        return NotImplemented
     def __sub__(self, other):
         if isinstance(other, PiecewiseFunction):
             return self._operation__(other, operation = operator.sub)
         elif isinstance(other, numbers.Real):
             return self.__rsub__(other)
-        raise NotImplemented()
+        return NotImplemented
     def __mul__(self, other):
         if isinstance(other, PiecewiseFunction):
             return self._operation__(other, operation = operator.mul)
         elif isinstance(other, numbers.Real):
             return self.__rmul__(other)
-        raise NotImplemented()
+        return NotImplemented
     def __div__(self, other):
         #TODO handle zeros o denominator, !!!currently unhandled!!!
         if isinstance(other, PiecewiseFunction):
             return self._operation__(other, operation = operator.div)
         elif isinstance(other, numbers.Real):
             return self.__rdiv__(other)
-        raise NotImplemented()
+        return NotImplemented
     def __radd__(self, r, operation = operator.add):
         """Overload sum with real number: distribution of r+X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
-        raise NotImplemented()
+        return NotImplemented
     def __rsub__(self, r, operation = _op_rsub):
         """Overload sum with real number: distribution of r-X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation)
-        raise NotImplemented()
+        return NotImplemented
     def __rmul__(self, r, operation = operator.mul):
         """Overload product with real number: distribution of r*X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation = operator.mul)
-        raise NotImplemented()
+        return NotImplemented
     def __rdiv__(self, r, operation = _op_rdiv):
         """Overload division by real number: distribution of r/X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation )
-        raise NotImplemented()
+        return NotImplemented
 
     def _roperation__(self, r, operation = operator.add):
         """Pointwise sum piecewise functions with real number """
