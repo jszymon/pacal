@@ -1,4 +1,0 @@
-pacal
-=====
-
-PaCAL - ProbAbilistic CALculator
