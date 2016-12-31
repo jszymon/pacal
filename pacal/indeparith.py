@@ -13,15 +13,15 @@ from numpy import minimum, maximum, pi
 
 from matplotlib.mlab import find
 
-import params
+from . import params
 
-from integration import *
-from interpolation import *
-from segments import DiracSegment
-from segments import Segment, SegmentWithPole, PInfSegment, MInfSegment
-from segments import PiecewiseDistribution, _segint
-from utils import epsunique, testPole
-from utils import get_parmap
+from .integration import *
+from .interpolation import *
+from .segments import DiracSegment
+from .segments import Segment, SegmentWithPole, PInfSegment, MInfSegment
+from .segments import PiecewiseDistribution, _segint
+from .utils import epsunique, testPole
+from .utils import get_parmap
 
 import multiprocessing
 import time 
@@ -120,7 +120,7 @@ def conv(f, g):
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         breaks = breaks[:-1]
-    for i in xrange(len(breaks)-1):
+    for i in range(len(breaks)-1):
         segList = _findSegListAdd(f, g, (breaks[i][0] + breaks[i+1][0])/2)
         fun = Convxrunner(segList, params.integration_finite).convx
         seg = Segment(breaks[i][0], breaks[i+1][0], fun)
@@ -130,30 +130,30 @@ def conv(f, g):
             NoL = True
             left_pole = testPole(fun, breaks[i][0])
             if left_pole and params.segments.debug_info:
-                print "probably pole", estimateDegreeOfPole(fun, breaks[i][0])
+                print("probably pole", estimateDegreeOfPole(fun, breaks[i][0]))
             elif params.segments.debug_info:   
-                print "probably no pole", estimateDegreeOfPole(fun, breaks[i][0])
+                print("probably no pole", estimateDegreeOfPole(fun, breaks[i][0]))
         if breaks[i][4]: # potential singularity on the left
             NoL = True
             left_pole = testPole(fun, breaks[i][0], deriv = True)
             if left_pole and params.segments.debug_info:
-                print "probably deriv pole", estimateDegreeOfPole(fun, breaks[i][0], deriv = True)
+                print("probably deriv pole", estimateDegreeOfPole(fun, breaks[i][0], deriv = True))
             elif params.segments.debug_info:   
-                print "probably no deriv pole", estimateDegreeOfPole(fun, breaks[i][0], deriv = True)
+                print("probably no deriv pole", estimateDegreeOfPole(fun, breaks[i][0], deriv = True))
         if breaks[i+1][1]: # potential singularity on the right
             NoR = True
             right_pole = testPole(fun, breaks[i+1][0], pos = False)
             if right_pole and params.segments.debug_info:
-                print "probably pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False)
+                print("probably pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False))
             elif params.segments.debug_info:
-                print "probably no pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False)
+                print("probably no pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False))
         if breaks[i+1][3]: # potential singularity on the right
             NoR = True
             right_pole = testPole(fun, breaks[i+1][0], pos = False, deriv = True)
             if right_pole and params.segments.debug_info:
-                print "probably deriv pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False, deriv = True)
+                print("probably deriv pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False, deriv = True))
             elif params.segments.debug_info:
-                print "probably no deriv pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False, deriv = True)
+                print("probably no deriv pole", estimateDegreeOfPole(fun, breaks[i+1][0], pos = False, deriv = True))
         segint = seg.toInterpolatedSegment(left_pole, NoL, right_pole, NoR)
         fg.addSegment(segint)
     # Discrete parts of distributions
@@ -348,7 +348,7 @@ class Convxrunner(object):
                     #    print ix, iy, log(ix) - log(x**-1.5), log(iy) - log(x**-1.5)
                     #    print
                 else:
-                    print "Should not be here!!!"
+                    print("Should not be here!!!")
                     assert(False)
             #if 3.26 < log(-x+1) < 3.27:
             #    print "x", x, log(-x+1), segi, segj, repr(Lx), repr(Ux), ix
@@ -953,27 +953,27 @@ def convprod(f, g):
             if pole_at_zero or testPole(fun, ub[i], pos = True):
                 #segint = InterpolatedSegmentWithPole(ub[i],ub[i+1], fun, left_pole = True)
                 if params.segments.debug_info:
-                    print "probably pole at 0 left prod", fun(0.0)
+                    print("probably pole at 0 left prod", fun(0.0))
                 seg = SegmentWithPole(ub[i],ub[i+1], fun, left_pole = True)  
             else:
                 if params.segments.debug_info:
-                    print "probably no pole at 0 left prod", fun(0.0)
+                    print("probably no pole at 0 left prod", fun(0.0))
                 seg = Segment(ub[i],ub[i+1], fun)
                 _NoL = True
         elif (ub[i+1] == 0): # TODO add proper condition
             #segint = InterpolatedSegmentWithPole(ub[i],ub[i+1], fun, left_pole = False)
             if pole_at_zero or testPole(fun, ub[i+1], pos = False):
                 if params.segments.debug_info:
-                    print "probably pole at 0 right prod", fun(0.0)
+                    print("probably pole at 0 right prod", fun(0.0))
                 seg = SegmentWithPole(ub[i],ub[i+1], fun, left_pole = False)                 
             else:
                 if params.segments.debug_info:
-                    print "probably no pole at 0 right prod", fun(0.0)
+                    print("probably no pole at 0 right prod", fun(0.0))
                 seg = Segment(ub[i],ub[i+1], fun)
                 _NoR = True
         else:
             if params.segments.debug_info:
-                print "probably no pole prod"
+                print("probably no pole prod")
             seg = Segment(ub[i],ub[i+1], fun)
         segint = seg.toInterpolatedSegment(NoL = _NoL, NoR = _NoR)
         #segint = seg.toInterpolatedSegment()
@@ -1144,7 +1144,7 @@ def convdiv(f, g):
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[0:-1]
-    for i in xrange(len(ub)-1) :
+    for i in range(len(ub)-1) :
         segList = _findSegListDiv(f, g, (ub[i] + ub[i+1])/2)
         #fun = partial(fun_div, segList)
         fun = Convxrunner(segList, params.integration_infinite).fun_div
@@ -1154,27 +1154,27 @@ def convdiv(f, g):
             if testPole(fun, ub[i], pos = True):
                 #segint = InterpolatedSegmentWithPole(ub[i],ub[i+1], fun, left_pole = True)
                 if params.segments.debug_info:
-                    print "probably pole at 0 left div", fun(0.0)
+                    print("probably pole at 0 left div", fun(0.0))
                 seg = SegmentWithPole(ub[i], ub[i+1], fun, left_pole = True)     
             else:
                 if params.segments.debug_info:
-                    print "probably no pole at 0 left div", fun(0.0)
+                    print("probably no pole at 0 left div", fun(0.0))
                 seg = Segment(ub[i], ub[i+1], fun)
                 _NoL = True
         elif (ub[i+1] == 0): # TODO add proper condition
             #segint = InterpolatedSegmentWithPole(ub[i],ub[i+1], fun, left_pole = False)
             if testPole(fun, ub[i+1], pos = False):
                 if params.segments.debug_info:
-                    print "probably pole at 0 right div", fun(0.0)
+                    print("probably pole at 0 right div", fun(0.0))
                 seg = SegmentWithPole(ub[i], ub[i+1], fun, left_pole = False)                 
             else:
                 if params.segments.debug_info:
-                    print "probably no pole at 0 right div", fun(0.0)
+                    print("probably no pole at 0 right div", fun(0.0))
                 seg = Segment(ub[i], ub[i+1], fun)
                 _NoR = True
         else:
             if params.segments.debug_info:
-                print "probably no pole div",  fun(0.0)
+                print("probably no pole div",  fun(0.0))
             seg = Segment(ub[i], ub[i+1], fun)
         segint = seg.toInterpolatedSegment(NoL = _NoL, NoR = _NoR)
         fg.addSegment(segint)
@@ -1382,7 +1382,7 @@ def _segint_(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fa
     elif L<U:
         i, e = integrate_fejer2_pminf(fun, debug_info = debug_info, debug_plot = debug_plot)
     else:
-        print "errors in convdiv: x, segi, segj, L, U =", L, U
+        print("errors in convdiv: x, segi, segj, L, U =", L, U)
     return i,e
 
 
@@ -1394,11 +1394,11 @@ def convdiracs(f, g, fun = operator.add):
     for fi in f.getDiracs():
         for gi in g.getDiracs():
             key = fun(fi.a, gi.a)            
-            if wyn.has_key(key):
+            if key in wyn:
                 wyn[key] = wyn.get(key) + fi.f * gi.f
             else:  
                 wyn[key] = fi.f * gi.f
-    for key in wyn.keys():
+    for key in list(wyn.keys()):
         fg.addSegment(DiracSegment(key, wyn.get(key)))
     return fg
 def _probDiracAtZeroInProd(f, g):
@@ -1459,7 +1459,7 @@ def dumpSegList(segList):
     i=0
     for item in segList:
         i=i+1
-        print i, " ", item[0], ", ", item[1]    
+        print(i, " ", item[0], ", ", item[1])    
 
 
 
@@ -1467,7 +1467,7 @@ if __name__ == "__main__":
     def fun1(x):
         return 1-x**2
     
-    from segments import *
+    from .segments import *
     from pacal import *
     import pickle
     params.general.parallel=False
@@ -1479,9 +1479,9 @@ if __name__ == "__main__":
     #k.addSegment(Segment(0.2,1.0,lambda x: 1.0+0.0*x))
     #k = k.toInterpolated()
     #h.addSegment(ConstSegment(-1,0,0.5))
-    print k, k.range()
+    print(k, k.range())
     p = conv(k,h)
-    print "============================="
+    print("=============================")
     #print pickle.dumps(p.segments[0].f.interp_at)
     #params.general.parallel=False
     p = conv(k,p)

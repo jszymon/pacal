@@ -20,7 +20,7 @@ from pylab import bar, plot
 import time
 import traceback
 
-import params
+from . import params
 from pacal.indeparith import conv, convprod, convdiv, convmin, convmax
 from pacal.segments import PiecewiseFunction, PiecewiseDistribution, DiracSegment, ConstSegment
 from pacal.rv import *
@@ -66,7 +66,7 @@ class Distr(RV):
 
                 panc = p.getAncestorIDs()
                 if panc & anc:
-                    print "Warning: arguments treated as independent"
+                    print("Warning: arguments treated as independent")
                     break
                 anc.update(panc)
     def getName(self):
@@ -264,26 +264,26 @@ class Distr(RV):
             r['iqrange(0.025)'] = self.iqrange()
             r['medianad'] = self.medianad()  
             r['interval(0.95)'] = self.interval()       
-        except Exception, e:           
+        except Exception as e:           
             traceback.print_exc() 
         return r
     def summary(self, show_moments=False):
         """Summary statistics for a given distribution."""
-        print "============= summary ============="
+        print("============= summary =============")
         #print self.get_piecewise_pdf()
         #t0  = time.time()
         summ = self.summary_map()
-        print " ", self.getName()
+        print(" ", self.getName())
         for i in ['mean', 'var', 'skewness', 'kurtosis', 'entropy', 'median', 'mode', 'medianad', 'iqrange(0.025)', 'interval(0.95)',  'range',  'tailexp', 'int_err']:
-            if summ.has_key(i): 
-                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i])       
+            if i in summ: 
+                print('{0:{align}20}'.format(i, align = '>'), " = ", repr(summ[i]))       
             else:
-                print "---", i
+                print("---", i)
         if show_moments:
-            print "      moments:"
+            print("      moments:")
             for i in range(11):
                 mi = self.moment(i,0)
-                print '{0:{align}20}'.format(i, align = '>'), " = ", repr(mi)
+                print('{0:{align}20}'.format(i, align = '>'), " = ", repr(mi))
         #print "=====", time.time() - t0, "sec."
     def rand_raw(self, n = None):
         """Generates random numbers without tracking dependencies.
@@ -1042,7 +1042,7 @@ class DiscreteDistr(Distr):
     def __init__(self, xi=[0.0, 1.0], pi=[0.5, 0.5]):
         super(DiscreteDistr, self).__init__([])
         assert(len(xi) == len(pi))
-        px = zip(xi, pi)
+        px = list(zip(xi, pi))
         px.sort()
         self.px = px
         self.xi = [p[0] for p in px]
@@ -1056,9 +1056,9 @@ class DiscreteDistr(Distr):
         return yy
     def init_piecewise_pdf(self):
         self.piecewise_pdf = PiecewiseDistribution([])        
-        for i in xrange(len(self.xi)):
+        for i in range(len(self.xi)):
             self.piecewise_pdf.addSegment(DiracSegment(self.xi[i], self.pi[i]))
-        for i in xrange(len(self.xi)-1):
+        for i in range(len(self.xi)-1):
             self.piecewise_pdf.addSegment(ConstSegment(self.xi[i], self.xi[i+1], 0))
     def rand_raw(self, n):
         u = uniform(0, 1, n)
@@ -1356,10 +1356,10 @@ def demo_distr(d,
                 r.plot(numberOfPoints = n_points, xmin = xmin, xmax = xmax, color='k')
                 ss = d.summary_map()
                 sd = theoretical.summary_map()
-                print "============= summary ============="
-                print " ", d.getName()
+                print("============= summary =============")
+                print(" ", d.getName())
                 for i in ['mean', 'std', 'var', 'median', 'entropy', 'medianad', 'iqrange(0.025)',  'ci(0.05)', 'range', 'int_err']:
-                    if ss.has_key(i): 
+                    if i in ss: 
                         try:
                             if i=='int_err':
                                 r = abs(ss[i]-0)
@@ -1367,8 +1367,8 @@ def demo_distr(d,
                                 r = abs(ss[i]-sd[i])
                             if not r==r:
                                 r = 0.0                           
-                            print '{0:{align}20}'.format(i, align = '>'), "=", '{0:{align}24}'.format(repr(ss[i]), align = '>'), " +/-", '%1.3g' % r    
-                        except Exception, e:  
+                            print('{0:{align}20}'.format(i, align = '>'), "=", '{0:{align}24}'.format(repr(ss[i]), align = '>'), " +/-", '%1.3g' % r)    
+                        except Exception as e:  
                             pass
             else:
                 pylab.plot(X, abse, color='k')
@@ -1383,6 +1383,6 @@ def demo_distr(d,
     if summary and not theoretical:
         d.summary()
     if summary and theoretical:
-        print "max. abs. error", maxabserr
-        print "max. rel. error", maxrelerr
+        print("max. abs. error", maxabserr)
+        print("max. rel. error", maxrelerr)
     #show()

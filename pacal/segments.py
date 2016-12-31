@@ -5,11 +5,11 @@ import numbers
 import operator
 from functools import partial
 
-from integration import *
-from interpolation import *
-from utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent, is_instance_method
+from .integration import *
+from .interpolation import *
+from .utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent, is_instance_method
 
-import params
+from . import params
 
 from numpy import asfarray
 from numpy import linspace, multiply, add, divide, size
@@ -99,7 +99,7 @@ def _call_f(obj, x):
 def wrap_f(f):
     if params.general.parallel:
         if is_instance_method(f):
-            return partial(_call_f, f.im_self)
+            return partial(_call_f, f.__self__)
         return f
     return f
 def _safe_fun_on_f_call(seg, fun, x):
@@ -1164,7 +1164,7 @@ class PiecewiseFunction(object):
     def maximum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
         if not have_Scipy_optimize:
-            print "Warning: scipy's fminbound not found"      
+            print("Warning: scipy's fminbound not found")      
             return None
         m = 0
         x = None
@@ -1186,7 +1186,7 @@ class PiecewiseFunction(object):
     def minimum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
         if not have_Scipy_optimize:
-            print "Warning: scipy's fminbound not found"      
+            print("Warning: scipy's fminbound not found")      
             return None
         m = 0
         x = None
@@ -1238,7 +1238,7 @@ class PiecewiseFunction(object):
                         h1 = float(seg.f((seg.a + seg.b)/2))
                     else:
                         h1 = float(seg.f(xi+1e-10))
-            except Exception, e:           
+            except Exception as e:           
                 h1 = 0.0
                 h0 = 0.0
             seg.plot(xmin = xmin,
@@ -1253,7 +1253,7 @@ class PiecewiseFunction(object):
                     h0 = float(seg.f((seg.a + seg.b)/2))
                 else:
                     h0 = float(seg.f(seg.b-1e-10))
-            except Exception, e:           
+            except Exception as e:           
                 h0 = 0.0
             # plot right dashed line if next segment further off
             if i < len(self.segments) - 1 and self.segments[i+1].a > seg.b + params.segments.unique_eps:
@@ -1490,7 +1490,7 @@ class PiecewiseFunction(object):
             row = '{0} & {1} & {2} & {3}  & {4}  \\\\ \\hline \n'.format(i, seg.__class__.__name__, seg.a, seg.b, ni)
             str+=row
         str += "\\end{tabular}"
-        print str
+        print(str)
     
     def add_diracs(self, other):
         """Pointwise sum of discrete part of two piecewise functions """
@@ -1755,8 +1755,8 @@ class PiecewiseFunction(object):
                 ind = where((vals[i][1]<=y) & (y<=vals[i+1][0]))   
                 x[ind] = breaks[i+1]                 
         if (x is None): # It means
-            print "ASSERT x is None y=", y, self.__str__()
-            print "ASSERT x is None vals=", vals
+            print("ASSERT x is None y=", y, self.__str__())
+            print("ASSERT x is None vals=", vals)
             #assert(False)
             x = NaN
         return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
@@ -1872,7 +1872,7 @@ class PiecewiseDistribution(PiecewiseFunction):
     def mode(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
         if not have_Scipy_optimize:
-            print "Warning: scipy's fminbound not found"      
+            print("Warning: scipy's fminbound not found")      
             return None
         m = 0
         x = None
@@ -2019,7 +2019,7 @@ def _segint(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fal
     #print params.integration_infinite.exponent
     if L > U:
         if params.segments.debug_info:
-            print "Warning: reversed integration interval, returning 0"
+            print("Warning: reversed integration interval, returning 0")
         return 0, 0
     if L == U:
         return 0, 0
@@ -2050,7 +2050,7 @@ def _segint(fun, L, U, force_minf = False, force_pinf = False, force_poleL = Fal
     elif L<U:
         i, e = integrate_fejer2_pminf(fun, debug_info = debug_info, debug_plot = debug_plot, exponent = params.integration_infinite.exponent,)
     else:
-        print "errors in _conv_div: x, segi, segj, L, U =", L, U
+        print("errors in _conv_div: x, segi, segj, L, U =", L, U)
     #print "========"
     #if e>1e-10:
     #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
@@ -2066,11 +2066,11 @@ def _conv_diracs(f, g, fun = operator.add):
     for fi in f.getDiracs():
         for gi in g.getDiracs():
             key = fun(fi.a, gi.a)            
-            if wyn.has_key(key):
+            if key in wyn:
                 wyn[key] = wyn.get(key) + fi.f * gi.f
             else:  
                 wyn[key] = fi.f * gi.f
-    for key in wyn.keys():
+    for key in list(wyn.keys()):
         fg.addSegment(DiracSegment(key, wyn.get(key)))
     return fg
 

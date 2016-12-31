@@ -10,8 +10,8 @@ from numpy import add, subtract, divide, prod, multiply
 import sympy
 from sympy import var
 
-import params
-from sympy_utils import sympy_min, sympy_max, sympy_abs
+from . import params
+from .sympy_utils import sympy_min, sympy_max, sympy_abs
 
 class RV(object):
     def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
@@ -19,7 +19,7 @@ class RV(object):
         self.a = a
         self.b = b
         if sym is not None:         # ====set symbolic name of r.v
-            if isinstance(sym, basestring):
+            if isinstance(sym, str):
                 self.sym = sympy.Symbol(sym)
             else:
                 self.sym = sym      # user defined symbolic name of r.v.
@@ -552,17 +552,17 @@ if __name__ == "__main__":
     y = RV(sym="y")
     z = RV(sym="z")
     u = x + y
-    print ">>", u.getParentsAll()
-    print ">>", u.getParentsFree()
+    print(">>", u.getParentsAll())
+    print(">>", u.getParentsFree())
     u.setSym("u")
-    print u.getEquations()
+    print(u.getEquations())
     v = u + z
     v.setSym("v")
 
-    print v.getEquations()
+    print(v.getEquations())
 
-    print u.getSym()
-    print v.getSym()
+    print(u.getSym())
+    print(v.getSym())
 
 
 #    print d;

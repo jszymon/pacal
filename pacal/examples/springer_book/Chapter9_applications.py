@@ -71,7 +71,7 @@ if __name__ == "__main__":
     for ns in [[3, 5, 2], # sample sizes
                [4, 5, 10, 7, 3]
                ]:
-        print "sample sizes:", ns
+        print("sample sizes:", ns)
         N = sum(ns)
         num = ChiSquareDistr(ns[0] - 1)
         for n in ns[1:]:
@@ -87,16 +87,16 @@ if __name__ == "__main__":
     #! Geometric mean of uniforms
     def theor_geom_unif(n, x):
         nf = 1
-        for i in xrange(2, n):
+        for i in range(2, n):
             nf *= i
         return float(n) / nf * x**(n-1) * log(x**(-n))**(n-1)
     for n in [3, 7]:
         d = UniformDistr(0, 1)
-        for i in xrange(n-1):
+        for i in range(n-1):
             d *= UniformDistr(0, 1)
         d **= (1.0 / n)
         d2 = log(UniformDistr(0, 1))
-        for i in xrange(n-1):
+        for i in range(n-1):
             d2 += log(UniformDistr(0, 1))
         d2 /= n
         d2 = exp(d2)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     #! Harmonic mean of uniforms
     for n in [2, 3, 7]:
         d = 1 / UniformDistr(0, 1)
-        for i in xrange(n-1):
+        for i in range(n-1):
             d += 1 / UniformDistr(0, 1)
         d = n / d
         figure()
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     #! Corollary 9.9.1b
     for n in [2, 3, 6]:
         s = GammaDistr()
-        for i in xrange(n-1):
+        for i in range(n-1):
             s += GammaDistr()
         s /= n
         figure() 
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     
     for ps in [[1,2,3],
                [6,8,10,12]]:
-        pqs = zip(ps[:-1], ps[1:])
+        pqs = list(zip(ps[:-1], ps[1:]))
         pr = OneDistr()
         for p, q in pqs:
             pr *= BetaDistr(p, q-p)
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     m = 3        
     
     pr = OneDistr()
-    for i in xrange(m):
+    for i in range(m):
         f = FunDistr(partial(gr, m, p, p0, i), [0,1])
         pr *= f
     figure()
@@ -325,7 +325,7 @@ if __name__ == "__main__":
                  ]:
         e = ExponentialDistr(l)
         s = ZeroDistr()
-        for i in xrange(n):
+        for i in range(n):
             s += e
         s /= n
         figure()
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     #! Exercise 9.4
     for k, n in [[2,2]]:
         s = ZeroDistr()
-        for i in xrange(n):
+        for i in range(n):
             s += GammaDistr(k)
         figure()
         demo_distr(s, theoretical = GammaDistr(k*n))
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     #! Exercise 9.11
     for n, p in [[2, 5]]:
         pr = OneDistr()
-        for i in xrange(n):
+        for i in range(n):
             pr *= GammaDistr(p+float(i)/n, 1)
         gm = pr ** (1.0/n)
         figure()
@@ -406,10 +406,10 @@ if __name__ == "__main__":
     bs = [2,3]
     p = len(bs)
     As = [a1]
-    for i in xrange(p-1):
+    for i in range(p-1):
         As.append(As[i] + bs[i])
     pr = OneDistr()
-    for i in xrange(p):
+    for i in range(p):
         pr *= 1/(1+GammaDistr(bs[i], 1) / GammaDistr(As[i], 1))
     figure()
     demo_distr(pr, theoretical = BetaDistr(a1, sum(bs)))
@@ -459,5 +459,5 @@ if __name__ == "__main__":
     for p in [1, 3, 5, 100]:
         figure()
         demo_distr(GammaDistr(p, 1) - GammaDistr(p, 1))
-    print time.time() - t0
+    print(time.time() - t0)
     show()

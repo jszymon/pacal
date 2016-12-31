@@ -26,8 +26,8 @@ CIJ.plot()
 title("Joint distribution of min and max of 5 normals")
 
 #! Compare it with SAS/QC manual, functions: d2, d3
-print repr(R.mean())
-print repr(R.var()), repr(R.std())
+print(repr(R.mean()))
+print(repr(R.var()), repr(R.std()))
 R.summary()
 
 show()

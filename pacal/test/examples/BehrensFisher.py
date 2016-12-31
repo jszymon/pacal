@@ -38,11 +38,11 @@ def BF_pvalue(x1, x2, v1 = None, v2 = None, Welch = True):
         v1  = var(x1, ddof = 1)
     if v2 is None:
         v2  = var(x2, ddof = 1)
-    print "x1: mean={0}, var={1}, n={2}".format(mu1, v1, n1)
-    print "x2: mean={0}, var={1}, n={2}".format(mu2, v2, n2)
+    print("x1: mean={0}, var={1}, n={2}".format(mu1, v1, n1))
+    print("x2: mean={0}, var={1}, n={2}".format(mu2, v2, n2))
 
     T = (mu1 - mu2) / sqrt(v1 / n1 + v2 / n2)
-    print "test statistic T={0}".format(T)
+    print("test statistic T={0}".format(T))
 
     # distribution of the statistic under null hypothesis
     t = BF_distr(n1, n2, v1, v2)
@@ -61,7 +61,7 @@ def compare_DF_Welch(n1, n2, v1, v2, nsamp = 10, alpha = 0.05):
     rejections of correct H0."""
     nrej_BF = 0
     nrej_W = 0
-    for i in xrange(nsamp):
+    for i in range(nsamp):
         x1 = normal(2, 1, n1)
         x2 = normal(2, 1, n2)
         pv, t, pvw, wd = BF_pvalue(x1, x2)
@@ -69,7 +69,7 @@ def compare_DF_Welch(n1, n2, v1, v2, nsamp = 10, alpha = 0.05):
             nrej_BF += 1
         if pvw < alpha:
             nrej_W += 1
-        print "pv, pvw=", pv, pvw
+        print("pv, pvw=", pv, pvw)
     return float(nrej_BF) / nsamp, float(nrej_W) / nsamp
 
 if __name__ == "__main__":
@@ -90,10 +90,10 @@ if __name__ == "__main__":
     #x1 = normal(2, 1, 4)
     #x2 = normal(3, 15, 6)
 
-    print "x1 =", x1
-    print "x2 =", x2
+    print("x1 =", x1)
+    print("x2 =", x2)
     pv, t, pvw, wd = BF_pvalue(x1, x2)
-    print pv, pvw
+    print(pv, pvw)
     t.plot()
     t.summary()
     wd.plot()

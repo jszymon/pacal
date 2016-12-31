@@ -19,9 +19,9 @@ if __name__ == "__main__":
         title("Limit of averages of " + X.getName())
         X.plot(linewidth = 4, color = "c", **args)
         Y = X
-        print "Limit of averages of " + X.getName() + ": ",
-        for i in xrange(N-1):
-            print i+2,
+        print("Limit of averages of " + X.getName() + ": ", end=' ')
+        for i in range(N-1):
+            print(i+2, end=' ')
             sys.stdout.flush()
             Y += X
             (Y/(i+2)).plot(color = colors[i%len(colors)], **args)
@@ -32,8 +32,8 @@ if __name__ == "__main__":
         ylim(ymin = 0)
         if ymax is not None:
             ylim(ymax = ymax)
-        print
-        print "time===", time.time()-tic
+        print()
+        print("time===", time.time()-tic)
         #show()
     
     #!----------------------

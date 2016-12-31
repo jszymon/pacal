@@ -50,7 +50,7 @@ class TestBasicstat(unittest.TestCase):
         self.v = self.X.var()
         self.EX = mu
         self.VX = sigma**2
-        self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
+        self.assertTrue((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
         
     def testChi2(self):
         #print """basic stats of Chi2 distribution"""
@@ -60,7 +60,7 @@ class TestBasicstat(unittest.TestCase):
         self.v = self.X.var()
         self.EX = df
         self.VX = df*2
-        self.assert_((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
+        self.assertTrue((abs(self.m-self.EX)+abs(self.v-self.VX)) < self.tol, self.errMsg);
         
     def testUniform(self):
         #print """basic stats of uniform distribution"""
@@ -71,7 +71,7 @@ class TestBasicstat(unittest.TestCase):
         self.v = self.X.var()
         self.EX = (a+b)/2.0
         self.VX = (b-a)**2/12.0
-        self.assert_((abs(self.m-self.EX) + abs(self.v-self.VX)) < self.tol, self.errMsg);
+        self.assertTrue((abs(self.m-self.EX) + abs(self.v-self.VX)) < self.tol, self.errMsg);
 
 class TestIntegral(unittest.TestCase):
     def setUp(self):
@@ -79,7 +79,7 @@ class TestIntegral(unittest.TestCase):
         self.tol = 8 * eps
         self.ts = time.time()
     def _assert_integ(self, err, I):
-        self.assert_(err < self.tol, repr(I) + " +/- " + str(err))
+        self.assertTrue(err < self.tol, repr(I) + " +/- " + str(err))
     def tearDown(self):
         te = time.time()
         #print self.iClenshaw - self.exact, self.errClenshaw, self.tClenshaw - self.ts
@@ -172,7 +172,7 @@ class TestInterpolation(unittest.TestCase):
         ci = ChebyshevInterpolator(cos, -2, 8)
         X = linspace(-2, 8, 1000)
         err = self.get_max_diff(X, cos, ci)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
     def testPMInfInterp(self):
         def f(x):
             return exp(-x*x)
@@ -180,13 +180,13 @@ class TestInterpolation(unittest.TestCase):
         X = exp(linspace(-10, 10, 1000))
         X = hstack([-X,X])
         err = self.get_max_diff(X, f, ci)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
     def testCauchyPMInf(self):
         ci = ChebyshevInterpolator_PMInf(cauchy)
         X = exp(linspace(-10, 10, 1000))
         X = hstack([-X,X])
         err = self.get_max_diff(X, cauchy, ci)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
     def testInterpPInf(self):
         def f(x):
             return exp(-x)
@@ -194,21 +194,21 @@ class TestInterpolation(unittest.TestCase):
         X = ci.vt.L + exp(linspace(-10, 10, 1000))
         #print X
         err = self.get_max_diff(X, f, ci)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
     def testInterpMInf(self):
         def f(x):
             return exp(x)
         ci = ChebyshevInterpolator_MInf(f, -2.0)
         X = ci.vt.U - exp(linspace(-10, 10, 1000))
         err = self.get_max_diff(X, f, ci)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
     def testNormalPMInf(self):
         ci = ChebyshevInterpolator_PMInf(normpdf)
         X = exp(linspace(-10, 10, 1000))
         X = hstack([-X,X])
         err = self.get_max_diff(X, normpdf, ci)
         #print err, len(ci.Xs)
-        self.assert_(err < self.tol, self._str_error(err, ci))
+        self.assertTrue(err < self.tol, self._str_error(err, ci))
 class TestVectorisation(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""        
@@ -223,73 +223,73 @@ class TestVectorisation(unittest.TestCase):
     def testNormal(self):
         N1 = NormalDistr(0,1)
         y=N1.pdf(self.x)
-        self.assert_(0 < 1)
+        self.assertTrue(0 < 1)
     def testUniform(self):
         U1 = UniformDistr(0,1)
         y=U1.pdf(self.x)
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1)    
+        self.assertTrue(0 < 1)    
     def testChi2(self):
         Ch = ChiSquareDistr(4)
         y=Ch.pdf(self.x)
-        self.assert_(0 < 1)      
+        self.assertTrue(0 < 1)      
     def testUniformFor(self):
         U1 = UniformDistr(0,1)
         y1 = [U1.pdf(x) for x in self.x]
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1)    
+        self.assertTrue(0 < 1)    
     def testChebFor(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
         y = [c.interp_at(x) for x in self.x]
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1) 
+        self.assertTrue(0 < 1) 
     def testCheb(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
         y = c.interp_at(self.x)       
         #print self.x,y
         #plot(self.x, y)
-        self.assert_(0 < 1) 
+        self.assertTrue(0 < 1) 
     def testChebMat(self):
         c = ChebyshevInterpolator(cauchy, -2, 2)
         y = c.interp_at(self.x_mat)       
         #print self.x_mat
         #print y
-        self.assert_(0 < 1) 
+        self.assertTrue(0 < 1) 
 
 class TestVarTransform(unittest.TestCase):
     def setUp(self):
         self.vt = VarTransformAlgebraic_PMInf()
     def testVarChangeWMask1(self):
         x, mask = self.vt.inv_var_change_with_mask(array([-1.0,0.0,1.0]))
-        self.assert_(abs(x[1]) <= eps and all(mask == [False, True, False]))
+        self.assertTrue(abs(x[1]) <= eps and all(mask == [False, True, False]))
     def testVarChangeWMask2(self):
         # test integer arrays
         x, mask = self.vt.inv_var_change_with_mask(array([-1,0,1]))
-        self.assert_(abs(x[1]) <= eps and all(mask == [False, True, False]))
+        self.assertTrue(abs(x[1]) <= eps and all(mask == [False, True, False]))
     def testVarChangeWMask3(self):
         # test scalars
         x, mask = self.vt.inv_var_change_with_mask(-1.0)
-        self.assert_(mask == False)
+        self.assertTrue(mask == False)
     def testVarChangeWMask4(self):
         # test scalars
         x, mask = self.vt.inv_var_change_with_mask(1.0)
-        self.assert_(mask == False)
+        self.assertTrue(mask == False)
     def testVarChangeWMask5(self):
         # test scalars
         x, mask = self.vt.inv_var_change_with_mask(0)
-        self.assert_(abs(x) <= eps and mask == True)
+        self.assertTrue(abs(x) <= eps and mask == True)
     def testApplyWithTransform1(self):
         y = self.vt.apply_with_inv_transform(lambda x: x+1, array([-1,0,1]))
-        self.assert_(all(abs(y - [0, 1, 0]) <= eps))
+        self.assertTrue(all(abs(y - [0, 1, 0]) <= eps))
     def testApplyWithTransform2(self):
         y = self.vt.apply_with_inv_transform(lambda x: x+1, 0)
-        self.assert_(abs(y - 1) <= eps)
+        self.assertTrue(abs(y - 1) <= eps)
     def testApplyWithTransform3(self):
         y = self.vt.apply_with_inv_transform(lambda x: x+1, 1, def_val = 3)
-        self.assert_(abs(y - 3) <= eps)
+        self.assertTrue(abs(y - 3) <= eps)
 
 class TestInterpolators(unittest.TestCase):
     def setUp(self):
@@ -297,21 +297,21 @@ class TestInterpolators(unittest.TestCase):
         self. ts = time.time()     
     def tearDown(self):
         te = time.time()
-        print 'test done,   time=%7.5f s' % (te - self.ts) 
+        print('test done,   time=%7.5f s' % (te - self.ts)) 
     def testChebcoef(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         seg = S.segments[0]
         Xs, Ys = seg.f.Xs, seg.f.Ys
-        print "Xs=", Xs
-        print "Ys=", Ys
-        print "Cs=", chebt2(Ys)
-        print "Xs=", ichebt2(chebt2(Ys))
+        print("Xs=", Xs)
+        print("Ys=", Ys)
+        print("Cs=", chebt2(Ys))
+        print("Xs=", ichebt2(chebt2(Ys)))
         figure()
         S.plot(color="r")
         D = S.diff()
         D.plot(color="k")
         #show()
-        self.assert_(0 < 1)
+        self.assertTrue(0 < 1)
     def testTrim(self):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         I = S.trimInterpolators(abstol=1e-15)
@@ -323,7 +323,7 @@ class TestInterpolators(unittest.TestCase):
         subplot(212)
         r.plot()
         #show()
-        self.assert_(0 < 1)
+        self.assertTrue(0 < 1)
     def testDiff(self):
         n=8
         S = UniformDistr(0,2)
@@ -351,7 +351,7 @@ class TestInterpolators(unittest.TestCase):
         D.diff().plot()
         plot(xi,mi, 'bo')
         plot(r,D(r), 'ro')
-        self.assert_(0 < 1)
+        self.assertTrue(0 < 1)
     def testMinmax(self):
         n=8
         S = UniformDistr(0,2)
@@ -366,13 +366,13 @@ class TestInterpolators(unittest.TestCase):
             D.plot()
             plot(xmaxi,maxi,  'ko')
             plot(xmini,mini,  'ro')
-        self.assert_(0 < 1)
+        self.assertTrue(0 < 1)
     def testDiffInf(self):
         S = BetaDistr(3,4)* BetaDistr(3,4)
         S.summary()
         figure()
         S.plot()
-        print S.get_piecewise_pdf()
+        print(S.get_piecewise_pdf())
         D = S.get_piecewise_pdf().diff()
         D.plot(color="k")
         show()

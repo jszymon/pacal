@@ -11,5 +11,5 @@ if __name__ == '__main__':
     #print nose.run(argv=[__file__, '-v', '-i=pacal/*', '--with-profile', '--profile-stats-file=out/pacal.proof']) # it works, but unknown output format (file abcd.txt) 
     #nose.run(argv=[__file__, '-v'])
     #nose.run()
-    print nose.run(argv=[__file__, '--verbosity=2', '--with-id', '--with-coverage', '--cover-tests'])
+    print(nose.run(argv=[__file__, '--verbosity=2', '--with-id', '--with-coverage', '--cover-tests']))
     plt.show();

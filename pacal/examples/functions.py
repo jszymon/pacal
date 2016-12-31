@@ -47,7 +47,7 @@ demo_distr(log(E1)+log(E2))
 
 try:
     l = log(NormalDistr(0, 1))
-    print "Error: log of negative distribution not reported!!!!"
+    print("Error: log of negative distribution not reported!!!!")
 except ValueError:
     pass
 

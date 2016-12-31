@@ -65,7 +65,7 @@ if __name__ == "__main__":
     #!-------------------------------------------
     def prod_uni_pdf(n, x):
         pdf = (-log(x)) ** (n-1)
-        for i in xrange(2, n):
+        for i in range(2, n):
             pdf /= i
         return pdf
     figure()

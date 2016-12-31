@@ -21,10 +21,10 @@ if __name__ == "__main__":
 #    s=op(s,u)
 #    s=op(s,u)
 #    s=op(s,s)
-    print s.pdf(1.0) 
+    print(s.pdf(1.0)) 
     
     #s.summary(show_moments=True)
-    print time.time()-tic
+    print(time.time()-tic)
     B.plot(color="b")
     s.plot()
     s.summary()

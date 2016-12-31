@@ -46,5 +46,5 @@ if __name__ == "__main__":
     figure()
     #demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
     demo_distr(d)
-    print "time=", time.time() - tic
+    print("time=", time.time() - tic)
     show()

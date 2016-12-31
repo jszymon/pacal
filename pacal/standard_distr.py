@@ -11,11 +11,11 @@ from numpy import finfo, double
 from functools import partial
 _MAX_EXP_ARG = log(finfo(double).max)
 
-import params
-from utils import lgamma, wrap_pdf
-from distr import Distr, DiscreteDistr, ConstDistr
-from segments import PiecewiseFunction, PiecewiseDistribution, Segment
-from segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
+from . import params
+from .utils import lgamma, wrap_pdf
+from .distr import Distr, DiscreteDistr, ConstDistr
+from .segments import PiecewiseFunction, PiecewiseDistribution, Segment
+from .segments import ConstSegment, PInfSegment, MInfSegment, SegmentWithPole
 
 try:
     from numpy import Inf
@@ -29,7 +29,7 @@ class FunDistr(Distr):
         super(FunDistr, self).__init__(**kwargs)
         self.fun = fun
         self.breakPoints = breakPoints
-        if kwargs.has_key("sym"):
+        if "sym" in kwargs:
             kwargs.pop("sym")
         self.kwargs = kwargs
         self.interpolated = interpolated  
@@ -279,7 +279,7 @@ class ChiSquareDistr(Distr):
                                                         lpoles=[True, False, False, False])
             
         else:
-            print "unexeepted df=", self.df            
+            print("unexeepted df=", self.df)            
         #if self.df == 1 or self.df == 3:
         #    self.piecewise_pdf.addSegment(SegmentWithPole(0, 1, self.pdf, left_pole = True))
         #else:
@@ -886,7 +886,7 @@ class BinomialDistr(DiscreteDistr):
         xi = [0]
         pi = [P]
         pq = self.p / self.q
-        for i in xrange(n):
+        for i in range(n):
             P *= n - i
             P /= i + 1
             P *= pq
@@ -909,7 +909,7 @@ class BernoulliDistr(DiscreteDistr):
 
 if __name__ == "__main__":
     from pylab import figure, show
-    from distr import demo_distr, log, exp, max, min, sqrt
+    from .distr import demo_distr, log, exp, max, min, sqrt
 
     import numpy
     from numpy import ceil, log1p

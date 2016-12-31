@@ -156,7 +156,7 @@ class Copula(NDDistr):
         #print params.integration_infinite.exponent
         if L > U:
             if params.segments.debug_info:
-                print "Warning: reversed integration interval, returning 0"
+                print("Warning: reversed integration interval, returning 0")
             return 0, 0
         if L == U:
             return 0, 0
@@ -187,7 +187,7 @@ class Copula(NDDistr):
         elif L<U:
             i, e = integrate_fejer2_pminf(fun, debug_info = debug_info, debug_plot = debug_plot, exponent = params.integration_infinite.exponent,)
         else:
-            print "errors in _conv_div: x, segi, segj, L, U =", L, U
+            print("errors in _conv_div: x, segi, segj, L, U =", L, U)
         return i,e
  
     def cov(self, i=None, j=None):
@@ -199,7 +199,7 @@ class Copula(NDDistr):
             gmean = g.mean()           
             f0, f1 = f.get_piecewise_pdf().range()
             g0, g1 = g.get_piecewise_pdf().range() 
-            print fmean, gmean, var, c_var, f0, f1, g0, g1
+            print(fmean, gmean, var, c_var, f0, f1, g0, g1)
             if i == j:
                 c, e = c, e = integrate_fejer2(lambda x: (x - fmean) ** 2 * f.pdf(x), f0, f1)                  
             else:
@@ -426,12 +426,12 @@ class ArchimedeanCopula(Copula):
         pi = 1;
         for i in range(self.d):
             pi *= self.fi_deriv(vars[i])
-        print "si=\n", pprint(si)
-        print "pi=\n", pprint(pi)
-        print "C=\n", pprint(self.fi_inv(si))
+        print("si=\n", pprint(si))
+        print("pi=\n", pprint(pi))
+        print("C=\n", pprint(self.fi_inv(si)))
         #print "C=\n", pprint(self.ccdf(*tuple(vars)))
         #print "c=\n", pprint(sympy.simplify(self.fi_inv_nth_deriv(si) * pi))
-        print "c=\n", pprint(self.fi_inv_nth_deriv(si) * pi)
+        print("c=\n", pprint(self.fi_inv_nth_deriv(si) * pi))
         #print "c=\n", pprint(self.cpdf(*tuple(vars)))
     def tau_c(self):
         return 1 + 4 * integrate_fejer2(lambda t : self.fi(t) / self.fi_deriv(t), 0, 1)[0]
@@ -574,16 +574,16 @@ class ArchimedeanSymbolicCopula(ArchimedeanCopula):
         return NDFun(self.d, self.Vars, fun_)
     def debug_info(self):
         #self.fi_inv_defiv = simplify(sympy.diff(self.sym_fi_inv(self.s, self.theta), self.s))
-        print "theta=", self.theta
-        print "fi(theta)=", self.fi_(self.t, sympy.Symbol("theta"))
-        print "fi=\n", pprint(self.sym_fi) 
-        print "fi_deriv=\n", pprint(self.sym_fi_deriv) 
-        print "fi_inv=\n", self.sym_fi_inv, ",\n", pprint(self.sym_fi_inv) 
-        print "fi_inv_nth_deriv=\n", pprint(self.sym_fi_inv_nth_deriv) 
-        print "fi=\n", sympy.latex(self.sym_fi) 
-        print "fi_deriv=\n", sympy.latex(self.sym_fi_deriv) 
-        print "fi_inv=\n", self.sym_fi_inv, ",\n", sympy.latex(self.sym_fi_inv) 
-        print "fi_inv_nth_deriv=\n", sympy.latex(self.sym_fi_inv_nth_deriv) 
+        print("theta=", self.theta)
+        print("fi(theta)=", self.fi_(self.t, sympy.Symbol("theta")))
+        print("fi=\n", pprint(self.sym_fi)) 
+        print("fi_deriv=\n", pprint(self.sym_fi_deriv)) 
+        print("fi_inv=\n", self.sym_fi_inv, ",\n", pprint(self.sym_fi_inv)) 
+        print("fi_inv_nth_deriv=\n", pprint(self.sym_fi_inv_nth_deriv)) 
+        print("fi=\n", sympy.latex(self.sym_fi)) 
+        print("fi_deriv=\n", sympy.latex(self.sym_fi_deriv)) 
+        print("fi_inv=\n", self.sym_fi_inv, ",\n", sympy.latex(self.sym_fi_inv)) 
+        print("fi_inv_nth_deriv=\n", sympy.latex(self.sym_fi_inv_nth_deriv)) 
     def rand2d_invcdf(self, n):
         u = self.marginals[0].rand_invcdf(n)
         t = UniformDistr().rand(n)
@@ -755,7 +755,7 @@ def convmean(F, G, p=0.5, q=0.5, theta=1.0):
     """
     f = F.get_piecewise_pdf()
     g = G.get_piecewise_pdf()
-    if  p + q <> 1.0 :
+    if  p + q != 1.0 :
         p1 = abs(p) / (abs(p) + abs(q))
         q = abs(q) / (abs(p) + abs(q))
         p = p1;
@@ -834,7 +834,7 @@ def convmeanx(F, G, segList, xx, p=0.5, q=0.5, theta=2):
     return wyn
 if __name__ == "__main__":
     from pylab import *
-    from nddistr import plot_2d_distr
+    from .nddistr import plot_2d_distr
 #    # ========= ArchimedeanCopulas tests ============================
 #    A = ArchimedeanSymbolicCopula(fi=lambda t, theta : 1 / theta * (t ** (-theta) - 1),
 #                          #fi_inv=lambda s, theta : (1+ theta*s) ** (-1/theta),

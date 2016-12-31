@@ -14,26 +14,28 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from numpy.fft import ifft
 from numpy import array, zeros, ones, hstack, arange, zeros_like, asfarray
 from numpy import dot, isscalar
 from numpy import finfo, double, isinf
 from numpy import ceil,log10, logspace
 
-from utils import cheb_nodes, incremental_cheb_nodes
-from utils import combine_interpolation_nodes_fast
-from utils import convergence_monitor
-from utils import debug_plot
+from .utils import cheb_nodes, incremental_cheb_nodes
+from .utils import combine_interpolation_nodes_fast
+from .utils import convergence_monitor
+from .utils import debug_plot
 
-from vartransforms import VarTransformAlgebraic_PMInf
-from vartransforms import VarTransformAlgebraic_PInf
-from vartransforms import VarTransformAlgebraic_MInf
-from vartransforms import VarTransformReciprocal_PMInf
-from vartransforms import VarTransformReciprocal_PInf
-from vartransforms import VarTransformReciprocal_MInf
+from .vartransforms import VarTransformAlgebraic_PMInf
+from .vartransforms import VarTransformAlgebraic_PInf
+from .vartransforms import VarTransformAlgebraic_MInf
+from .vartransforms import VarTransformReciprocal_PMInf
+from .vartransforms import VarTransformReciprocal_PInf
+from .vartransforms import VarTransformReciprocal_MInf
 
 from pacal.interpolation import ChebyshevInterpolator1
-import params
+from . import params
 
 # cache for Clenshaw quadrature coefficients
 _clenshaw_cache = {}
@@ -109,7 +111,7 @@ def integrate_clenshaw(f, a, b, maxn = 2**16, tol = 10e-16,
         prevI = I
         n = 2 * n - 1
     if debug_info:
-        print "===="
+        print("====")
     if debug_plot and n >= maxn: # problems with integration
         debug_plot(a, b, nodes, fs, coeffs)
     return I, err
@@ -142,14 +144,14 @@ def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
         if prevI is not None:
             err = abs(I - prevI)
             if debug_info:
-                print repr(I), err, n, I + err == I, err <= abs(I) * tol, min(nodes), max(nodes), min(fs), max(fs)
+                print(repr(I), err, n, I + err == I, err <= abs(I) * tol, min(nodes), max(nodes), min(fs), max(fs))
             cm.add(err, I)
             if cm.test_convergence()[0]:
                 break
         prevI = I
         n = 2 * n - 1
     if debug_info:
-        print "===="
+        print("====")
     if debug_plot and n >= maxn: # problems with integration
         debug_plot(a, b, nodes, fs, coeffs)
     # return currently best result
@@ -290,7 +292,7 @@ def integrate_iter2(f, a1, b1, a2, b2):
         else:
             z = zeros_like(x)
             for i in range(len(x)):
-                print ";;;", i, len(x)
+                print(";;;", i, len(x))
                 z[i], err = integrate_fejer2(lambda y : f(x[i], y), a2, b2)
         return z
     cheb  = ChebyshevInterpolator1(fun1, a1,b1) 
@@ -314,11 +316,11 @@ if __name__ == "__main__":
     def test_clenshaw(f, a, b, exact):
         """Test clenshaw integration"""
         I, err = integrate_clenshaw(f, a, b)
-        print I - exact, err
+        print(I - exact, err)
     def test_fejer2(f, a, b, exact):
         """Test fejer 2nd rule integration"""
         I, err = integrate_fejer2(f, a, b)
-        print I - exact, err
+        print(I - exact, err)
     from numpy import sin, cos, pi, exp, sqrt
     test_clenshaw(cos, 0, pi/2, 1)
     test_clenshaw(cos, 0, 2, sin(2))
@@ -333,7 +335,7 @@ if __name__ == "__main__":
     def normpdf(x):
         return 1.0/sqrt(2*pi)*exp(-x*x/2)
     I, err = integrate_clenshaw(cauchy, 0, 100)
-    print I, err
+    print(I, err)
     # those don't work well with clenshaw because of endpoints:
     #I, err = integrate_clenshaw_pminf(cauchy)
     #print I, err
@@ -342,44 +344,44 @@ if __name__ == "__main__":
     #I, err = integrate_clenshaw_minf(cauchy, 0)
     #print I, err
     I, err = integrate_clenshaw_pminf(normpdf)
-    print I, err
+    print(I, err)
     I, err = integrate_clenshaw_pinf(normpdf, 0)
-    print I, err
+    print(I, err)
     I, err = integrate_clenshaw_minf(normpdf, 0)
-    print I, err
+    print(I, err)
 
     ## Current variable transform won't work for Cauchy on infinite
     ## integral.  Will work fine on half infinite integrals though
     #I, err = integrate_fejer2_pminf(cauchy)
     #print I, err
     I, err = integrate_fejer2_pinf(cauchy, 0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_minf(cauchy, 0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_pminf(normpdf)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_pinf(normpdf, 0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_minf(normpdf, 0)
-    print I, err
+    print(I, err)
     from testPiecewise import *
     I, err = integrate_fejer2_Xn_transformP(lambda x: -log(x), 0.0, 0.1, N=4.0)
-    print "log:", I, err
+    print("log:", I, err)
     I, err = integrate_fejer2_Xn_transformP(lambda x: -log(x)/x**0.5, 0.0, 1.0, N=4.0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_Xn_transformP(lambda x: chisqr(x), 0.0, 10, N=4.0)
-    print "chisqr1=",I, err
+    print("chisqr1=",I, err)
     def prodcauchy(x):
         return 1.0/(pi*pi*(x*x-1))*log(x*x)
     from numpy import log1p
     def prodcauchy_uni(x):
         return 1.0/(2*pi)*log1p((1.0/(x*x)))
     I, err = integrate_fejer2_Xn_transform(lambda x: prodcauchy_uni(x), 0.0, 2, N=3.0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_Xn_transformP(lambda x: prodcauchy_uni(x), 0.0, 2.0, N=3.0)
-    print I, err
+    print(I, err)
     I, err = integrate_fejer2_Xn_transformN(lambda x: prodcauchy_uni(x), -2.0, 0.0, N=3.0)
-    print I, err
+    print(I, err)
     #I1, err = integrate_fejer2(lambda x: 1/x, 1e-16, 1e-8)
     #print I1, err
     #I, err = integrate_fejer2(lambda x: 1/x, 1e-8, 1)
@@ -392,15 +394,15 @@ if __name__ == "__main__":
     #I1, err = integrate_fejer2_Xn_transformP(lambda x: 0.25/x**0.5/(1.0-x)**0.5, 0.0, 0.5, N=4.0, debug_info = True, debug_plot = True)
     #I2, err = integrate_fejer2_Xn_transformN(lambda x: 0.25/x**0.5/(1.0-x)**0.5, 0.5, 1.0, N=8, debug_info = True, debug_plot = True)
     I1, err = integrate_fejer2_Xn_transformP(ff, 0.0, 0.5, N=4.0, debug_info = True, debug_plot = True)
-    print "log:", I1, err
+    print("log:", I1, err)
     I2, err = integrate_fejer2_Xn_transformN(ff, 0.5, 1.0, N=4, debug_info = True, debug_plot = True)
-    print "log:", I2, err, I1+I2 - pi/4
+    print("log:", I2, err, I1+I2 - pi/4)
     
     def pc(x,t=1e10):
         #print x
         return 1/(1+(t*x)**2) * 1/(1+t**2)*t
     I, err = integrate_fejer2_pinf(pc, a=1e-10, debug_info = True, debug_plot = True)
     
-    print "pcauchy:", I, err, 
+    print("pcauchy:", I, err, end=' ') 
     
     

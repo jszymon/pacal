@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # sass  sa sa sas ala all jest to 
 class TestPlot(unittest.TestCase):
     def setUp(self):
-        print """====Test starting============================="""        
+        print("""====Test starting=============================""")        
         self.N1 = NormalDistr(1, 1)
         self.N2 = NormalDistr(2, 1)
         self.SumN1N2 = self.N1 + self.N2
@@ -20,11 +20,11 @@ class TestPlot(unittest.TestCase):
         
     def tearDown(self):
         te = time.time()
-        print 'test done,   time=%7.5f s' % (te - self.ts)        
+        print('test done,   time=%7.5f s' % (te - self.ts))        
         
         
     def testPlotPdf(self):
-        print """pdfs and histograms ..."""
+        print("""pdfs and histograms ...""")
         fig = plt.figure()
         self.Chi4.plot()
         self.SumN1N2.plot()
@@ -32,15 +32,15 @@ class TestPlot(unittest.TestCase):
         self.Chi4.hist()
         self.SumN1N2.hist()
         self.U1.hist()
-        self.assert_(True);
+        self.assertTrue(True);
     
     def testHistdistr(self):
-        print """histograms ..."""
+        print("""histograms ...""")
         fig = plt.figure()
         self.Chi4.hist()
         self.SumN1N2.hist()
         self.U1.hist()
-        self.assert_(True);
+        self.assertTrue(True);
     
        
 
@@ -54,7 +54,7 @@ class TestPlot(unittest.TestCase):
           F.boxplot(pos, color=col[pos], useci=0.01, label=F.__class__.__name__)
           pos += 1        
         legend()
-        self.assert_(True);
+        self.assertTrue(True);
         
 def suite():
     suite = unittest.TestSuite()

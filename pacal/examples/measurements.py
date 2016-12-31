@@ -32,7 +32,7 @@ if __name__ == "__main__":
     try:
         from scipy.optimize.optimize import fminbound
     except ImportError:
-        print "Scipy not available, exiting..."
+        print("Scipy not available, exiting...")
         import sys
         sys.exit(10)
     
@@ -57,35 +57,35 @@ if __name__ == "__main__":
         """Error of a geometric combination of measurements."""
         return exp(log(E1)*alpha +  log(E2)*(1-alpha))
     
-    print
-    print "Combining measurements for optimal variance"
+    print()
+    print("Combining measurements for optimal variance")
     alphaOptVar = fminbound(lambda alpha: E(alpha).var(), 0, 1, xtol = 1e-16)
-    print "alpha for optimal variance = ", alphaOptVar 
+    print("alpha for optimal variance = ", alphaOptVar) 
     dopt = E(alphaOptVar)
     dopt.summary()
     
-    print
-    print "Combining measurements for optimal Median Absolute Deviance"
+    print()
+    print("Combining measurements for optimal Median Absolute Deviance")
     alphaOptMad = fminbound(lambda alpha: E(alpha).medianad(), 0, 1, xtol = 1e-16)
-    print "alpha for optimal MAD = ", alphaOptMad 
+    print("alpha for optimal MAD = ", alphaOptMad) 
     dopt = E(alphaOptMad)
     dopt.summary()
     
-    print
-    print "Combining measurements for optimal 95% confidence interval"
+    print()
+    print("Combining measurements for optimal 95% confidence interval")
     alphaOptIQrange = fminbound(lambda alpha: E(alpha).iqrange(0.025), 0, 1, xtol = 1e-16)
-    print "alpha for optimal 95% c.i. = ", alphaOptIQrange 
+    print("alpha for optimal 95% c.i. = ", alphaOptIQrange) 
     dopt = E(alphaOptIQrange)
     dopt.summary()
     
-    print
-    print "Combining measurements for optimal entropy"
+    print()
+    print("Combining measurements for optimal entropy")
     alphaOptEntropy = fminbound(lambda alpha: E(alpha).entropy(), 0, 1, xtol = 1e-16)
-    print "alpha for optimal entropy = ", alphaOptEntropy 
+    print("alpha for optimal entropy = ", alphaOptEntropy) 
     dopt = E(alphaOptEntropy)
     dopt.summary()
     
-    print "-----------------------"
+    print("-----------------------")
     figure()
     #E1.plot(color='k')
     #E2.plot(color='k')

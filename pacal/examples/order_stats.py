@@ -8,7 +8,7 @@ if __name__ == "__main__":
     colors = "kbgrcmy"
     
     c = 0
-    for i in xrange(1, 50, 5):
+    for i in range(1, 50, 5):
         os = iid_order_stat(BetaDistr(3, 2), 50, i)
         os.summary()
         os.plot(label = str(i) + "-" + ordinal_ending(i) + " ord. stat.", color = colors[c%len(colors)])

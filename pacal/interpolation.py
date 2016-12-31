@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from functools import partial
 
 from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
@@ -28,16 +30,16 @@ from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 from numpy import cumsum, flipud, real, imag, linspace
 from numpy.linalg import eigvals
 #from numpy.polynomial.chebyshev import chebroots
-import params
+from . import params
 
-from utils import cheb_nodes_log, incremental_cheb_nodes_log
-from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
-from utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
-from utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
-from utils import debug_plot
-from utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
+from .utils import cheb_nodes_log, incremental_cheb_nodes_log
+from .utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
+from .utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
+from .utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
+from .utils import debug_plot
+from .utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
 
-from vartransforms import *
+from .vartransforms import *
 
 
 # import faster Cython versions if possible
@@ -45,9 +47,9 @@ try:
     #import pyximport; pyximport.install()
     from bary_interp import bary_interp
     have_Cython = True
-    print "Using compiled interpolation routine"
+    print("Using compiled interpolation routine")
 except:
-    print "Compiled interpolation routine not available"
+    print("Compiled interpolation routine not available")
     have_Cython = False
 
 
@@ -210,7 +212,7 @@ class AdaptiveInterpolator(object):
             err = self.test_accuracy(new_Xs, new_Ys)
             maxy = max(abs(new_Ys).max(), abs(self.Ys).max())
             if par.debug_info:
-                print "interp. err", err, old_err, new_n
+                print("interp. err", err, old_err, new_n)
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
                 break
@@ -221,7 +223,7 @@ class AdaptiveInterpolator(object):
         if par.debug_plot and n >= maxn:
             debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
-            print "interp. err = ", err, "nodes=", n
+            print("interp. err = ", err, "nodes=", n)
         self.err = err
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by compa true and interpolated values at
@@ -354,7 +356,7 @@ class AdaptiveInterpolator1(object):
             err = self.test_accuracy(new_Xs, new_Ys)
             maxy = max(abs(new_Ys).max(), abs(self.Ys).max())
             if par.debug_info:
-                print "interp. err1", err, maxy, old_err, "nodes=", n, maxn      
+                print("interp. err1", err, maxy, old_err, "nodes=", n, maxn)      
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
                 break
@@ -365,7 +367,7 @@ class AdaptiveInterpolator1(object):
         if par.debug_plot and n >= maxn:
             debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
-            print "interp. err1 = ", err, "nodes=", n
+            print("interp. err1 = ", err, "nodes=", n)
         self.err = err
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
@@ -424,7 +426,7 @@ def _call_f(interp, x):
     return interp.spec_f(x)
 def _wrap_f(f):
     if params.general.parallel:
-        return partial(_call_f, f.im_self)
+        return partial(_call_f, f.__self__)
     return f
 
 class ValTransformInterpolator(ChebyshevInterpolator1):
@@ -471,7 +473,7 @@ class ChebyshevInterpolatorNoL2(ChebyshevInterpolator1):
         self.a = a
         self.b = b
         if par.debug_info:
-            print "exponent=", self.exponent         
+            print("exponent=", self.exponent)         
         super(ChebyshevInterpolatorNoL2, self).__init__(lambda x: f(x) / x ** self.exponent, a, b,
                                                         par=params.interpolation,
                                                         *args, **kwargs)
@@ -489,7 +491,7 @@ class ChebyshevInterpolatorNoR2(ChebyshevInterpolator1):
         self.a = a
         self.b = b
         if par.debug_info:
-            print "exponent=", self.exponent         
+            print("exponent=", self.exponent)         
         super(ChebyshevInterpolatorNoR2, self).__init__(lambda x: f(x) / abs(x) ** self.exponent, a, b,
                                                        par=params.interpolation,
                                                        *args, **kwargs)
@@ -513,7 +515,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         if b is None:
             b = _find_zero(f, a)
             if par.debug_info:
-                print "found", b, f(b)
+                print("found", b, f(b))
         self.orig_a = a
         self.orig_b = b
         self.offset = offset - 1
@@ -692,7 +694,7 @@ class ZeroNeighborhoodInterpolator(object):
         first_interp = True
         while True:
             Ltmp = Utmp * minx
-            print "[", Ltmp, Utmp, "]"
+            print("[", Ltmp, Utmp, "]")
             if first_interp:
                 I = interp_class(f, Ltmp, Utmp)
                 first_interp = False
@@ -709,7 +711,7 @@ class ZeroNeighborhoodInterpolator(object):
         for I in self.interps:
             Xs += list(I.Xs)
             Ys += list(I.Ys)
-        XYs = zip(Xs, Ys)
+        XYs = list(zip(Xs, Ys))
         XYs.sort()
         self.Xs = array([t[0] for t in XYs])
         self.Ys = array([t[1] for t in XYs])
@@ -830,8 +832,8 @@ class PInfInterpolator(object):
         if params.interpolation_asymp.debug_info:
             #print "vb.minmax", L, Ut
             if self.vl is not None:
-                print "vl.minmax", self.vl.orig_a, self.vl.orig_b
-            print "self.x_vb_max", self.x_vb_max, #self.f(self.x_vb_max)
+                print("vl.minmax", self.vl.orig_a, self.vl.orig_b)
+            print("self.x_vb_max", self.x_vb_max, end=' ') #self.f(self.x_vb_max)
     def interp_at(self, x):
         if isscalar(x):
             if self.x_vb_max is None or x <= self.x_vb_max:
@@ -905,17 +907,17 @@ if __name__ == "__main__":
     B = PiecewiseFunction(fun=lambda x:sin(3*x), breakPoints=[-1,0,1])
     
     B = B.toInterpolated()
-    print B.segments[0].f.__class__
+    print(B.segments[0].f.__class__)
     #B = B.trimInterpolators(abstol=1e-15)
-    print B.segments[0].f.Ys, B.segments[0].f.__class__
+    print(B.segments[0].f.Ys, B.segments[0].f.__class__)
     D = B.diff()
     D2 = D.diff()
     D3 = D2.diff()
     D4 = D3.diff()
     D5 = D4.diff()
-    print D.segments[0].f.Ys, D.segments[0].f.__class__ 
-    print D2.segments[0].f.Ys
-    print D.roots()
+    print(D.segments[0].f.Ys, D.segments[0].f.__class__) 
+    print(D2.segments[0].f.Ys)
+    print(D.roots())
     figure()
     B.plot()
     D.plot()
@@ -1017,7 +1019,7 @@ if __name__ == "__main__":
     #print ci.err, len(ci.Xs)
 
     for pdf in [chisqr, lambda x:-log(x)]:#, cauchy, lambda x: 1.0/(1+x**1.5), prodcauchy]:#, prodcauchy, prodcauchy_uni, chisqr, lambda x: sin(3*x)]:
-        print "======================================="
+        print("=======================================")
         x1 = 0.0
         x2 = 0.1
         #x1, x2 = 2.01029912342, 2.82968863313
@@ -1027,16 +1029,16 @@ if __name__ == "__main__":
         #normpdf = lambda x:chisqr(x,1)
         #ci = ChebyshevInterpolatorNoR2(pdf, x1, x2)
         #cii = ChebyshevInterpolatorNoL2(pdf, x1, x2)
-        print "1=============="
+        print("1==============")
         #cii = PInfInterpolator(pdf, 2)
         #mii = MInfInterpolator(pdf, -x1)
         from numpy import log, exp
         cii = LogXChebyshevInterpolator(lambda x: log(pdf(x)), 1e-50, x2)
-        print "2=============="
+        print("2==============")
         dii = ChebyshevInterpolator(lambda x: log(pdf(exp(x))), -50, -1)
         #dii = ChebyshevInterpolatorNoL2(pdf, x1, x2)
         #dii = ChebyshevInterpolator(pdf, 2, 10)
-        print "3=============="
+        print("3==============")
         #ci = LogXChebyshevInterpolator(pdf, 10, 10000)
         ci = PoleInterpolatorP(pdf, x1, x2)
         #dii = cii
@@ -1088,9 +1090,9 @@ if __name__ == "__main__":
         plot(X, abs(Y4 - Y2) / Y4, 'r')    
         plot(X, abs(Y4 - Y3) / Y4, 'b')    
 
-        from integration import *
+        from .integration import *
         #print integrate_fejer2_Xn_transformP(cii, x1, 3, N=4) + integrate_fejer2_pinf(cii, 3, x2)
-        print integrate_fejer2_Xn_transformP(pdf, 0, 3, N=4, debug_info=False)[0] + integrate_fejer2_pinf(cii, 3, debug_info=False)[0]
+        print(integrate_fejer2_Xn_transformP(pdf, 0, 3, N=4, debug_info=False)[0] + integrate_fejer2_pinf(cii, 3, debug_info=False)[0])
         #print integrate_fejer2_Xn_transformP(dii, x1, x2, N=3)
         #print integrate_fejer2_pinf(cii, x1, x2)
         #print integrate_fejer2_pinf(dii, x1, x2)
@@ -1101,11 +1103,11 @@ if __name__ == "__main__":
         #print ci.Xs
         #print cii.Xs
 
-        from integration import *
+        from .integration import *
         #print integrate_fejer2_Xn_transformP(cii, x1, 3, N=4) + integrate_fejer2_pinf(cii, 3, x2)
         #print integrate_fejer2_Xn_transformP(normpdf, 0, 1, N=4)[0] + integrate_fejer2_pinf(cii, 1, x2)[0]
-        print "1:", integrate_fejer2_Xn_transformP(normpdf, x1, x2, N=4)
-        print "2:", integrate_fejer2_Xn_transformP(dii, x1, x2, N=4)
+        print("1:", integrate_fejer2_Xn_transformP(normpdf, x1, x2, N=4))
+        print("2:", integrate_fejer2_Xn_transformP(dii, x1, x2, N=4))
         #print "3:", integrate_fejer2_Xn_transformN(funneg, -x2, -x1, N=4)
         #print "4:", integrate_fejer2_Xn_transformN(eii, -x2, -x1, N=4)
         #print integrate_fejer2_pinf(cii, x1, x2)

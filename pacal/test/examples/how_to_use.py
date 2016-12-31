@@ -130,13 +130,13 @@ if __name__ == "__main__":
     X = PDistr(fun)
     X.summary()
     r = X.rand_invcdf(10)
-    print r
+    print(r)
     figure()
     X.hist(n=10000, bins=10)
     X.plot(linewidth=2.0)
     X.get_piecewise_cdf().plot(linewidth=2.0)
     show()
-    print "1-st quartile: ", X.quantile(0.25)
-    print "median: ", X.quantile(0.5)
-    print "3-rd quartile", X.quantile(0.75)
+    print("1-st quartile: ", X.quantile(0.25))
+    print("median: ", X.quantile(0.5))
+    print("3-rd quartile", X.quantile(0.75))
     

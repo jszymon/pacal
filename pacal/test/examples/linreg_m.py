@@ -31,12 +31,12 @@ t0 = time.time()
 
 #A = UniformDistr(0,1, sym = "A")
 #B = UniformDistr(0,1, sym = "B")
-W = [BetaDistr(3,3, sym = "W" + str(i)) for i in xrange(m + 1)]
+W = [BetaDistr(3,3, sym = "W" + str(i)) for i in range(m + 1)]
 for i in range(n):
     #X.append(UniformDistr(0, 1, sym = "X{}".format(i)))
     xind = len(X)
     Yi = W[0]
-    for j in xrange(m):
+    for j in range(m):
         X.append(BetaDistr(3, 3, sym = "X{}{}".format(i,j)))
         Yi += W[j+1] * X[-1]
     E.append(MollifierDistr(0.4, sym = "E{}".format(i)))
@@ -52,9 +52,9 @@ Xobs = []
 Yobs = []
 trueW = [0.3, 0.9, 0.5, 0.6]
 k = 0
-for i in xrange(n):
+for i in range(n):
     yi = trueW[0]
-    for j in xrange(m):
+    for j in range(m):
         Xobs.append(X[k].rand())
         k += 1
         yi += trueW[j+1] * Xobs[-1]
@@ -72,23 +72,23 @@ for i in xrange(n):
 # show()
 
 #print ar, br
-print Xobs, Yobs
-print X + Y
-print concatenate((Xobs, Yobs))
+print(Xobs, Yobs)
+print(X + Y)
+print(concatenate((Xobs, Yobs)))
 
 #print M
 #MAB = M.inference([A,B]+E, X + Y,  concatenate((Xobs, Yobs)))
 #print MAB
 #MAB = MAB.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
 MW = M.inference(W, X + Y,  concatenate((Xobs, Yobs)))
-print "-------------------"
+print("-------------------")
 MW0 = MW.inference([W[0]],[],[])
 #MB = MW.inference([B],[],[])
 
 #M = M.inference([A,B], [X[0], Y[0]], [0.2, 0.4])
-print MW
+print(MW)
         
-print MW0
+print(MW0)
 figure()
 subplot(211)
 MW0.plot()
@@ -104,5 +104,5 @@ MW0.plot()
 #print paropt
 #print MAB.nddistr(paropt)
 
-print time.time() - t0
+print(time.time() - t0)
 show()

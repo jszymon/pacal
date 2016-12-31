@@ -9,7 +9,7 @@ class PacalServer:
             summ = self.ans.summary_map()
             str = " " + self.ans.getName() +"\n"
             for i in ['mean', 'std', 'var', 'tailexp', 'median', 'medianad', 'iqrange(0.025)',  'range', 'ci(0.05)', 'int_err']:
-                if summ.has_key(i): 
+                if i in summ: 
                     str += '{0:{align}20}'.format(i, align = '>') + " = " + "{0}".format(repr(summ[i]))+ "\n"     
             return str
         else:
@@ -17,7 +17,7 @@ class PacalServer:
         
     def summary(self):
         if isinstance(self.ans, distr.Distr):
-            return [self.ans.summary_map().keys(), self.ans.summary_map().values()]
+            return [list(self.ans.summary_map().keys()), list(self.ans.summary_map().values())]
         else:
             return None  
         
@@ -41,11 +41,11 @@ class PacalServer:
         else: 
             return self.ans    
     def execpacal(self, cmd):
-        exec cmd
+        exec(cmd)
         return
 
 if __name__=='__main__':
-    print "Registering COM server..."
+    print("Registering COM server...")
     import win32com.server.register
 #    p = PacalServer()
 #    print p.summary()

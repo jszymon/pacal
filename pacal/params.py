@@ -15,7 +15,7 @@ def _str_params_list(p, depth = 0):
     return slist
 def str_params(p = None):
     if p is None:
-        import params
+        from . import params
         p = params
     slist = _str_params_list(p)
     return "\n".join(slist)
@@ -156,11 +156,11 @@ class models(params_class):
     debug_plot = False
     
 if __name__ == "__main__":
-    print "integration.convergence.reltol=", integration.convergence.reltol
-    print str_params()
-    print
-    print str_params(integration)
-    print segments.integration.maxn
-    print interpolation_finite.maxn
-    print interpolation_asymp.maxn
+    print("integration.convergence.reltol=", integration.convergence.reltol)
+    print(str_params())
+    print()
+    print(str_params(integration))
+    print(segments.integration.maxn)
+    print(interpolation_finite.maxn)
+    print(interpolation_asymp.maxn)
 

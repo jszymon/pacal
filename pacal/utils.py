@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import types
 from functools import partial
 
@@ -33,7 +35,7 @@ from numpy import real, concatenate, linspace, argmin
 #from scipy.fftpack.basic import fft
 from scipy.optimize import fmin_cg,fmin, fmin_tnc
 
-import params
+from . import params
 
 # safe infinity
 try:
@@ -49,7 +51,7 @@ def _call_pdf(obj, x):
     return obj.pdf(x)
 def wrap_pdf(pdf):
     if params.general.parallel:
-        return partial(_call_pdf, pdf.im_self)
+        return partial(_call_pdf, pdf.__self__)
     return pdf
 
 
@@ -182,15 +184,15 @@ def ichebt1(c):
     #TODO
     """inverse chebyshev transformation, see chebfun"""
     n = len(c)
-    print "tam===", n
+    print("tam===", n)
     oncircle = concatenate((c[-1::-1], c[1:-1]));
-    print "v=", oncircle, n
+    print("v=", oncircle, n)
     v = real(ifft(oncircle));
-    print v
-    print v[-2:n:-1]
-    print "|", v[1:-1]
+    print(v)
+    print(v[-2:n:-1])
+    print("|", v[1:-1])
     f = (n-1)*concatenate(([2*v(1)], v[-2:n:-1]+v[1:-1], 2*v[-1]));
-    print "|", f
+    print("|", f)
     return f
 
 def cheb1companion(c):
@@ -234,7 +236,7 @@ def estimateDegreeOfPole(f, x, pos = True, fromTo = None, N = 10, deriv = False,
     ri = yi[0:-1] - yi[1:]
     di = abs(xi[1:]-xi[0:-1])
     if debug_plot:
-        print xi,yi, f(xi)
+        print(xi,yi, f(xi))
         loglog(xi,yi)
     if len(yi) > 1:
         return ri[-1]/di[-1]
@@ -260,7 +262,7 @@ def estimateAtInfExponent(f, x, pos = True, fromTo = None, N = 10, deriv = False
     ri = yi[0:-1] - yi[1:]
     di = abs(xi[1:]-xi[0:-1])
     if debug_plot:
-        print xi,yi, f(xi)
+        print(xi,yi, f(xi))
         loglog(xi,yi)
     if len(yi) > 1:
         return ri[-1]/di[-1]
@@ -287,7 +289,7 @@ def testPole(f, x, pos = True, pole_eps = None, deriv = None, debug_info = None,
         else:
             pole = True
     if debug_info:
-        print "x={0}, deg={1}, pole={2} check_deriv={3}".format(x, deg, pole, deriv)
+        print("x={0}, deg={1}, pole={2} check_deriv={3}".format(x, deg, pole, deriv))
     return pole
 
 class convergence_monitor(object):
@@ -345,7 +347,7 @@ class convergence_monitor(object):
         else:
             best_re = best_ae / abs(best_y)
         best_e = self.e_list[0]
-        for i in xrange(1, len(self.ae_list)):
+        for i in range(1, len(self.ae_list)):
             y = self.y_list[i]
             ae = self.ae_list[i]
             if y == 0:
@@ -397,7 +399,7 @@ def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, m
     if fb == 0: return xb
 
     dm = xb - xa
-    for i in xrange(maxiter):
+    for i in range(maxiter):
         dm /= 2
         xm = xa + dm
         fm = f(xm, *args)
@@ -405,7 +407,7 @@ def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, m
             xa = xm
         if fm == 0 or abs(dm) < tol:
             return xm
-    print "WARNING: zero fidning did not converge"
+    print("WARNING: zero fidning did not converge")
     return xm
 
 def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = False, pos = True):
@@ -425,7 +427,7 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
     ri = yi[1:] - yi[0:-1]
     di = abs(xi[1:]-xi[0:-1])
     if debug_plot:
-        print ri, di
+        print(ri, di)
         plot(xi,yi)
     if len(yi) > 1:
         ex = ri[-1]/di[-1]
@@ -468,13 +470,13 @@ def fmin2(fc, L, U, **kwargs):
 try:
     from math import lgamma
 except:
-    from gamma import lgamma
+    from .gamma import lgamma
 
 def binomial_coeff(n, k):
     if k > n - k: # take advantage of symmetry
         k = n - k
     c = 1
-    for i in xrange(k):
+    for i in range(k):
         c = c * (n - i)
         c = c / (i + 1)
     return c
@@ -484,7 +486,7 @@ def multinomial_coeff(n, ki=[]):
     c = 1
     j=0
     for k in ki:
-        for i in xrange(k):
+        for i in range(k):
             c = c * (n - j)
             c = c / (i + 1)
             j += 1
@@ -492,7 +494,7 @@ def multinomial_coeff(n, ki=[]):
 
 def taylor_coeff(fun, N):
     """From L. Trefethen, Ten digits algorithms """
-    zz = exp(2j*pi*(array(range(N)))/N)
+    zz = exp(2j*pi*(array(list(range(N))))/N)
     c = fft(fun(zz))/N
     return real(c)
 
@@ -544,9 +546,9 @@ def is_instance_method(obj):
     """Checks if an object is a bound method on an instance."""
     if not isinstance(obj, types.MethodType):
         return False # Not a method
-    if obj.im_self is None:
+    if obj.__self__ is None:
         return False # Method is not bound
-    if issubclass(obj.im_class, type) or obj.im_class is types.ClassType:
+    if issubclass(obj.__self__.__class__, type) or obj.__self__.__class__ is type:
         return False # Method is a classmethod
     return True
 
@@ -574,10 +576,10 @@ if __name__ == "__main__":
     import numpy.polynomial.chebyshev as ch
     c = array([1, 2, 3, 1])
     CT =cheb1companion(array([1, 2, 3, 1]))
-    print CT
-    print chebroots(c)
-    print ch.chebroots(c)
-    print chebroots(c) - ch.chebroots(c)
+    print(CT)
+    print(chebroots(c))
+    print(ch.chebroots(c))
+    print(chebroots(c) - ch.chebroots(c))
     0/0
     #print taylor_coeff(lambda x:exp(x), 30)
     N = NormalDistr()
@@ -585,7 +587,7 @@ if __name__ == "__main__":
     #fun.plot()
     t0  = time.time()
     t_i =  taylor_coeff(fun, 100)
-    print time.time()-t0
+    print(time.time()-t0)
     sil=1
 
     t0  = time.time()
@@ -595,23 +597,23 @@ if __name__ == "__main__":
         else:
             sil *= i
         mi = N.moment(i, 0.0)
-        print i, repr(mi),  repr(t_i[i])*sil*2,  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]);
-    print time.time()-t0
+        print(i, repr(mi),  repr(t_i[i])*sil*2,  repr(mi/sil/2), repr(t_i[i]), repr(mi/sil/2-t_i[i]));
+    print(time.time()-t0)
 
 
-    print N.summary()
+    print(N.summary())
     show()
     0/0
-    print binomial_coeff(10, 7)
-    print multinomial_coeff(10, [3, 3, 4])
-    print multinomial_coeff(13, [7, 2, 4])
-    print multinomial_coeff(21, [9, 8, 4])
+    print(binomial_coeff(10, 7))
+    print(multinomial_coeff(10, [3, 3, 4]))
+    print(multinomial_coeff(13, [7, 2, 4]))
+    print(multinomial_coeff(21, [9, 8, 4]))
     0/0
 
-    from standard_distr import *
+    from .standard_distr import *
     from pylab import *
 
-    print estimateTailExponent(LevyDistr(), pos = True)
+    print(estimateTailExponent(LevyDistr(), pos = True))
     L = LevyDistr()
     L.summary()
 
@@ -626,7 +628,7 @@ if __name__ == "__main__":
         S = S + S
         subplot(211)
         (S/(2**(i))).plot(xmin=0,xmax=50)
-        print i,
+        print(i, end=' ')
         (S/(2**(i))).summary()
         subplot(212)
         r = S.get_piecewise_pdf() - S_1.get_piecewise_pdf()
@@ -670,19 +672,19 @@ if __name__ == "__main__":
     from numpy import ones_like, zeros_like
     def _pole_test(f, x, pos = True, deriv = False):
         return str(testPole(f, x, pos, deriv = deriv)) + "   " + str(estimateDegreeOfPole(f, x, pos)) + "   " + str(estimateDegreeOfPole(f, x, pos, deriv = True))
-    print "0,", _pole_test(lambda x: ones_like(x), 0)
-    print "0',", _pole_test(lambda x: ones_like(x), 0, deriv = True)
-    print "1,", _pole_test(lambda x: zeros_like(x), 0)
-    print "x,", _pole_test(lambda x: x, 0)
-    print "x',", _pole_test(lambda x: x, 0, deriv = True)
-    print "x**1.5,", _pole_test(lambda x: x**1.5, 0)
-    print "x**0.5,", _pole_test(lambda x: x**0.5, 0)
-    print "-log(x),", _pole_test(lambda x: -log(x), 0)
-    print "-log(sqrt(x)),", _pole_test(lambda x: -log(sqrt(x)), 0)
-    print "-log(-x),", _pole_test(lambda x: -log(-x), 0, pos = False)
-    print "1+x**0.5,", _pole_test(lambda x: 1+x**0.5, 0)
-    print "(1+x**0.5)',", _pole_test(lambda x: 1+x**0.5, 0, deriv = True)
-    print "x*log(x),", _pole_test(lambda x: x*log(x), 0)
-    print _pole_test(lambda x: 1+(1*x+7)*x**-2.5, 0)
-    print testPole(lambda x: 1.0/abs(2*x-1), 0.5, pos= False)
-    print testPole(lambda x: 9.0*abs(2*x-1), 0.5, pos= True)
+    print("0,", _pole_test(lambda x: ones_like(x), 0))
+    print("0',", _pole_test(lambda x: ones_like(x), 0, deriv = True))
+    print("1,", _pole_test(lambda x: zeros_like(x), 0))
+    print("x,", _pole_test(lambda x: x, 0))
+    print("x',", _pole_test(lambda x: x, 0, deriv = True))
+    print("x**1.5,", _pole_test(lambda x: x**1.5, 0))
+    print("x**0.5,", _pole_test(lambda x: x**0.5, 0))
+    print("-log(x),", _pole_test(lambda x: -log(x), 0))
+    print("-log(sqrt(x)),", _pole_test(lambda x: -log(sqrt(x)), 0))
+    print("-log(-x),", _pole_test(lambda x: -log(-x), 0, pos = False))
+    print("1+x**0.5,", _pole_test(lambda x: 1+x**0.5, 0))
+    print("(1+x**0.5)',", _pole_test(lambda x: 1+x**0.5, 0, deriv = True))
+    print("x*log(x),", _pole_test(lambda x: x*log(x), 0))
+    print(_pole_test(lambda x: 1+(1*x+7)*x**-2.5, 0))
+    print(testPole(lambda x: 1.0/abs(2*x-1), 0.5, pos= False))
+    print(testPole(lambda x: 9.0*abs(2*x-1), 0.5, pos= True))
