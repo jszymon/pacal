@@ -1,5 +1,7 @@
 """Sum of two dependent variables."""
 
+from __future__ import print_function
+
 from pylab import legend, figure, title
 from pacal import *
 

@@ -1,5 +1,7 @@
 """Set of copulas different types"""
 
+from __future__ import print_function
+
 from pacal.integration import *
 from pacal.interpolation import *
 from matplotlib.collections import PolyCollection

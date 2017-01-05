@@ -3,6 +3,8 @@
 #! CHAPTERS 6, 7, 8
 #!------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 

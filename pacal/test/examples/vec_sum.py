@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 
 from pacal.depvars.models import Model

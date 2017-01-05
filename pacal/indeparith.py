@@ -1,5 +1,7 @@
 """Probabilistic arithmetic on independent random variables."""
 
+from __future__ import print_function
+
 import itertools
 from functools import partial
 import bisect

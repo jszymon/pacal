@@ -2,6 +2,8 @@
 
 Distribution of sample range."""
 
+from __future__ import print_function
+
 from pylab import figure, legend, title
 
 from pacal import *

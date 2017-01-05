@@ -1,5 +1,7 @@
 """Demo of order statistics."""
 
+from __future__ import print_function
+
 from pacal import *
 from pacal.utils import ordinal_ending
 from pylab import figure, legend, title, xlim, ylim

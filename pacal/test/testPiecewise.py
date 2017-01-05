@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 from pylab import show, subplot, pi
 from numpy import linspace, multiply, add, divide

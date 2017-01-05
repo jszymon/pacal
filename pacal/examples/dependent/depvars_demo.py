@@ -3,6 +3,7 @@
 #! Capabilities of PaCAL with dependent variables
 #! ==============================================
 #!
+from __future__ import print_function
 
 import sys; 
 print(('%s %s' % (sys.executable or sys.platform, sys.version)))

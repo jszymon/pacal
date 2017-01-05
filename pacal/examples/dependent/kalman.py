@@ -1,6 +1,8 @@
 #! =================================
 #! Kalman filter with control input
 #! =================================
+from __future__ import print_function
+
 from pacal import *
 from pylab import figure, show, zeros, plot, legend, subplot, rc
 

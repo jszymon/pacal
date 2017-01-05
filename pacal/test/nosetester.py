@@ -3,6 +3,8 @@ install nose package from http://pypi.python.org/pypi/nose/0.11.1
 (see: http://somethingaboutorange.com/mrl/projects/nose/0.11.1/)
 install coveraga package form http://pypi.python.org/pypi/coverage
 """
+from __future__ import print_function
+
 import nose
 import matplotlib.pyplot as plt
 

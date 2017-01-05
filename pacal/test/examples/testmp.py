@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 import time
 if __name__ == "__main__":

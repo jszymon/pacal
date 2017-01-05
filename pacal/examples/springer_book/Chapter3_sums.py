@@ -3,6 +3,8 @@
 #! CHAPTER 3 - SUMS
 #!-------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 

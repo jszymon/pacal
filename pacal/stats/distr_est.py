@@ -1,8 +1,9 @@
+from __future__ import print_function
+
 import inspect
 from pacal import MixDistr
 from numpy import prod, array, nan_to_num, ones, log
 from scipy.optimize import fmin
-
 
 class LoglikelihoodEstimator(object):
     def __init__(self, distr=None, xi=None, params=None, defvals=None, parconstr={}, debug_info=False):

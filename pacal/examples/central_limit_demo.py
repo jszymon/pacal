@@ -2,6 +2,7 @@
 #! Demo of central limit theorem
 #!===============================
 
+from __future__ import print_function
 
 import sys
 

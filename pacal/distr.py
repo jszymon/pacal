@@ -1,5 +1,7 @@
 """Base distribution classes.  Operations on distributions."""
 
+from __future__ import print_function
+
 import numbers
 from functools import partial
 

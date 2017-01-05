@@ -1,6 +1,8 @@
 #! Inaccurate places in PaCal 
 #! ==========================
 
+from __future__ import print_function
+
 from pylab import *
 from pacal import *
 from pacal.distr import demo_distr

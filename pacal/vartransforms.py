@@ -1,5 +1,6 @@
 """Variable transforms.  Used for mapping to infinite intervals etc."""
 
+from __future__ import print_function
 
 from numpy import Inf
 from numpy import hypot, sqrt, sign

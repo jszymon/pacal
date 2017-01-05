@@ -1,5 +1,7 @@
 """PiecewiseFunction for piecewise functions."""
 
+from __future__ import print_function
+
 import bisect
 import numbers
 import operator

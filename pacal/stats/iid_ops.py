@@ -1,5 +1,7 @@
 """Operations on sequences of i.i.d. variables."""
 
+from __future__ import print_function
+
 import operator
 
 import pacal.distr

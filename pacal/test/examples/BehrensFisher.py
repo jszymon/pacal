@@ -1,4 +1,5 @@
 """The Behrens-Fisher problem."""
+from __future__ import print_function
 
 from numpy import *
 from pacal import *

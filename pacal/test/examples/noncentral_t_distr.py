@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 
 def noncentral_t(df, mu, x):

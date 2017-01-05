@@ -1,6 +1,8 @@
 """Regression of one variable onto another in a joint two-variable
 distribution."""
 
+from __future__ import print_function
+
 from functools import partial
 
 from numpy import linspace, isscalar, zeros_like, NaN, concatenate

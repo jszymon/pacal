@@ -1,5 +1,7 @@
 """PaCal, the probabilistic calculator."""
 
+from __future__ import print_function
+
 import numpy as _np
 from pylab import show
 

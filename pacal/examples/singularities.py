@@ -2,6 +2,8 @@
 #! Examples of distributions with singularities 
 #!===================================================================
 
+from __future__ import print_function
+
 from functools import partial
 from pylab import *
 from mpl_toolkits.axes_grid.inset_locator import zoomed_inset_axes

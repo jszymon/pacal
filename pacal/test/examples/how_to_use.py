@@ -1,5 +1,7 @@
 #! How to use PaCal
 #! ================
+from __future__ import print_function
+
 from pacal import *
 from pacal.segments import PiecewiseDistribution, Segment
 from pacal.standard_distr import PDistr

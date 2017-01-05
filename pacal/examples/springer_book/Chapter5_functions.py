@@ -3,6 +3,8 @@
 #! CHAPTER 5 - FUNCTIONS
 #!-----------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 import time

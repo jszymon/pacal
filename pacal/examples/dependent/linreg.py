@@ -1,6 +1,7 @@
 #!===================================================
 #! The Distribution of Linear Regression Coefficients
 #!===================================================
+from __future__ import print_function
 
 from pacal import *
 

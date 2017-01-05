@@ -2,6 +2,8 @@
 #! Demo of noncentral distributions.
 #!===================================
 
+from __future__ import print_function
+
 from pacal import *
 from pylab import figure, legend, title, xlim, ylim
 import time

@@ -3,6 +3,9 @@
 #! =========================================
 #$ This demo ilustrates hot to use **PaCal** with discrite random variables.
 #$
+
+from __future__ import print_function
+
 from pylab import figure, show, subplot
 
 from pacal import *

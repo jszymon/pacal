@@ -1,5 +1,6 @@
 """Standard distributions."""
 
+from __future__ import print_function
 
 import numpy as np
 from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted

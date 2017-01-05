@@ -1,5 +1,7 @@
 """Parallel connection of two resistors."""
 
+from __future__ import print_function
+
 from pylab import figure, title, ylim
 from pacal import *
 

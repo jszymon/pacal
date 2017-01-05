@@ -1,5 +1,7 @@
 """Extreme value distribution demo."""
 
+from __future__ import print_function
+
 from pylab import figure, xlim, ylim, title, legend
 
 from numpy import pi, tan

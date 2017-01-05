@@ -9,6 +9,8 @@
 #!
 #! The first import ``distr`` module.
 #!
+from __future__ import print_function
+
 from pylab import figure, show
 from numpy import pi
 

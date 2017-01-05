@@ -1,5 +1,7 @@
 """Multidimensional distributions."""
 
+from __future__ import print_function
+
 import numbers
 from functools import partial
 from copy import copy

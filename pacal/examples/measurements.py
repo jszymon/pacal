@@ -2,6 +2,8 @@
 #! Examples of physical measurements
 #!==============================================
 
+from __future__ import print_function
+
 import numpy
 from pylab import *
 
