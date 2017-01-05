@@ -813,7 +813,7 @@ def convmax(f, g):
         fg.addSegment(segint)
         ub=ub[0:-1]
     for i in range(len(ub)-1) :
-        segList = _findSegList(f, g, (ub[i] + ub[i+1.0])/2.0, op)
+        segList = _findSegList(f, g, (ub[i] + ub[i+1])/2.0, op)
         #fun = partial(convmaxx, segList)            
         fun = Convxrunner(segList, params.integration_finite).convmaxx
         seg = Segment(ub[i],ub[i+1], fun)
