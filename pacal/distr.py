@@ -450,7 +450,7 @@ class Distr(RV):
                     return self
                 return ShiftedScaledDistr(self, scale = d)
         raise NotImplemented()
-    def __div__(self, d):
+    def __truediv__(self, d):
         """Overload division: distribution of X/r."""
         if isinstance(d, Distr):
             return DivDistr(self, d)
@@ -459,8 +459,25 @@ class Distr(RV):
                 return self
             return ShiftedScaledDistr(self, scale = 1.0 / d)
         raise NotImplemented()
+    def __div__(self, d):
+        """Overload python2 division: distribution of X/r."""
+        if isinstance(d, Distr):
+            return DivDistr(self, d)
+        if isinstance(d, numbers.Real):
+            if d == 1:
+                return self
+            return ShiftedScaledDistr(self, scale = 1.0 / d)
+        raise NotImplemented()
+    def __rtruediv__(self, d):
+        """Overload division or real by distribution number: distribution of r / X."""
+        if isinstance(d, numbers.Real):
+            if d == 0:
+                return 0
+            d = float(d)
+            return d * InvDistr(self)
+        raise NotImplemented()
     def __rdiv__(self, d):
-        """Overload division by real number: distribution of X*r."""
+        """Python2 version."""
         if isinstance(d, numbers.Real):
             if d == 0:
                 return 0

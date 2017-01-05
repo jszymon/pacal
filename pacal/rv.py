@@ -230,15 +230,30 @@ class RV(object):
             else:
                 return ShiftedScaledRV(self, scale = d)
         raise NotImplemented()
-    def __div__(self, d):
-        """Overload division: distribution of X*r."""
+    def __truediv__(self, d):
+        """Overload division: distribution of X/r."""
         if isinstance(d, RV):
             return DivRV(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, scale = 1.0 / d)
         raise NotImplemented()
+    def __div__(self, d):
+        """Python2 version."""
+        if isinstance(d, RV):
+            return DivRV(self, d)
+        if isinstance(d, numbers.Real):
+            return ShiftedScaledRV(self, scale = 1.0 / d)
+        raise NotImplemented()
+    def __rtruediv__(self, d):
+        """Overload division by real number: distribution of r/X."""
+        if isinstance(d, numbers.Real):
+            if d == 0:
+                return 0
+            d = float(d)
+            return d * InvRV(self)
+        raise NotImplemented()
     def __rdiv__(self, d):
-        """Overload division by real number: distribution of X*r."""
+        """Python2 version."""
         if isinstance(d, numbers.Real):
             if d == 0:
                 return 0

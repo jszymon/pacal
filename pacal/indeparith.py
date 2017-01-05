@@ -1181,7 +1181,10 @@ def convdiv(f, g):
         segint = seg.toInterpolatedSegment(NoL = _NoL, NoR = _NoR)
         fg.addSegment(segint)
     # Discrete parts of distributions
-    fg_discr = convdiracs(f, g, fun = operator.div)
+    try:
+        fg_discr = convdiracs(f, g, fun = operator.truediv)
+    except:
+        fg_discr = convdiracs(f, g, fun = operator.div)
     for seg in fg_discr.getDiracs():
         fg.addSegment(seg)
     return fg

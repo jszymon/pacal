@@ -384,8 +384,8 @@ def findinv(fun, a = 0.0, b = 1.0, c = 0.5, **kwargs):
     """find solution of equation f(x)=c, on interval [a, b]"""
     if have_scipy_opt:
         # fix too low relative tolerance for brentq
-        if "rtol" in kwargs and kwargs["rtol"] < finfo(float).eps * 2:
-            kwargs["rtol"] = finfo(float).eps * 2
+        if "rtol" in kwargs and kwargs["rtol"] < finfo(float).eps * 4:
+            kwargs["rtol"] = finfo(float).eps * 4
         return brentq(lambda x : fun(x) - c, a, b, **kwargs)
     else:
         return bisect(lambda x : fun(x) - c, a, b, **kwargs)

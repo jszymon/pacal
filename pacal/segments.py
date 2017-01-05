@@ -1522,8 +1522,15 @@ class PiecewiseFunction(object):
         elif isinstance(other, numbers.Real):
             return self.__rmul__(other)
         raise NotImplemented()
+    def __truediv__(self, other):
+        #TODO handle zeros in denominator, !!!currently unhandled!!!
+        if isinstance(other, PiecewiseFunction):
+            return self._operation__(other, operation = operator.div)
+        elif isinstance(other, numbers.Real):
+            return self.__rtruediv__(other)
+        raise NotImplemented()
     def __div__(self, other):
-        #TODO handle zeros o denominator, !!!currently unhandled!!!
+        #TODO handle zeros in denominator, !!!currently unhandled!!!
         if isinstance(other, PiecewiseFunction):
             return self._operation__(other, operation = operator.div)
         elif isinstance(other, numbers.Real):
@@ -1543,6 +1550,11 @@ class PiecewiseFunction(object):
         """Overload product with real number: distribution of r*X."""
         if isinstance(r, numbers.Real):
             return self._roperation__(r, operation = operator.mul)
+        raise NotImplemented()
+    def __rtruediv__(self, r, operation = _op_rdiv):
+        """Overload division by real number: distribution of r/X."""
+        if isinstance(r, numbers.Real):
+            return self._roperation__(r, operation )
         raise NotImplemented()
     def __rdiv__(self, r, operation = _op_rdiv):
         """Overload division by real number: distribution of r/X."""
