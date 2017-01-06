@@ -40,6 +40,7 @@ if __name__ == "__main__":
     #! Noncentral Chi square 
     #!-----------------------
     #!
+    plot_nonc(lambda nc: NoncentralChiSquareDistr(1, nc), titl = "NoncentralChiSquare(1, nonc)")
     plot_nonc(lambda nc: NoncentralChiSquareDistr(2, nc), titl = "NoncentralChiSquare(2, nonc)")
     plot_nonc(lambda nc: NoncentralChiSquareDistr(10, nc), titl = "NoncentralChiSquare(10, nonc)")
     
