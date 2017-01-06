@@ -464,7 +464,7 @@ class NDDistrWithVarSubst(NDDistr):
         self.substidx = substidx[0]
         substvar = f.Vars[self.substidx]
         newvars = list((set(f.Vars) - set([substvar])) | set(substfunvars))
-        newvars.sort()
+        newvars.sort(key = id)
         super(NDDistrWithVarSubst, self).__init__(len(newvars), newvars)
         self.substmap_f = [(i, self.Vars.index(v)) for i, v in enumerate(f.Vars) if v != substvar]
         self.substmap_substf = [self.Vars.index(v) for v in substfunvars]
