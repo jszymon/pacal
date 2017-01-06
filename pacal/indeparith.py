@@ -78,6 +78,12 @@ def conv(f, g):
                     has_minf = True
                 elif isinf(gbrk.x) and gbrk.x > 0:
                     has_pinf = True
+                elif gbrk.dirac and not fbrk.dirac:
+                    newbreak = [fbrk.x + gbrk.x, fbrk.negPole, fbrk.posPole, fbrk.Cont, fbrk.Cont]
+                    breaks.append(newbreak)
+                elif fbrk.dirac and not gbrk.dirac:
+                    newbreak = [fbrk.x + gbrk.x, gbrk.negPole, gbrk.posPole, gbrk.Cont, gbrk.Cont]
+                    breaks.append(newbreak)
                 else:
                     newbreak = [fbrk.x + gbrk.x, False, False, False, False]
                     if fbrk.negPole and gbrk.negPole:

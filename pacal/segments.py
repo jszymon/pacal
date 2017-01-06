@@ -894,11 +894,12 @@ class PInfInterpolatedSegment(InterpolatedSegment, PInfSegment):
         return PInfInterpolatedSegment(self.a, self.f.diff())
 class breakPoint(object):
     """Decribe a breakpoint of a piecewise function."""
-    def __init__(self, x, negPole, posPole, Cont = True):
+    def __init__(self, x, negPole, posPole, Cont = True, dirac = False):
         self.x = x
         self.negPole = negPole
         self.posPole = posPole
         self.Cont = Cont
+        self.dirac = dirac
     def __str__(self):
         ret = ["[" + str(self.x)]
         if self.negPole:
@@ -907,6 +908,8 @@ class breakPoint(object):
             ret.append("posPole")
         if not self.Cont and not self.negPole and not self.posPole:
             ret.append("Discontinuous")
+        if self.dirac:
+            ret.append("Dirac")
         return ",".join(ret) + "]"
 
 class PiecewiseFunction(object):
@@ -1408,6 +1411,8 @@ class PiecewiseFunction(object):
             return []
         breaks = [breakPoint(segments[0].a, False, False)]
         for seg in segments:
+            if seg.isDirac():
+                breaks[-1].dirac = True
             if seg.hasLeftPole():
                 breaks[-1].posPole = True
             if seg.hasRightPole():
