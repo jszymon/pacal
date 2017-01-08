@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
+from __future__ import print_function
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -9,7 +10,7 @@ try:
     from Cython.Distutils import build_ext
     have_Cython = True
 except ImportError:
-    print "Warning: Cython could not be imported.  Will use slower pure Python version."
+    print("Warning: Cython could not be imported.  Will use slower pure Python version.")
     have_Cython = False
 
 if have_Cython:
@@ -22,7 +23,7 @@ else:
     
 setup(
     name='PaCal',
-    version='1.5.1',
+    version='1.6',
     description ='PaCal - ProbAbilistic CALculator',
     author='Szymon Jaroszewicz, Marcin Korzeń',
     author_email='s.jaroszewicz@ipipan.waw.pl, mkorzen@wi.zut.edu.pl',

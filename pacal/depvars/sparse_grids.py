@@ -284,7 +284,7 @@ class AdaptiveSparseGridInterpolator(object):
                 fs = dot(one_over_x_m_xi, fs_r.T)
                 first = False
             else:
-                fs_r = fs.reshape((X[0].shape[0], fs.shape[1] / one_over_x_m_xi.shape[1], one_over_x_m_xi.shape[1]))
+                fs_r = fs.reshape((X[0].shape[0], fs.shape[1] // one_over_x_m_xi.shape[1], one_over_x_m_xi.shape[1]))
                 fs = (fs_r * one_over_x_m_xi[:,newaxis,:]).sum(axis=-1)
             fs /= den_factor[:,newaxis]
 

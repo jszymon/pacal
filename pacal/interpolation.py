@@ -45,7 +45,7 @@ from .vartransforms import *
 # import faster Cython versions if possible
 try:
     #import pyximport; pyximport.install()
-    from bary_interp import bary_interp
+    from .bary_interp import bary_interp
     have_Cython = True
     print("Using compiled interpolation routine")
 except:

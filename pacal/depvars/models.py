@@ -323,9 +323,10 @@ class Model(object):
                         key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
                         #key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
-                print([(key, fv.getSymname(), dv.getSymname()) for key, fv, dv in sorted(pairs)])
+                print([(key, fv.getSymname(), dv.getSymname()) for key, fv, dv
+                           in sorted(pairs, key=lambda x: (id(x[0]), id(x[1])))])
                 if len(pairs) > 0:
-                    pairs.sort()
+                    pairs.sort(key=lambda x: (id(x[0]), id(x[1])))
                     _key, fv, dv = pairs[0]
                     M.varschange(fv, dv)
                     if fv not in wanted_rvs:
