@@ -3,9 +3,9 @@
 from __future__ import print_function
 
 import numpy as np
-from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted
+from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted, bincount
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
-from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel
+from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel, randint
 from numpy.random import f as f_rand
 
 from numpy import finfo, double
@@ -93,7 +93,18 @@ class MixDistr(Distr):
         #self.piecewise_pdf = PiecewiseDistribution(fun=mixdistr.piecewise_pdf, breakPoints = mixdistr.piecewise_pdf.getBreaks())              
     def getName(self):
         return "MIX()".format()
-    
+    def rand_raw(self, n = 1):
+        r = zeros(n)
+        idx = randint(0, self.nmix, n)
+        nk = bincount(idx, minlength = self.nmix)
+        for k in range(self.nmix):
+            r[idx == k] = self.distrs[k].rand(nk[k])
+        return r
+    def range(self):
+        rs = [d.range() for d in self.distrs]
+        a = min(r[0] for r in rs)
+        b = max(r[1] for r in rs)
+        return a, b
     #def pdf(self, x):
     #    return self.fun(x)
     #def init_piecewise_pdf(self):
