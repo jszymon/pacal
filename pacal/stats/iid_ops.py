@@ -152,9 +152,9 @@ if __name__ == "__main__":
         fun.plot(xmin=0,xmax=2,color="k", linewidth=2.0, linestyle="-")
         fun.summary()
     T.plot(linewidth=2.0)
-    
+
     axis((0,2,0,3))
-    
+
     figure()
     med = iid_median(BetaDistr(3, 2), 51)
     med.summary()

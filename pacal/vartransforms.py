@@ -54,7 +54,7 @@ class VarTransformIdentity(VarTransform):
     var_max = +1.0
     var_inf = [] # parameter values corresponding to infinity.  Do
                  # not distinguish +oo and -oo
-    
+
 ### Variable transforms
 class VarTransformReciprocal_PMInf(VarTransform):
     """Reciprocal variable transform."""
@@ -220,7 +220,7 @@ class VarTransformAlgebraic_MInf(VarTransform):
         self.c = c # this corresponds to Boyd's L param
     def var_change(self, x):
         #assert all(x <= self.U)
-        
+
         if ~all(x <= self.U):
             print "assert all(x >= self.L)"
             print x
@@ -260,7 +260,7 @@ def plot_invtransformed_tail(f, vt):
     X = logspace(1, 50, 1000)
     Y = f(vt.var_change(X))
     loglog(X, Y)
-  
+
 
 if __name__ == "__main__":
     vt = VarTransformAlgebraic_PMInf()
@@ -290,5 +290,5 @@ if __name__ == "__main__":
 
     plot_invtransformed_tail(lambda x: x, VarTransformReciprocal_PInf(L = 10))
     plot_invtransformed_tail(lambda x: 1-x, VarTransformAlgebraic_PInf(L = 10))
-    
+
     show()

@@ -35,19 +35,19 @@ if __name__ == "__main__":
         print
         print "time===", time.time()-tic
         #show()
-    
+
     #!----------------------
     #! uniform distribution
     #!----------------------
     X = UniformDistr(0,1)
     central_limit_demo(X, xmin=-0.1, xmax=1.1)
-    
+
     #!----------------------
     #! Chi^2_1
     #!----------------------
     X = ChiSquareDistr(1)
     central_limit_demo(X, N=5, ymax=1.5, xmax=3)
-    
+
     #!----------------------
     #! Student T w. 2df
     #!----------------------
@@ -59,17 +59,17 @@ if __name__ == "__main__":
     #!----------------------
     X = UniformDistr(1,3) / UniformDistr(-2,1)
     central_limit_demo(X, N = 5, xmin=-5, xmax=5)
-    
+
     #!----------------------
     #! Cauchy distribution
     #!----------------------
     X = CauchyDistr()
     central_limit_demo(X, xmin = -10, xmax = 10)
-    
+
     #!----------------------
     #! Levy distribution
     #!----------------------
     X = LevyDistr()
     central_limit_demo(X, xmax=5, numberOfPoints = 10000)
-    
+
     show()

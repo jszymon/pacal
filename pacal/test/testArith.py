@@ -5,20 +5,20 @@ from numpy import cos, arange, pi
 import unittest
 from scipy.stats import *
 from pylab import *
-from pacal import * 
+from pacal import *
 
 import time
 import matplotlib.pyplot as plt
 
 class TestArith(unittest.TestCase):
     def setUp(self):
-        print """====Test starting============================="""        
+        print """====Test starting============================="""
         self. ts = time.time()
-        
+
     def tearDown(self):
         te = time.time()
-        print 'test done,   time=%7.5f s' % (te - self.ts)        
-    
+        print 'test done,   time=%7.5f s' % (te - self.ts)
+
     def testCentralLimit(self):
         fig = plt.figure()
         n = 2
@@ -32,7 +32,7 @@ class TestArith(unittest.TestCase):
         S.hist()
         m = S.mean()
         s = S.std()
-        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
+        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)
         te = time.time()
         self.assert_(abs(s-sqrt(n))<1e-15 and (te-self.ts)<10, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
 
@@ -52,7 +52,7 @@ class TestArith(unittest.TestCase):
         m = S.mean()
         s = S.std()
         #Y = InterpolatedDistr(S)
-        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)        
+        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)
         te = time.time()
         print te-self.ts
         print s - sqrt(n/12.0)
@@ -68,11 +68,11 @@ class TestArith(unittest.TestCase):
         for i in range(n-1):
             X = NormalDistr(mu, sigma)
             S = S + X
-            S.hist()        
-        print 'sum of {0} normal N({1}, {2}) variables:'.format(n, mu, sigma) 
-        
+            S.hist()
+        print 'sum of {0} normal N({1}, {2}) variables:'.format(n, mu, sigma)
+
     def testSumDependent(self):
-        print """sum of two the same normal variables X+X=2X, 
+        print """sum of two the same normal variables X+X=2X,
         not two i.i.d."""
         fig = plt.figure()
         X = NormalDistr(1,1)
@@ -83,21 +83,21 @@ class TestArith(unittest.TestCase):
         Y.hist()
         m = Y.mean()
         s = Y.std()
-        print 'mean(X)={0}, std={1}, abs(std-sqrt(2))={2}'.format(m,s, abs(s-sqrt(2)))        
+        print 'mean(X)={0}, std={1}, abs(std-sqrt(2))={2}'.format(m,s, abs(s-sqrt(2)))
         self.assert_(abs(s-2)<1e-10,'sum of dependent variables not working yet')
 
     def testCupOfTeaExample(self):
-        """ The cup of tea example, take n times sip of tea 
+        """ The cup of tea example, take n times sip of tea
             Y_0 = 100
-            Y_1 = 100 - X_1, X_1 is drawn form [0, 100] 
-            Y_2 = Y_1 - X_2, X_2 is drown form [0, Y_1] (Y_1.clone ?)     
+            Y_1 = 100 - X_1, X_1 is drawn form [0, 100]
+            Y_2 = Y_1 - X_2, X_2 is drown form [0, Y_1] (Y_1.clone ?)
             ...
-            X_1, X_2, ... are dependent  
+            X_1, X_2, ... are dependent
         """
         n = 2
         Y_0=ConstDistr(100)
         self.assert_(1<0, 'not work yet')
-    
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestArith("testCentralLimit"))
