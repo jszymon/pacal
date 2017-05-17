@@ -385,7 +385,7 @@ class NDDistr(NDFun):
         if self.marginals is not None and len(self.marginals) > 1:
             f, g = self.marginals[:2]
         else:
-            raise NotImplemented("The distribution does not have marginals")
+            raise ValueError("The distribution does not have marginals")
         Lf, Uf = f.ci(0.001)
         Lg, Ug = g.ci(0.001)
         deltaf = (Uf - Lf) / n
