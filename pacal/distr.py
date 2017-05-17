@@ -7,7 +7,7 @@ from functools import partial
 
 import numpy
 from numpy import array, zeros_like, ones_like, unique, concatenate, isscalar, isfinite
-from numpy import sqrt, pi, arctan, tan, asfarray, zeros, Inf, NaN
+from numpy import sqrt, pi, arctan, tan, asfarray, asarray, zeros, Inf, NaN
 #from numpy import sin, cos, tan,
 from numpy import arcsin, arccos
 from numpy.random import uniform
@@ -1069,6 +1069,7 @@ class DiscreteDistr(Distr):
         self.cumP = cumsum(self.pi)
     def pdf(self, x):
         """it override pdf() method to obtain discrete probabilities"""
+        x = asarray(x)
         yy = zeros_like(x, dtype=float)
         for i in range(len(self.pi)):
             yy[x==self.xi[i]] += float(self.pi[i])
