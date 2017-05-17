@@ -45,7 +45,7 @@ class NoncentralBetaDistr(InvDistr):
         return "NoncentralBetaDistr(alpha={0},beta={1},lambda={2})#{3}".format(self.alpha, self.beta, self.lmbda, self.id())
     def getName(self):
         return "NoncBeta({0},{1},{2})".format(self.alpha, self.beta, self.lmbda)
-    
+
 class NoncentralFDistr(DivDistr):
     def __init__(self, df1 = 1, df2 = 1, lmbda = 0):
         d1 = NoncentralChiSquareDistr(df1, lmbda) / df1
