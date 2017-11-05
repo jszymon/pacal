@@ -403,7 +403,7 @@ class ChebyshevInterpolator1(BarycentricInterpolator, AdaptiveInterpolator1):
 def _find_zero(f, a, ymax=1e-120, ymin=1e-150):
     """Find where a function achieves very small values (but greater
     than zero)."""
-    x_min = 1
+    x_min = 1e-5
     x_max = 1e100
     x_mid = exp((log(x_min) + log(x_max)) / 2)
     try:
