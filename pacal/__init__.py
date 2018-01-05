@@ -73,7 +73,7 @@ def _pickle_method(method):
     obj = method.__self__
     cls = method.__self__.__class__
     func_name = method.__func__.__name__
-    #print "pickle>>>", func_name, obj, cls 
+    #print "pickle>>>", func_name, obj, cls
     if func_name.startswith('__') and not func_name.endswith('__'):
         #deal with mangled names
         cls_name = cls.__name__.lstrip('_')

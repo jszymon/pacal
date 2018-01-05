@@ -24,18 +24,18 @@ class LoglikelihoodEstimator(object):
         self.distr = distr
         self.parkvargs = {}
         i = 0
-        for i in range(len(self.params)):            
+        for i in range(len(self.params)):
             self.parkvargs[self.params[i]] = self.defvals[i]
         if self.debug_info:  print("parkvargs=", self.parkvargs)
     def make_kwargs(self, params, vals):
         i = 0
         parkvargs = {}
-        for i in range(len(params)):            
+        for i in range(len(params)):
             parkvargs[params[i]] = vals[i]
         return parkvargs
     def logli(self, parvals):
         kwargs = self.make_kwargs(self.params, parvals)
-        #self.distr(**kwargs).summary()   
+        #self.distr(**kwargs).summary()
         ll=-sum(log(self.distr(**kwargs).get_piecewise_pdf()(self.xi)+1e-300))
         if self.debug_info: print(parvals, ll, self.distr(**kwargs).get_piecewise_pdf()(self.xi))
         return ll
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     b = LoglikelihoodEstimator(distr=NormalDistr, xi=NormalDistr(2,1).rand(1000))
     c = LoglikelihoodEstimator(distr=CauchyDistr, xi=CauchyDistr(1,1).rand(1000))
     d = LoglikelihoodEstimator(distr=ParetoDistr, xi=ParetoDistr(1.4).rand(1000))
-    
+
     print(a.find_params())
     print(b.find_params())
     print(c.find_params())

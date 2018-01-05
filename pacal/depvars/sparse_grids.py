@@ -155,7 +155,7 @@ class AdaptiveSparseGridInterpolator(object):
             errs = abs(self.interp_at(*test_Xs) - test_Ys)
         err = errs.max()
         return err
-    
+
     def get_nodes(self, q):
         """Compute nodes for current ni."""
         nodes = []
@@ -327,4 +327,3 @@ if __name__ == "__main__":
     yi = ai.interp_at(*X)
     yt = f(*X)
     print(yi, yt, yi - yt)
-    

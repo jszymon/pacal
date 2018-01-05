@@ -8,23 +8,23 @@ from scipy.stats import *
 from pacal import *
 import time
 import matplotlib.pyplot as plt
-# sass  sa sa sas ala all jest to 
+# sass  sa sa sas ala all jest to
 class TestPlot(unittest.TestCase):
     def setUp(self):
-        print("""====Test starting=============================""")        
+        print("""====Test starting=============================""")
         self.N1 = NormalDistr(1, 1)
         self.N2 = NormalDistr(2, 1)
         self.SumN1N2 = self.N1 + self.N2
         self.Chi4 = ChiSquareDistr(3)
         self.U1 = UniformDistr(-4, -1)
         self. ts = time.time()
-       
-        
+
+
     def tearDown(self):
         te = time.time()
-        print('test done,   time=%7.5f s' % (te - self.ts))        
-        
-        
+        print('test done,   time=%7.5f s' % (te - self.ts))
+
+
     def testPlotPdf(self):
         print("""pdfs and histograms ...""")
         fig = plt.figure()
@@ -35,7 +35,7 @@ class TestPlot(unittest.TestCase):
         self.SumN1N2.hist()
         self.U1.hist()
         self.assertTrue(True);
-    
+
     def testHistdistr(self):
         print("""histograms ...""")
         fig = plt.figure()
@@ -43,8 +43,8 @@ class TestPlot(unittest.TestCase):
         self.SumN1N2.hist()
         self.U1.hist()
         self.assertTrue(True);
-    
-       
+
+
 
     def testBoxplot(self):
         pos = 1
@@ -52,12 +52,12 @@ class TestPlot(unittest.TestCase):
         fig = plt.figure()
         for F in [NormalDistr(), UniformDistr(), CauchyDistr(), ChiSquareDistr(),
           ExponentialDistr(), BetaDistr(), ParetoDistr(), LevyDistr(), LaplaceDistr(),
-          StudentTDistr(), SemicircleDistr(), FDistr(), DiscreteDistr()]:            
+          StudentTDistr(), SemicircleDistr(), FDistr(), DiscreteDistr()]:
           F.boxplot(pos, color=col[pos], useci=0.01, label=F.__class__.__name__)
-          pos += 1        
+          pos += 1
         legend()
         self.assertTrue(True);
-        
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestPlot("testBoxplot"))

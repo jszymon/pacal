@@ -224,9 +224,9 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
             number_of_intervals = ceil(log10(exp_wide)/log10(wide_cond))
             nodes = logspace(log10(a), log10(b), number_of_intervals + 1)
             nodes[0] = a
-            nodes[-1] = b 
+            nodes[-1] = b
             I,E=0,0
-            for i in range(int(number_of_intervals)):                
+            for i in range(int(number_of_intervals)):
                 integ,err = integrate_fejer2(f, nodes[i], nodes[i+1], *args, **kwargs)
                 I+=integ
                 E+=err
@@ -236,9 +236,9 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
             number_of_intervals = ceil(log10(exp_wide)/log10(wide_cond))
             nodes = -logspace(log10(abs(a)), log10(abs(b)), number_of_intervals + 1)
             nodes[0] = a
-            nodes[-1] = b 
+            nodes[-1] = b
             I,E=0,0
-            for i in range(int(number_of_intervals)):                
+            for i in range(int(number_of_intervals)):
                 integ,err = integrate_fejer2(f, nodes[i], nodes[i+1], *args, **kwargs)
                 I+=integ
                 E+=err
@@ -282,7 +282,7 @@ def integrate_iter(f, a1, b1, a2, b2):
             for i in range(len(y)):
                 z[i], err = integrate_fejer2(lambda x : f(x, y[i]), a1, b1)
         return z
-    cheb  = ChebyshevInterpolator1(fun1, a2,b2) 
+    cheb  = ChebyshevInterpolator1(fun1, a2,b2)
     return integrate_fejer2(cheb, a2, b2)
 
 def integrate_iter2(f, a1, b1, a2, b2):
@@ -295,7 +295,7 @@ def integrate_iter2(f, a1, b1, a2, b2):
                 print(";;;", i, len(x))
                 z[i], err = integrate_fejer2(lambda y : f(x[i], y), a2, b2)
         return z
-    cheb  = ChebyshevInterpolator1(fun1, a1,b1) 
+    cheb  = ChebyshevInterpolator1(fun1, a1,b1)
     return integrate_fejer2(cheb, a1, b1)
 
 def integrate_with_pminf_guess(f, a, b, *args, **kwargs):
@@ -397,12 +397,10 @@ if __name__ == "__main__":
     print("log:", I1, err)
     I2, err = integrate_fejer2_Xn_transformN(ff, 0.5, 1.0, N=4, debug_info = True, debug_plot = True)
     print("log:", I2, err, I1+I2 - pi/4)
-    
+
     def pc(x,t=1e10):
         #print x
         return 1/(1+(t*x)**2) * 1/(1+t**2)*t
     I, err = integrate_fejer2_pinf(pc, a=1e-10, debug_info = True, debug_plot = True)
-    
-    print("pcauchy:", I, err, end=' ') 
-    
-    
+
+    print("pcauchy:", I, err, end=' ')
