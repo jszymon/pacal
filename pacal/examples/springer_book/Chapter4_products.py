@@ -3,6 +3,8 @@
 #! CHAPTER 4 - PRODUCTS
 #!----------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 
@@ -29,22 +31,22 @@ if __name__ == "__main__":
     #! Section 4.4.1
     def prod_uni_pdf(n, x):
         pdf = (-log(x)) ** (n-1)
-        for i in xrange(2, n):
+        for i in range(2, n):
             pdf /= i
         return pdf
     figure()
     demo_distr(UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1), theoretical = partial(prod_uni_pdf, 3))
     
     pu = UniformDistr(0,1)
-    for i in xrange(4):
+    for i in range(4):
         pu *= UniformDistr(0,1)
     figure()
     demo_distr(pu, theoretical = partial(prod_uni_pdf, 5))
-    for i in xrange(6):
+    for i in range(6):
         pu *= UniformDistr(0,1)
     figure()
     demo_distr(pu, theoretical = partial(prod_uni_pdf, 11))
-    for i in xrange(10):
+    for i in range(10):
         pu *= UniformDistr(0,1)
     figure()
     demo_distr(pu, theoretical = partial(prod_uni_pdf, 21))
@@ -61,12 +63,12 @@ if __name__ == "__main__":
     figure()
     demo_distr(NormalDistr(0,1) * NormalDistr(0,1))
     np = NormalDistr(0,1)
-    for i in xrange(5):
+    for i in range(5):
         np *= NormalDistr(0,1)
     figure()
     demo_distr(np, xmin = -0.3, xmax = 0.3)
     
-    for i in xrange(10):
+    for i in range(10):
         np *= NormalDistr(0,1)
     figure()
     demo_distr(np, xmin = -0.3, xmax = 0.3, ymax = 5)
@@ -81,7 +83,7 @@ if __name__ == "__main__":
     #! Exercise 4.1
     def prod_uni_pdf_a(a, n, x):
         pdf = 0.5 * (n*log(a)-log(abs(x))) ** (n-1)
-        for i in xrange(2, n):
+        for i in range(2, n):
             pdf /= i
         pdf *= a**(-n)
         return pdf
@@ -92,7 +94,7 @@ if __name__ == "__main__":
     demo_distr(UniformDistr(-2,2) * UniformDistr(-2,2) * UniformDistr(-2,2), theoretical = partial(prod_uni_pdf_a, 2, 3))
     
     pu = UniformDistr(-1.5,1.5)
-    for i in xrange(4):
+    for i in range(4):
         pu *= UniformDistr(-1.5,1.5)
     figure()
     demo_distr(pu, theoretical = partial(prod_uni_pdf_a, 1.5, 5))
@@ -185,7 +187,7 @@ if __name__ == "__main__":
                                                                  + 52480*pi**6*log(x**2 / gamma**20)**3
                                                                  + 147456*pi**8*log(x**2 / gamma**20))
     c = CauchyDistr()
-    for i in xrange(9):
+    for i in range(9):
         c *= CauchyDistr()
     figure()
     demo_distr(c, xmin = -20, xmax = 20, ymax = 1.5,
@@ -199,7 +201,7 @@ if __name__ == "__main__":
     #! Exercise 4.12
     def log_prod_uni(n):
         u = UniformDistr(0,1)
-        for i in xrange(n-1):
+        for i in range(n-1):
             u *= UniformDistr(0,1)
         return -2 * log(u)
     figure()
@@ -223,10 +225,10 @@ if __name__ == "__main__":
         #for i in xrange(df2):
         #    den += NormalDistr(0,1) ** 2
         num = NormalDistr(0, 1) ** 2
-        for i in xrange(df1 - 1):
+        for i in range(df1 - 1):
             num += NormalDistr(0,1) ** 2
         den = NormalDistr() ** 2
-        for i in xrange(df2 - 1):
+        for i in range(df2 - 1):
             den += NormalDistr(0,1) ** 2
         if mode == 1:
             num /= df1
@@ -264,7 +266,7 @@ if __name__ == "__main__":
     #! Exercise 4.15
     def student_t(df):
         den = NormalDistr() ** 2
-        for i in xrange(df - 1):
+        for i in range(df - 1):
             den += NormalDistr() ** 2
         return NormalDistr() / sqrt(den / df)
     for df in [1, 2, 3, 5]:
@@ -289,13 +291,13 @@ if __name__ == "__main__":
     #! Exercise 4.18
     def theor_beta_prod(alpha, n, x):
         norm = float((alpha + 1) ** n)
-        for i in xrange(1, n):
+        for i in range(1, n):
             norm /= i
         return norm * x ** alpha * log(1.0 / x) ** (n - 1)
     for alpha in [0.2, 1, 2, 4]:
         for n in [2, 3, 5]:
             d = BetaDistr(alpha + 1, 1)
-            for i in xrange(n - 1):
+            for i in range(n - 1):
                 d *= BetaDistr(alpha + 1, 1)
             figure()
             demo_distr(d, theoretical = partial(theor_beta_prod, alpha, n))
@@ -429,10 +431,10 @@ if __name__ == "__main__":
     from pacal.utils import binomial_coeff
     for n, m in [(2,2), (5,7)]:
         N = UniformDistr(0,1)
-        for i in xrange(n-1):
+        for i in range(n-1):
             N += UniformDistr(0,1)
         D = UniformDistr(0,1)
-        for i in xrange(m-1):
+        for i in range(m-1):
             D += UniformDistr(0,1)
         d = N/D
         figure()
@@ -440,16 +442,16 @@ if __name__ == "__main__":
     
         a = 0.9
         nmfact = 1
-        for i in xrange(2, n+m+1):
+        for i in range(2, n+m+1):
             nmfact *= i
         nrm = a**m * nmfact
         s = 0
-        for i in xrange(int(numpy.floor(m*a)+1)):
-            for j in xrange(int(numpy.floor((m*a-i)/a)+1)):
+        for i in range(int(numpy.floor(m*a)+1)):
+            for j in range(int(numpy.floor((m*a-i)/a)+1)):
                 s += (-1)**(i+j) * binomial_coeff(n, i) * binomial_coeff(m, j) * ((m-j)*a-i)**(n+m)
         cdf_formula = s / nrm
         cdf_pacal = d.cdf(a)
-        print "n={0},m={1}  cdf({2})={3}, err = {4}".format(n, m, a, cdf_pacal, abs(cdf_pacal - cdf_formula))
+        print("n={0},m={1}  cdf({2})={3}, err = {4}".format(n, m, a, cdf_pacal, abs(cdf_pacal - cdf_formula)))
     
     #! Exercise 4.32
     for l1, l2 in [(1,1), (10,1), (1,10)]:
@@ -457,5 +459,5 @@ if __name__ == "__main__":
         figure()
         alpha = float(l2) / l1
         demo_distr(d, xmax = 10, theoretical = lambda x: alpha / (x+alpha)**2)
-    print "time=", time.time() - tic
+    print("time=", time.time() - tic)
     show()

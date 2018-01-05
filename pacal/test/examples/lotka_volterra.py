@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 from pylab import figure, show
 
@@ -20,7 +22,7 @@ D = BetaDistr(2, 6, sym = "D")
 #D = 0.9
 h=0.1
 for i in range(n):
-    print i
+    print(i)
     if i==0:
         X[i] = BetaDistr(3, 3, sym = "X0")
         Y[i] = BetaDistr(3, 3, sym = "Y0")
@@ -34,17 +36,17 @@ for i in range(n):
 
 
 M = Model([X[0], Y[0], A, B, C, D], X[1:] + Y[1:] )
-print M
+print(M)
 M.eliminate_other([X[0], Y[0], A, B, C, D] + X[1:] + Y[1:])
-print M
-print Y[1].range()
+print(M)
+print(Y[1].range())
 
 #M1 = M.inference([X[2], Y[2]], [X[0], Y[0]], [0.5, 0.2])\
 figure()
     
 for i in range(n):
     M1 = M.inference([X[i], Y[i]], [A, B, C, D], [0.9, 0.2, 0.3, 0.6])
-    print M1
+    print(M1)
     M1.plot(cont_levels=1)
     #figure()
     #M1.plot(have_3d=True)

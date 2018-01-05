@@ -1,5 +1,7 @@
 """Multidimensional distributions."""
 
+from __future__ import print_function
+
 import numbers
 from functools import partial
 from copy import copy
@@ -53,7 +55,7 @@ class NDFun(object):
         i=0
         if Vars is None:
             i+=-1
-            Vars = [RV(sym=LETTERS[i]) for i in xrange(d)]
+            Vars = [RV(sym=LETTERS[i]) for i in range(d)]
         self.Vars = Vars
         var_ids = [v.id() for v in self.Vars]
         self.id_to_idx = dict((id, idx) for idx, id in enumerate(var_ids))
@@ -68,7 +70,7 @@ class NDFun(object):
             self.fun = fun
     def dump_symVars(self):
         for sv in self.Vars:
-            print '{0}={1}'.format(sv.getSymname(), sv.getSym())
+            print('{0}={1}'.format(sv.getSymname(), sv.getSym()))
     def fun(self, *X):
         pass
     def __call__(self, *X):
@@ -76,7 +78,7 @@ class NDFun(object):
             y = self.fun(*X)
         elif isscalar(X[0]):
             mask = (X[0] >= self.a[0]) and (X[0] <= self.b[0])
-            for i in xrange(1, len(X)):
+            for i in range(1, len(X)):
                 mask = mask or ((X[i] >= self.a[i]) and (X[i] <= self.b[i]))
             if mask:
                 y = self.fun(*X)
@@ -84,7 +86,7 @@ class NDFun(object):
                 y = 0
         else:
             mask = (X[0] >= self.a[0]) & (X[0] <= self.b[0])
-            for i in xrange(1, len(X)):
+            for i in range(1, len(X)):
                 mask &= ((X[i] >= self.a[i]) & (X[i] <= self.b[i]))
             y = zeros_like(X[0])
             y[mask] = self.fun(*[xi[mask] for xi in X])
@@ -255,7 +257,7 @@ class InterpRunner(object):
                 y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
             return y[0]
         y = asfarray(zeros_like(X[0]))
-        for i in xrange(len(X[0])):
+        for i in range(len(X[0])):
             # TODO: fix integration bounds!!!!
             if hasattr(self.ndfun, "f"):
                 y[i] = integrate_fejer2(partial(self.integ_f, [x[i] for x in X]), ndfun.f.a[v1], ndfun.f.b[v1])[0]
@@ -297,7 +299,7 @@ class NDDistr(NDFun):
         unnormalized = NDInterpolatedDistr(len(c_var), partial(_cond_f, self, arg, c_var, var, X), [self.Vars[i] for i in c_var])
         normalize = kwargs.get("normalize", True)
         if normalize:
-            nrm = unnormalized.eliminate(range(unnormalized.d))
+            nrm = unnormalized.eliminate(list(range(unnormalized.d)))
             if isinstance(nrm, NDConstFactor):
                 nrm = nrm.c
             elif isinstance(nrm, NDProductDistr):
@@ -333,7 +335,7 @@ class NDDistr(NDFun):
             else:
                 y =  zeros_like(x)
                 for i in range(len(x)):
-                    print i, "|||", _fun(x[i])
+                    print(i, "|||", _fun(x[i]))
                     y[i] = _fun(x[i])
                 return y
             #distr = FunDistr(fun=self.condition([c_var], x).distr_pdf, breakPoints=var.get_piecewise_pdf().getBreaks())
@@ -383,7 +385,7 @@ class NDDistr(NDFun):
         if self.marginals is not None and len(self.marginals) > 1:
             f, g = self.marginals[:2]
         else:
-            raise NotImplemented("The distribution does not have marginals")
+            raise ValueError("The distribution does not have marginals")
         Lf, Uf = f.ci(0.001)
         Lg, Ug = g.ci(0.001)
         deltaf = (Uf - Lf) / n
@@ -412,7 +414,7 @@ class NDDistr(NDFun):
         #print params.integration_infinite.exponent
         if L > U:
             if params.segments.debug_info:
-                print "Warning: reversed integration interval, returning 0"
+                print("Warning: reversed integration interval, returning 0")
             return 0, 0
         if L == U:
             return 0, 0
@@ -443,7 +445,7 @@ class NDDistr(NDFun):
         elif L<U:
             i, e = integrate_fejer2_pminf(fun, debug_info = debug_info, debug_plot = debug_plot, exponent = params.integration_infinite.exponent,)
         else:
-            print "errors in _conv_div: x, segi, segj, L, U =", L, U
+            print("errors in _conv_div: x, segi, segj, L, U =", L, U)
         #print "========"
         #if e>1e-10:
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
@@ -462,7 +464,7 @@ class NDDistrWithVarSubst(NDDistr):
         self.substidx = substidx[0]
         substvar = f.Vars[self.substidx]
         newvars = list((set(f.Vars) - set([substvar])) | set(substfunvars))
-        newvars.sort()
+        newvars.sort(key = id)
         super(NDDistrWithVarSubst, self).__init__(len(newvars), newvars)
         self.substmap_f = [(i, self.Vars.index(v)) for i, v in enumerate(f.Vars) if v != substvar]
         self.substmap_substf = [self.Vars.index(v) for v in substfunvars]
@@ -513,7 +515,7 @@ class NDNormalDistr(NDDistr):
         assert len(Sigma.shape) == 2
         assert Sigma.shape[0] == Sigma.shape[1] == d
         if Vars is None:
-            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in xrange(d)]
+            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in range(d)]
         super(NDNormalDistr, self).__init__(d, Vars)
         self.marginals = self.Vars
         self.a = [m-5 for m in mu] # FIX THIS!!!
@@ -528,7 +530,7 @@ class NDNormalDistr(NDDistr):
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
             Xa = asfarray(X)
-            Xa = Xa.transpose(range(1, len(X[0].shape) + 1) + [0])
+            Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
             return self.nrm * exp(-0.5 * Z)
@@ -565,7 +567,7 @@ class GausianCopula(NDDistr): # TODO
         Vars = marginals
         self.marginals = marginals
         if Vars is None:
-            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in xrange(d)]
+            Vars = [NormalDistr(mu[i], Sigma[i,i], sym = LETTERS[i]) for i in range(d)]
         super(NDNormalDistr, self).__init__(d, Vars)
         self.marginals = self.Vars
         self.a = [m-5 for m in mu] # FIX THIS!!!
@@ -579,12 +581,12 @@ class GausianCopula(NDDistr): # TODO
             X = asfarray(X) - self.mu
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
-            print X
+            print(X)
             X = [self.marginals[i].get_piecewise_cdfinv_interp()(X[i]) for i in range(len(X))]
             Xa = asfarray(X)
-            print Xa
+            print(Xa)
 
-            Xa = Xa.transpose(range(1, len(X[0].shape) + 1) + [0])
+            Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
             return self.nrm * exp(-0.5 * Z)
@@ -771,7 +773,7 @@ class NDProductDistr(NDDistr):
             #print cf, cf.Vars[0].getSymname(), cf.condition(cV, cX, normalize=False)
             new_cond_factors.append(cf.condition(cV, cX, normalize=False))
         cfp = NDProductDistr(kept_factors + new_cond_factors)
-        nrm = cfp.eliminate(range(cfp.d))
+        nrm = cfp.eliminate(list(range(cfp.d)))
         nrm = nrm.as_constant()
         if nrm == 0:
             nrm = 1
@@ -830,7 +832,7 @@ class IJthOrderStatsNDDistr(NDDistr):
         #print params.integration_infinite.exponent
         if L > U:
             if params.segments.debug_info:
-                print "Warning: reversed integration interval, returning 0"
+                print("Warning: reversed integration interval, returning 0")
             return 0, 0
         if L == U:
             return 0, 0
@@ -861,7 +863,7 @@ class IJthOrderStatsNDDistr(NDDistr):
         elif L<U:
             i, e = integrate_fejer2_pminf(fun, debug_info = debug_info, debug_plot = debug_plot, exponent = params.integration_infinite.exponent,)
         else:
-            print "errors in _conv_div: x, segi, segj, L, U =", L, U
+            print("errors in _conv_div: x, segi, segj, L, U =", L, U)
         #print "========"
         #if e>1e-10:
         #    print "error L=", L, "U=", U, fun(array([U])), force_minf , force_pinf , force_poleL, force_poleU
@@ -1031,12 +1033,12 @@ if __name__ == "__main__":
     X = BetaDistr(3,3, sym = "X")
     Y = BetaDistr(3,4, sym = "Y")
     noise = BetaDistr(5,5)*2 - 1
-    print X, Y, noise
+    print(X, Y, noise)
     nf = NDNoisyFun(lambda x, y: x + y, [X, Y], noise, value_sym = "Z")
     #nf = NDNoisyFun(lambda x, y: x * y, [X, Y], noise, value_sym = "Z")
-    print nf.a, nf.b
+    print(nf.a, nf.b)
     pr = NDProductDistr([X, Y, nf])
-    print pr.a, pr.b
+    print(pr.a, pr.b)
     zd = pr.eliminate([X])
     plot_2d_distr(zd)
     figure()
@@ -1085,7 +1087,7 @@ if __name__ == "__main__":
     #c = ClaytonCopula(theta = 0.5, marginals=[UniformDistr(), UniformDistr()])
 
     d = IJthOrderStatsNDDistr(BetaDistr(2,2), 10, 1, 10)
-    print d.symVars
+    print(d.symVars)
     plot_2d_distr(d)
     show()
     from pylab import figure, plot, linspace, show, legend
@@ -1100,37 +1102,37 @@ if __name__ == "__main__":
     mu = [1, 2]
     Sigma = [[2, 0.5], [0.5, 1]]
     ndn = NDNormalDistr(mu, Sigma)
-    print ndn(0, 0)
-    print ndn.Vars
+    print(ndn(0, 0))
+    print(ndn.Vars)
 
     ndn_sub = NDDistrWithVarSubst(ndn, ndn.Vars[0], lambda x,y: x+y, [ndn.Vars[0], ndn.Vars[1]])
-    print ndn(1, 1), ndn_sub(0,1)
+    print(ndn(1, 1), ndn_sub(0,1))
 
     plot_2d_distr(ndn)
 
     ndn_marg = ndn.eliminate(1)
     ndn_marg = ndn.eliminate(ndn.Vars[1])
-    print ndn_marg.Vars
+    print(ndn_marg.Vars)
     figure()
 
     plot(X, [ndn_marg(x) for x in X])
 
     ndn_cond = ndn.condition(ndn.Vars[1], 0.5)
-    print ndn_cond.Vars
+    print(ndn_cond.Vars)
     figure()
     plot(X, [ndn_cond(x) for x in X])
 
 
     ndi = NDInterpolatedDistr(ndn.d, ndn)
-    print ndi.Vars
+    print(ndi.Vars)
 
     plot_2d_distr(ndi)
 
     ndi_int = ndi.eliminate([0, 1])
-    print ndi_int
+    print(ndi_int)
 
     ndi_marg = ndi.eliminate(ndi.Vars[1])
-    print ndi_marg.Vars
+    print(ndi_marg.Vars)
     figure()
     plot(X, [ndi_marg(x) for x in X])
     plot(X, [ndn_marg(x) for x in X])
@@ -1158,9 +1160,9 @@ if __name__ == "__main__":
     ndn1c = ConditionalDistr(ndn1, [0])
     ndn2c = ConditionalDistr(ndn2, [0])
     gmrf = NDProductDistr([ndn1c, ndn2c, ndn1.eliminate(1)])
-    print gmrf(0, 0, 0)
+    print(gmrf(0, 0, 0))
 
-    print ndn1.eliminate([0, 1])
+    print(ndn1.eliminate([0, 1]))
 
     plot_2d_distr(ndn1)
     plot_2d_distr(ndn2)
@@ -1179,7 +1181,7 @@ if __name__ == "__main__":
     plot(X, gmmarg4(X))
 
     gmmarg5 = gmrf.eliminate([0, 1, 2])
-    print gmmarg5.as_constant()
+    print(gmmarg5.as_constant())
 
     gmrfc1 = gmrf.condition(ndn1.Vars[0], 1)
     plot_2d_distr(gmrfc1)  # [1, 2] are conditionally independent given [0]

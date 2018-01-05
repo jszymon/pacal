@@ -8,7 +8,7 @@ import numpy as np
 import sympy
 import sympy.printing.lambdarepr
 
-import params
+from . import params
 
 # sympy defines max, min and abs differently in different versions
 try:
@@ -63,7 +63,7 @@ def eq_solve(lhs, rhs, x):
 _numpy_funcs = [("sqrt", np.sqrt), ("log", np.log), ("exp", np.exp)]
 def _my_lambdify_helper(expr_str, argnames, *argvals):
     #print expr_str, argnames, argvals, dict(_numpy_funcs + zip(argnames, argvals))
-    return eval(expr_str, globals(), dict(_numpy_funcs + zip(argnames, argvals)))
+    return eval(expr_str, globals(), dict(_numpy_funcs + list(zip(argnames, argvals))))
 def my_lambdify(args, expr, modules=None, printer=None, use_imps=True):
     """Lambdify sympy expressions without using lambda functions."""
     if params.general.parallel:

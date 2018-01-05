@@ -1,6 +1,8 @@
 #!===================================================================
-#! Examples of distributions with singularities 
+#! Examples of distributions with singularities
 #!===================================================================
+
+from __future__ import print_function
 
 from functools import partial
 from pylab import *
@@ -19,17 +21,17 @@ if __name__ == "__main__":
     d = NormalDistr(0,1) * NormalDistr(0,1)
     demo_distr(d, ymax=1.5, xmin=-5, xmax=5)
     #show()
-    
+
     figure()
     d = NormalDistr(1,1) * NormalDistr(1,1)
     demo_distr(d)
     #show()
-    
+
     figure()
     d = NormalDistr(2,1) * NormalDistr(2,1)
     demo_distr(d)
     #show()
-    
+
     figure()
     d = NormalDistr(3,1) * NormalDistr(3,1)
     d.plot()
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     axins.set_ylim(0, 0.01)
     mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
     #show()
-    
+
     figure()
     d = NormalDistr(4,1) * NormalDistr(4,1)
     d.plot()
@@ -55,25 +57,25 @@ if __name__ == "__main__":
     axins.set_ylim(0.000072, 0.000075)
     mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
     #show()
-    
-    
-    
+
+
+
     #   demo_distr(UniformDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1) * NormalDistr(0,1)* NormalDistr(0,1) * NormalDistr(0,1))
-    
+
     #!-------------------------------------------
     #! Product of six uniform distributions
     #!-------------------------------------------
     def prod_uni_pdf(n, x):
         pdf = (-log(x)) ** (n-1)
-        for i in xrange(2, n):
+        for i in range(2, n):
             pdf /= i
         return pdf
     figure()
     d = UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1)
     demo_distr(d, ymax=100, xmin=-0.01, xmax=0.3, theoretical = partial(prod_uni_pdf, 6))
     #show()
-    
+
     #   figure()
     #   demo_distr(UniformDistr(0,1.1) * UniformDistr(0,1.1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1) * UniformDistr(0,1))
-    
+
     show()

@@ -1,6 +1,8 @@
+from __future__ import print_function
+
 from numpy import sqrt
 
-from pacal.standard_distr import NormalDistr, ChiSquareDistr
+from pacal.standard_distr import NormalDistr, ChiSquareDistr, ZeroDistr
 from pacal.distr import Distr, SumDistr, DivDistr, InvDistr
 from pacal.distr import sqrt as distr_sqrt
 
@@ -17,19 +19,16 @@ class NoncentralTDistr(DivDistr):
         return "NoncT({0},{1})".format(self.df, self.mu)
 
 class NoncentralChiSquareDistr(SumDistr):
-    def __new__(cls, df, lmbda = 0):
+    def __init__(self, df, lmbda = 0):
         assert df >= 1
         d1 = NormalDistr(sqrt(lmbda))**2
-        if df == 1:
-            return d1
-        d2 = ChiSquareDistr(df - 1)
-        ncc2 = super(NoncentralChiSquareDistr, cls).__new__(cls, d1, d2)
-        super(NoncentralChiSquareDistr, ncc2).__init__(d1, d2)
-        ncc2.df = df
-        ncc2.lmbda = lmbda
-        return ncc2
-    def __init__(self, df, lmbda = 0):
-        pass
+        if df > 1:
+            d2 = ChiSquareDistr(df - 1)
+        else:
+            d2 = ZeroDistr()
+        super(NoncentralChiSquareDistr, self).__init__(d1, d2)
+        self.df = df
+        self.lmbda = lmbda
     def __str__(self):
         return "NoncentralChiSquare(df={0},lambda={1})#{2}".format(self.df, self.lmbda, self.id())
     def getName(self):
@@ -46,7 +45,7 @@ class NoncentralBetaDistr(InvDistr):
         return "NoncentralBetaDistr(alpha={0},beta={1},lambda={2})#{3}".format(self.alpha, self.beta, self.lmbda, self.id())
     def getName(self):
         return "NoncBeta({0},{1},{2})".format(self.alpha, self.beta, self.lmbda)
-    
+
 class NoncentralFDistr(DivDistr):
     def __init__(self, df1 = 1, df2 = 1, lmbda = 0):
         d1 = NoncentralChiSquareDistr(df1, lmbda) / df1

@@ -1,4 +1,5 @@
 """Simple differential equation."""
+from __future__ import print_function
 
 
 from pylab import figure, show
@@ -38,7 +39,7 @@ h = 1.0/n
 K = (1 + h*A)
 K.setSym("K") 
 Y = [Y0]*(n+1)
-for i in xrange(n+1):
+for i in range(n+1):
     if i==0:
         pass
     else:
@@ -57,7 +58,7 @@ figure()
 Y[-1].plot(color='r',linewidth=5)
 M3 = M.inference([Y[-1]], [], [])
 
-M3.plot(); print M3; 
+M3.plot(); print(M3); 
 
 X0 = BetaDistr(2, 2)
 y = X0 * exp(A) 
@@ -71,27 +72,27 @@ show()
 
 stop
 
-print "---", [K] + Y
-print M
+print("---", [K] + Y)
+print(M)
 M.varschange(A, K)
-print M
-for i in xrange(n):
+print(M)
+for i in range(n):
     M.varschange(Y[i], Y[i+1])
-print M
+print(M)
 M.varschange(K, A)
 M.plot()
 #M.condition(Y[n], 2)
-print M
+print(M)
 M.eliminate(K)
-print M
-for i in xrange(n-1,-1,-1):
+print(M)
+for i in range(n-1,-1,-1):
     M.eliminate(Y[i])
-print M
+print(M)
 M.eliminate(A)
-print M
+print(M)
 figure()
 M.plot()
-print M.nddistr.pdf(linspace(0,2.5,100))
+print(M.nddistr.pdf(linspace(0,2.5,100)))
 X0 = BetaDistr(1, 1)
 y = X0 * exp(A)
 y.summary()

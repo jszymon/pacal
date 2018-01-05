@@ -3,6 +3,8 @@
 #! CHAPTER 3 - SUMS
 #!-------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     demo_distr(ChiSquareDistr(10) + ChiSquareDistr(11),
                theoretical = ChiSquareDistr(21))
     cd = ChiSquareDistr(4)
-    for i in xrange(17):
+    for i in range(17):
         cd = cd + ChiSquareDistr(1)
         #print i, cd.pdf(1)
     figure()
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     demo_distr(CauchyDistr(gamma = 10) + CauchyDistr(gamma = 50), theoretical = CauchyDistr(gamma = 60))
     figure()
     c = CauchyDistr(center = 1)
-    for i in xrange(9):
+    for i in range(9):
         c += CauchyDistr()
     demo_distr(c, theoretical = CauchyDistr(gamma = 10, center = 1))
        
@@ -105,11 +107,11 @@ if __name__ == "__main__":
             else:
                 nck = 1
                 pdf = 0.0
-                for k in xrange(r):
+                for k in range(r):
                     pdf += (-1)**k * nck * (x-k)**(n-1)
                     nck *= n - k
                     nck /= k + 1
-                for i in xrange(2, n):
+                for i in range(2, n):
                     pdf /= i
                 y[j] = pdf
         return y
@@ -118,13 +120,13 @@ if __name__ == "__main__":
     u = UniformDistr(0,1) + UniformDistr(0,1)
     figure()
     demo_distr(u, theoretical = partial(uniform_sum_pdf, 2))
-    for i in xrange(2):
+    for i in range(2):
         u += UniformDistr(0,1)
     figure()
     demo_distr(u, theoretical = partial(uniform_sum_pdf, 3+i))
     
     u = UniformDistr(0,1)
-    for i in xrange(49):
+    for i in range(49):
         u += UniformDistr(0,1)
     figure()
     demo_distr(u, theoretical = partial(uniform_sum_pdf, i+2))
@@ -144,5 +146,5 @@ if __name__ == "__main__":
     #! Exercise 3.19
     figure()
     demo_distr(UniformDistr(-1,0) + ExponentialDistr() + NormalDistr(0, 1.0/numpy.sqrt(2)))
-    print "time=", time.time() - tic
+    print("time=", time.time() - tic)
     show()

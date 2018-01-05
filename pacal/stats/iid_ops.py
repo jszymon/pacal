@@ -1,5 +1,7 @@
 """Operations on sequences of i.i.d. variables."""
 
+from __future__ import print_function
+
 import operator
 
 import pacal.distr
@@ -25,7 +27,7 @@ def _int_exp_all(x, n, op = operator.mul):
     """Exponentiation by squaring returning all powers."""
     res = [None] * (n+1)
     res[1] = x
-    for i in xrange(2, n+1):
+    for i in range(2, n+1):
         res[i] = op(res[i // 2], res[i - i // 2])
     return res[1:]
 
@@ -58,7 +60,7 @@ def iid_order_stat(X, n, k, **kwargs):
 def iid_unknown(X, n, k, **kwargs):
     """It gives distribution of sample _unknown on level k based on sample size of n."""
     fun = PiecewiseFunction([])
-    for i in xrange(k, n+1):
+    for i in range(k, n+1):
         fun += iid_order_stat(X, n, i).get_piecewise_pdf()
     fun2 = (1.0 / (1+n-k)) * fun
     return FunDistr(fun = fun2.toInterpolated(), breakPoints = X.get_piecewise_pdf().getBreaks(), **kwargs)
@@ -91,7 +93,7 @@ def _int_exp_all2(x, n, op = operator.mul):
     Extended operator arguments."""
     res = [None] * (n+1)
     res[1] = x
-    for i in xrange(2, n+1):
+    for i in range(2, n+1):
         i1 = i // 2
         i2 = i - i // 2
         res[i] = op(i1, res[i1], i2, res[i2])
@@ -143,18 +145,18 @@ if __name__ == "__main__":
     T = UniformDistr()+UniformDistr()
     T.plot(linewidth=2.0)
     n = 11
-    for k in xrange(0, n):
+    for k in range(0, n):
         T = UniformDistr()+UniformDistr()
-        print "k=", k+1, "n=", n
+        print("k=", k+1, "n=", n)
         fun2 = iid_order_stat(T, n, k+1)
         fun = iid_quantile(T, n, k+1)
         fun2.plot(xmin=0,xmax=2,color="c", linewidth=4.0)
         fun.plot(xmin=0,xmax=2,color="k", linewidth=2.0, linestyle="-")
         fun.summary()
     T.plot(linewidth=2.0)
-    
+
     axis((0,2,0,3))
-    
+
     figure()
     med = iid_median(BetaDistr(3, 2), 51)
     med.summary()

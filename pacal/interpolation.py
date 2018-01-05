@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from functools import partial
 
 from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
@@ -28,26 +30,26 @@ from numpy import arange, cos, sin, log, exp, pi, log1p, expm1
 from numpy import cumsum, flipud, real, imag, linspace
 from numpy.linalg import eigvals
 #from numpy.polynomial.chebyshev import chebroots
-import params
+from . import params
 
-from utils import cheb_nodes_log, incremental_cheb_nodes_log
-from utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
-from utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
-from utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
-from utils import debug_plot
-from utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
+from .utils import cheb_nodes_log, incremental_cheb_nodes_log
+from .utils import cheb_nodes, incremental_cheb_nodes, cheb_nodes1, incremental_cheb_nodes1
+from .utils import combine_interpolation_nodes, combine_interpolation_nodes_fast
+from .utils import convergence_monitor, chebspace, chebspace1, estimateDegreeOfPole
+from .utils import debug_plot
+from .utils import chebt2, ichebt2, chebt1, ichebt1, chebroots
 
-from vartransforms import *
+from .vartransforms import *
 
 
 # import faster Cython versions if possible
 try:
     #import pyximport; pyximport.install()
-    from bary_interp import bary_interp
+    from .bary_interp import bary_interp
     have_Cython = True
-    print "Using compiled interpolation routine"
+    print("Using compiled interpolation routine")
 except:
-    print "Compiled interpolation routine not available"
+    print("Compiled interpolation routine not available")
     have_Cython = False
 
 
@@ -81,7 +83,7 @@ class Interpolator(object):
 class BarycentricInterpolator(Interpolator):
     """Barycentric interpolation"""
     def __init__(self, Xs, Ys, weights=None):
-        super(BarycentricInterpolator, self).__init__(Xs, Ys)        
+        super(BarycentricInterpolator, self).__init__(Xs, Ys)
         if (weights is None):
             self.init_weights(Xs)
         else:
@@ -107,7 +109,7 @@ class BarycentricInterpolator(Interpolator):
             y = bary_interp(self.Xs, self.Ys, self.weights, atleast_1d(x))
             if scalar_x:
                 y = y[0]
-        else:    
+        else:
             # split x if necessary to avoid overflow
             max_size = 100000
             if scalar_x:
@@ -154,23 +156,23 @@ class BarycentricInterpolator(Interpolator):
             cdiff[1::2] = cumsum(v[1::2]);
             cdiff[-1] = .5 * cdiff[-1];
             cdiff = cdiff[2:];
-            Ydiffvals = ichebt2(cdiff) / ((self.Xs[-1] - self.Xs[0]) * 0.5) 
+            Ydiffvals = ichebt2(cdiff) / ((self.Xs[-1] - self.Xs[0]) * 0.5)
             Ydiffvals = flipud(Ydiffvals)
             Xs, Ws = chebspace(self.Xs[0], self.Xs[-1], len(Ydiffvals), returnWeights=True)
             f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
-            return f 
+            return f
         else:
             Xs, Ws = chebspace(self.Xs[0], self.Xs[-1], len(self.Xs)+2, returnWeights=True)
             Ys = self.interp_at(Xs)
             return BarycentricInterpolator(Xs, Ys, Ws).diff(use_2nd=True)
-            
+
     def roots(self, use_2nd=True):
         if use_2nd:
             cs = flipud(chebt2(self.Ys))
             roots = chebroots(cs)
             reals = abs(imag(roots)) < params.interpolation.convergence.abstol
             roots = real(roots[reals])
-            unit = (roots>-1.0) & (roots < 1.0)        
+            unit = (roots>-1.0) & (roots < 1.0)
             roots = roots[unit]
             return (roots*(self.Xs[-1]-self.Xs[0])+(self.Xs[0]+self.Xs[-1]))*0.5
         else:
@@ -179,7 +181,7 @@ class BarycentricInterpolator(Interpolator):
             roots = chebroots(cs)
             reals = abs(imag(roots)) < params.interpolation.convergence.abstol
             roots = real(roots[reals])
-            unit = (roots>-1.0) & (roots < 1.0)        
+            unit = (roots>-1.0) & (roots < 1.0)
             roots = roots[unit]
             return (roots*(self.Xs[-1]-self.Xs[0])+(self.Xs[0]+self.Xs[-1]))*0.5
     def trim(self, abstol=None):
@@ -210,7 +212,7 @@ class AdaptiveInterpolator(object):
             err = self.test_accuracy(new_Xs, new_Ys)
             maxy = max(abs(new_Ys).max(), abs(self.Ys).max())
             if par.debug_info:
-                print "interp. err", err, old_err, new_n
+                print("interp. err", err, old_err, new_n)
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
                 break
@@ -221,7 +223,7 @@ class AdaptiveInterpolator(object):
         if par.debug_plot and n >= maxn:
             debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
-            print "interp. err = ", err, "nodes=", n
+            print("interp. err = ", err, "nodes=", n)
         self.err = err
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by compa true and interpolated values at
@@ -242,7 +244,7 @@ class ChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         self.weights[::2] = -1
         self.weights[0] /= 2
         self.weights[-1] /= 2
-    def get_nodes(self, n):        
+    def get_nodes(self, n):
         return cheb_nodes(n, self.a, self.b)
     def get_incremental_nodes(self, new_n):
         return incremental_cheb_nodes(new_n, self.a, self.b)
@@ -255,17 +257,17 @@ class ChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         if abstol is None:
             abstol = params.interpolation.convergence.abstol
         while c[0] < abstol:
-            c = c[1:]      
-        Ydiffvals = ichebt2(c) 
+            c = c[1:]
+        Ydiffvals = ichebt2(c)
         Ydiffvals = flipud(Ydiffvals)
         Xs, Ws = chebspace(self.a, self.b, len(Ydiffvals), returnWeights=True)
         f = BarycentricInterpolator(Xs, Ydiffvals, Ws)
-        return f 
+        return f
     def diff(self, use_2nd=True):
         return super(ChebyshevInterpolator, self).diff(use_2nd=use_2nd)
     def roots(self, use_2nd=True):
         return super(ChebyshevInterpolator, self).roots(use_2nd=use_2nd)
-    
+
 class LogXChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
     """Adaptive Chebyshev interpolator"""
     def __init__(self, f, a, b, *args, **kwargs):
@@ -278,7 +280,7 @@ class LogXChebyshevInterpolator(BarycentricInterpolator, AdaptiveInterpolator):
         self.weights[::2] = -1
         self.weights[0] /= 2
         self.weights[-1] /= 2
-    def get_nodes(self, n):        
+    def get_nodes(self, n):
         return cheb_nodes_log(n, self.a, self.b)
     def get_incremental_nodes(self, new_n):
         return incremental_cheb_nodes_log(new_n, self.a, self.b)
@@ -307,7 +309,7 @@ class ChebyshevInterpolatorNoL(ChebyshevInterpolator):
     def diff(self):
         return super(ChebyshevInterpolatorNoL, self).diff(use_2nd=False)
     def roots(self):
-        return super(ChebyshevInterpolatorNoL, self).roots(use_2nd=False)            
+        return super(ChebyshevInterpolatorNoL, self).roots(use_2nd=False)
 class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
     """Adaptive Chebyshev interpolator without rightmost point"""
     def init_weights(self, Xs):
@@ -329,7 +331,7 @@ class ChebyshevInterpolatorNoR(ChebyshevInterpolator):
         return super(ChebyshevInterpolatorNoR, self).diff(use_2nd=False)
     def roots(self):
         return super(ChebyshevInterpolatorNoR, self).roots(use_2nd=False)
-    
+
 class AdaptiveInterpolator1(object):
     """Mix-in class for adaptive interpolators with 3*n rule"""
     def adaptive_init(self, f, interp_class):
@@ -354,7 +356,7 @@ class AdaptiveInterpolator1(object):
             err = self.test_accuracy(new_Xs, new_Ys)
             maxy = max(abs(new_Ys).max(), abs(self.Ys).max())
             if par.debug_info:
-                print "interp. err1", err, maxy, old_err, "nodes=", n, maxn      
+                print("interp. err1", err, maxy, old_err, "nodes=", n, maxn)
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
                 break
@@ -365,7 +367,7 @@ class AdaptiveInterpolator1(object):
         if par.debug_plot and n >= maxn:
             debug_plot(self.a, self.b, self.Xs, self.Ys, None)
         if par.debug_info:
-            print "interp. err1 = ", err, "nodes=", n
+            print("interp. err1 = ", err, "nodes=", n)
         self.err = err
     def test_accuracy(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
@@ -385,7 +387,7 @@ class ChebyshevInterpolator1(BarycentricInterpolator, AdaptiveInterpolator1):
         self.weights = ones_like(Xs)
         n = len(self.weights)
         self.weights = sin(arange(1, 2 * n, 2) * pi / (2 * n))
-        self.weights[1::2] = -1 * self.weights[1::2]        
+        self.weights[1::2] = -1 * self.weights[1::2]
     def get_nodes(self, n):
         return cheb_nodes1(n, self.a, self.b)
     def get_incremental_nodes1(self, new_n):
@@ -401,7 +403,7 @@ class ChebyshevInterpolator1(BarycentricInterpolator, AdaptiveInterpolator1):
 def _find_zero(f, a, ymax=1e-120, ymin=1e-150):
     """Find where a function achieves very small values (but greater
     than zero)."""
-    x_min = 1
+    x_min = 1e-5
     x_max = 1e100
     x_mid = exp((log(x_min) + log(x_max)) / 2)
     try:
@@ -424,11 +426,11 @@ def _call_f(interp, x):
     return interp.spec_f(x)
 def _wrap_f(f):
     if params.general.parallel:
-        return partial(_call_f, f.im_self)
+        return partial(_call_f, f.__self__)
     return f
 
 class ValTransformInterpolator(ChebyshevInterpolator1):
-    def __init__(self, f, a, b=None, val_transform=log, val_transform_inv=exp, *args, **kwargs):        
+    def __init__(self, f, a, b=None, val_transform=log, val_transform_inv=exp, *args, **kwargs):
         self.wrapped_f = f
         if b is None:
             b = _find_zero(f, a)
@@ -436,7 +438,7 @@ class ValTransformInterpolator(ChebyshevInterpolator1):
         self.val_transform_inv = val_transform_inv
         super(ValTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.val_transform(a), self.val_transform(b),
-                                                       *args, **kwargs)  
+                                                       *args, **kwargs)
     def spec_f(self, x):
         return self.val_transform(self.wrapped_f(self.val_transform_inv(x)))
     def interp_at(self, x):
@@ -460,18 +462,18 @@ class ValTransformInterpolator(ChebyshevInterpolator1):
 
 #        self.a = a
 #        self.b = b
-        
-        
+
+
 #class ChebyshevInterpolatorNoL2(ChebyshevInterpolatorNoL):
 class ChebyshevInterpolatorNoL2(ChebyshevInterpolator1):
     def __init__(self, f, a, b=None, par=None, *args, **kwargs):
         if par is None:
             par = params.interpolation
-        self.exponent = estimateDegreeOfPole(f, a)   
+        self.exponent = estimateDegreeOfPole(f, a)
         self.a = a
         self.b = b
         if par.debug_info:
-            print "exponent=", self.exponent         
+            print("exponent=", self.exponent)
         super(ChebyshevInterpolatorNoL2, self).__init__(lambda x: f(x) / x ** self.exponent, a, b,
                                                         par=params.interpolation,
                                                         *args, **kwargs)
@@ -479,7 +481,7 @@ class ChebyshevInterpolatorNoL2(ChebyshevInterpolator1):
         return super(ChebyshevInterpolatorNoL2, self).interp_at(x) * x ** self.exponent
     def getNodes(self):
         return self.Xs, self.Ys * self.Xs ** self.exponent
-    
+
 class ChebyshevInterpolatorNoR2(ChebyshevInterpolator1):
 #class LogTransformInterpolator(ChebyshevInterpolator1):
     def __init__(self, f, a, b=None, par=None, *args, **kwargs):
@@ -489,7 +491,7 @@ class ChebyshevInterpolatorNoR2(ChebyshevInterpolator1):
         self.a = a
         self.b = b
         if par.debug_info:
-            print "exponent=", self.exponent         
+            print("exponent=", self.exponent)
         super(ChebyshevInterpolatorNoR2, self).__init__(lambda x: f(x) / abs(x) ** self.exponent, a, b,
                                                        par=params.interpolation,
                                                        *args, **kwargs)
@@ -513,7 +515,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
         if b is None:
             b = _find_zero(f, a)
             if par.debug_info:
-                print "found", b, f(b)
+                print("found", b, f(b))
         self.orig_a = a
         self.orig_b = b
         self.offset = offset - 1
@@ -542,7 +544,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
 #from numpy import polyval, polyfit
 #class PolyInterpolator(object):
 #    """Explicit polynomial interpolation.
-#    
+#
 #    Should work better for small arguments.  Left end of the interval
 #    is assumed to be 0."""
 #    def __init__(self, f, b, maxdeg = 10):
@@ -609,7 +611,7 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
         y = self.sign * expm1(abs(super(PoleInterpolatorP, self).interp_at(self.xtinv(x))))
         return y
     def getNodes(self):
-        return self.xt(self.Xs), self.sign * expm1(self.Ys) 
+        return self.xt(self.Xs), self.sign * expm1(self.Ys)
     def test_accuracy_tmp(self, new_Xs, new_Ys):
         """Test accuracy by comparing true and interpolated values at
         given points."""
@@ -630,7 +632,7 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
         Ys = concatenate(([self.Ys[0]], self.Ys))
         dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
         return dp.roots()
-    
+
 class PoleInterpolatorN(ChebyshevInterpolatorNoR):
     def xt(self, x):
         return (-exp(x) + self.orig_b) - self.offset
@@ -656,10 +658,10 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
         y = self.sign * expm1(super(PoleInterpolatorN, self).interp_at(self.xtinv(x)))
         return y
     def getNodes(self):
-        return self.xt(self.Xs), expm1(self.Ys)      
+        return self.xt(self.Xs), expm1(self.Ys)
     #def test_accuracy(self, new_Xs, new_Ys):
     #    """Test accuracy by comparing true and interpolated values at
-    #    given points.""" 
+    #    given points."""
     #    errs = abs((super(LogTransformInterpolator, self).interp_at(new_Xs)) - new_Ys)
     #    err = errs.max()
     #    return err
@@ -677,7 +679,7 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
         Ys = concatenate(([self.Ys[0]], self.Ys))
         dp = BarycentricInterpolator(Xs, Ys, Ws).diff()
         return dp.roots()
-    
+
 # TODO: unused
 class ZeroNeighborhoodInterpolator(object):
     """Interpolates f on [0, U].  Splits the interval adaptively to
@@ -692,7 +694,7 @@ class ZeroNeighborhoodInterpolator(object):
         first_interp = True
         while True:
             Ltmp = Utmp * minx
-            print "[", Ltmp, Utmp, "]"
+            print("[", Ltmp, Utmp, "]")
             if first_interp:
                 I = interp_class(f, Ltmp, Utmp)
                 first_interp = False
@@ -709,11 +711,11 @@ class ZeroNeighborhoodInterpolator(object):
         for I in self.interps:
             Xs += list(I.Xs)
             Ys += list(I.Ys)
-        XYs = zip(Xs, Ys)
+        XYs = list(zip(Xs, Ys))
         XYs.sort()
         self.Xs = array([t[0] for t in XYs])
         self.Ys = array([t[1] for t in XYs])
-        
+
     def interp_at(self, xx):
         if size(xx) == 1:
             xx = array([xx])
@@ -830,8 +832,8 @@ class PInfInterpolator(object):
         if params.interpolation_asymp.debug_info:
             #print "vb.minmax", L, Ut
             if self.vl is not None:
-                print "vl.minmax", self.vl.orig_a, self.vl.orig_b
-            print "self.x_vb_max", self.x_vb_max, #self.f(self.x_vb_max)
+                print("vl.minmax", self.vl.orig_a, self.vl.orig_b)
+            print("self.x_vb_max", self.x_vb_max, end=' ') #self.f(self.x_vb_max)
     def interp_at(self, x):
         if isscalar(x):
             if self.x_vb_max is None or x <= self.x_vb_max:
@@ -903,19 +905,19 @@ if __name__ == "__main__":
 #    print B.get_piecewise_pdf()
     from pacal.segments import PiecewiseFunction
     B = PiecewiseFunction(fun=lambda x:sin(3*x), breakPoints=[-1,0,1])
-    
+
     B = B.toInterpolated()
-    print B.segments[0].f.__class__
+    print(B.segments[0].f.__class__)
     #B = B.trimInterpolators(abstol=1e-15)
-    print B.segments[0].f.Ys, B.segments[0].f.__class__
+    print(B.segments[0].f.Ys, B.segments[0].f.__class__)
     D = B.diff()
     D2 = D.diff()
     D3 = D2.diff()
     D4 = D3.diff()
     D5 = D4.diff()
-    print D.segments[0].f.Ys, D.segments[0].f.__class__ 
-    print D2.segments[0].f.Ys
-    print D.roots()
+    print(D.segments[0].f.Ys, D.segments[0].f.__class__)
+    print(D2.segments[0].f.Ys)
+    print(D.roots())
     figure()
     B.plot()
     D.plot()
@@ -942,7 +944,7 @@ if __name__ == "__main__":
     #f = lambda x: sin(x)**2
     #cii = ChebyshevInterpolator(f, 0, 1)
     #ci = PolyInterpolator(cii, 1e-1, maxdeg = 5)
-    #print 
+    #print
     #print ci.err, len(ci.Xs)
     #print cii.err, len(cii.Xs)
     #for x in [1e-11, 1e-20, 1e-50, 1e-100]:
@@ -962,7 +964,7 @@ if __name__ == "__main__":
     #print f(x)
     #X = linspace(ci.a,ci.b,1000)
     #Y = [ci.interp_at(x) for x in X]
-    
+
 
 
     #cempty = ChebyshevInterpolator(cos, 1, 1)
@@ -1017,7 +1019,7 @@ if __name__ == "__main__":
     #print ci.err, len(ci.Xs)
 
     for pdf in [chisqr, lambda x:-log(x)]:#, cauchy, lambda x: 1.0/(1+x**1.5), prodcauchy]:#, prodcauchy, prodcauchy_uni, chisqr, lambda x: sin(3*x)]:
-        print "======================================="
+        print("=======================================")
         x1 = 0.0
         x2 = 0.1
         #x1, x2 = 2.01029912342, 2.82968863313
@@ -1027,16 +1029,16 @@ if __name__ == "__main__":
         #normpdf = lambda x:chisqr(x,1)
         #ci = ChebyshevInterpolatorNoR2(pdf, x1, x2)
         #cii = ChebyshevInterpolatorNoL2(pdf, x1, x2)
-        print "1=============="
+        print("1==============")
         #cii = PInfInterpolator(pdf, 2)
         #mii = MInfInterpolator(pdf, -x1)
         from numpy import log, exp
         cii = LogXChebyshevInterpolator(lambda x: log(pdf(x)), 1e-50, x2)
-        print "2=============="
+        print("2==============")
         dii = ChebyshevInterpolator(lambda x: log(pdf(exp(x))), -50, -1)
         #dii = ChebyshevInterpolatorNoL2(pdf, x1, x2)
         #dii = ChebyshevInterpolator(pdf, 2, 10)
-        print "3=============="
+        print("3==============")
         #ci = LogXChebyshevInterpolator(pdf, 10, 10000)
         ci = PoleInterpolatorP(pdf, x1, x2)
         #dii = cii
@@ -1064,48 +1066,48 @@ if __name__ == "__main__":
 
         subplot(3, 1, 1)
         Xs, Ys = ci.getNodes()
-        plot(X, Y1, 'g', linewidth=3.0)        
+        plot(X, Y1, 'g', linewidth=3.0)
         plot(Xs, Ys, 'go')
 
         Xs, Ys = cii.getNodes()
-        plot(X, Y2, 'r', linewidth=2.0)    
+        plot(X, Y2, 'r', linewidth=2.0)
         plot(Xs, Ys, 'rs', markersize=5)
 
         Xs, Ys = dii.getNodes()
-        plot(X, Y3, 'b')    
+        plot(X, Y3, 'b')
         plot(Xs, Ys, 'b*', markersize=5)
-        plot(X, Y4, 'k')  
-        
-         
+        plot(X, Y4, 'k')
+
+
         #plot(cii.Xs, cii.Ys,'ro')
         subplot(3, 1, 2)
-        plot(X, abs(Y4 - Y1), 'g', linewidth=3.0)    
-        plot(X, abs(Y4 - Y2), 'r')    
-        plot(X, abs(Y4 - Y3), 'b')    
-        
-        subplot(3, 1, 3)
-        plot(X, abs(Y4 - Y1) / Y4, 'g', linewidth=3.0)    
-        plot(X, abs(Y4 - Y2) / Y4, 'r')    
-        plot(X, abs(Y4 - Y3) / Y4, 'b')    
+        plot(X, abs(Y4 - Y1), 'g', linewidth=3.0)
+        plot(X, abs(Y4 - Y2), 'r')
+        plot(X, abs(Y4 - Y3), 'b')
 
-        from integration import *
+        subplot(3, 1, 3)
+        plot(X, abs(Y4 - Y1) / Y4, 'g', linewidth=3.0)
+        plot(X, abs(Y4 - Y2) / Y4, 'r')
+        plot(X, abs(Y4 - Y3) / Y4, 'b')
+
+        from .integration import *
         #print integrate_fejer2_Xn_transformP(cii, x1, 3, N=4) + integrate_fejer2_pinf(cii, 3, x2)
-        print integrate_fejer2_Xn_transformP(pdf, 0, 3, N=4, debug_info=False)[0] + integrate_fejer2_pinf(cii, 3, debug_info=False)[0]
+        print(integrate_fejer2_Xn_transformP(pdf, 0, 3, N=4, debug_info=False)[0] + integrate_fejer2_pinf(cii, 3, debug_info=False)[0])
         #print integrate_fejer2_Xn_transformP(dii, x1, x2, N=3)
         #print integrate_fejer2_pinf(cii, x1, x2)
         #print integrate_fejer2_pinf(dii, x1, x2)
         #print "0.9984345977419969"
         #figure()
         #ci.plot_tails()
-        #plot(X, abs(cauchy(X)-Y3),'b')    
+        #plot(X, abs(cauchy(X)-Y3),'b')
         #print ci.Xs
         #print cii.Xs
 
-        from integration import *
+        from .integration import *
         #print integrate_fejer2_Xn_transformP(cii, x1, 3, N=4) + integrate_fejer2_pinf(cii, 3, x2)
         #print integrate_fejer2_Xn_transformP(normpdf, 0, 1, N=4)[0] + integrate_fejer2_pinf(cii, 1, x2)[0]
-        print "1:", integrate_fejer2_Xn_transformP(normpdf, x1, x2, N=4)
-        print "2:", integrate_fejer2_Xn_transformP(dii, x1, x2, N=4)
+        print("1:", integrate_fejer2_Xn_transformP(normpdf, x1, x2, N=4))
+        print("2:", integrate_fejer2_Xn_transformP(dii, x1, x2, N=4))
         #print "3:", integrate_fejer2_Xn_transformN(funneg, -x2, -x1, N=4)
         #print "4:", integrate_fejer2_Xn_transformN(eii, -x2, -x1, N=4)
         #print integrate_fejer2_pinf(cii, x1, x2)
@@ -1122,13 +1124,12 @@ if __name__ == "__main__":
     #    plot(X2, eii(X2),'r')
     #    plot(X2, Y5,'b')
     #    plot(Xs, Ys,'rs')
-    
+
     #    subplot(3,1,2)
-    #    plot(X2, abs(Y5-eii(X2)),'b') 
+    #    plot(X2, abs(Y5-eii(X2)),'b')
     #    subplot(3,1,3)
-    #    semilogx(X, abs(Y5-eii(X2))/Y5,'b') 
+    #    semilogx(X, abs(Y5-eii(X2))/Y5,'b')
     #print L, M, L/M, normpdf(x), cauchy(x), dii(array([x])), dii.f(x)
     show()
     #print cii.Xs
     #print cii.Ys
-    

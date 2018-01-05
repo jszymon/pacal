@@ -1,6 +1,8 @@
 """Regression of one variable onto another in a joint two-variable
 distribution."""
 
+from __future__ import print_function
+
 from functools import partial
 
 from numpy import linspace, isscalar, zeros_like, NaN, concatenate
@@ -56,13 +58,13 @@ def plot_regression(F, Ybreaks = None):
     legend()
 
 
-print "bivariate normal..."
+print("bivariate normal...")
 F = NDNormalDistr([0, 0], [[1, 0.5], [0.5, 1]])
 plot_regression(F, Ybreaks = [-Inf, -5, -1, 1, 5, Inf])
 title("bivariate normal, rho = 0.5")
 
 figure()
-print "Clayton copula..."
+print("Clayton copula...")
 X, Y = BetaDistr(2,3), UniformDistr() + UniformDistr()
 X.setSym("X"); Y.setSym("Y")
 F = ClaytonCopula(theta = 0.5, marginals=[X, Y])
@@ -70,7 +72,7 @@ plot_regression(F)
 title("Clayton copula, theta = 0.5")
 
 figure()
-print "Frank copula..."
+print("Frank copula...")
 F = FrankCopula(theta = 8, marginals=[X, Y])
 plot_regression(F)
 title("Frank copula, theta = 8")

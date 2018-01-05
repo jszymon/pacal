@@ -3,6 +3,9 @@ Created on 07-12-2010
 
 @author: marcin
 '''
+
+from __future__ import print_function
+
 import sys
 from copy import copy
 from functools import partial
@@ -66,7 +69,7 @@ class Model(object):
             s += "   " + str(rv.getSymname()) + " ~ " + str(rv.getName()) + "\n"
         s += "dep vars:  " + ", ".join(str(rv.getSymname()) for rv in self.dep_rvs) + "\n"
         s += "Equations:\n"
-        for rv, eq in self.rv_to_equation.iteritems():
+        for rv, eq in self.rv_to_equation.items():
             s += str(rv.getSymname()) + " = " + str(eq) + "(" + str(self.eval_var(rv)) + ")\n"
         s += str(self.nddistr)
         s += "\n"
@@ -74,7 +77,7 @@ class Model(object):
         return s
 
     def prepare_var(self, var):
-        if isinstance(var, basestring):
+        if isinstance(var, str):
             var = self.sym_to_rv[sympy.Symbol(var)]
         elif isinstance(var, sympy.Symbol):
             var = self.sym_to_rv[var]
@@ -83,7 +86,7 @@ class Model(object):
         """Children of a variable."""
         ch = []
         vsym = var.getSymname()
-        for rv, eq in self.rv_to_equation.iteritems():
+        for rv, eq in self.rv_to_equation.items():
             if vsym in set(eq.atoms(sympy.Symbol)):
                 ch.append(rv)
         return ch
@@ -95,7 +98,7 @@ class Model(object):
         free_var = self.prepare_var(free_var)
         dep_var = self.prepare_var(dep_var)
         if params.models.debug_info:
-            print "exchange free variable: ", free_var.getSymname(), "with dependent variable", dep_var.getSymname()
+            print("exchange free variable: ", free_var.getSymname(), "with dependent variable", dep_var.getSymname())
         if not self.is_free(free_var):
             raise RuntimeError("First exchanged variable must be free")
         if not self.is_dependent(dep_var):
@@ -108,9 +111,9 @@ class Model(object):
                 raise RuntimeError("Dependent variable has a nonfree parent")
         var_changes, equation = self.var_change_helper(free_var, dep_var)
         if len(var_changes) != 1:
-            print "Equation:", equation, "has multiple solutions"
+            print("Equation:", equation, "has multiple solutions")
             for vc in var_changes:
-                print vc[0]
+                print(vc[0])
             raise RuntimeError("Equations with multiple solutions are not supported")
             #var_changes = var_changes[:1]
 
@@ -120,7 +123,7 @@ class Model(object):
         self.dep_rvs.append(free_var)
         self.dep_rvs.remove(dep_var)
         del self.rv_to_equation[dep_var]
-        for rv, eq in self.rv_to_equation.iteritems():
+        for rv, eq in self.rv_to_equation.items():
             if free_var.getSymname() in set(eq.atoms(sympy.Symbol)):
                 self.rv_to_equation[rv] = eq.subs(free_var.getSymname(), inv_transf)
         self.rv_to_equation[free_var] = inv_transf
@@ -152,13 +155,13 @@ class Model(object):
             if params.models.debug_info:
                 #print "vars to change: ", free_var.getSymname(), " <- ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
                 #print "equation: ", dep_var.getSymname(), "=", self.rv_to_equation[dep_var]
-                print "substitution: ", free_var.getSymname(), "=", uj,
+                print("substitution: ", free_var.getSymname(), "=", uj, end=' ')
                 #print "variables: ", uj_symbols, inv_transf_vars
 
             # Jacobian
             #J = sympy.Abs(sympy.diff(uj, dep_var.getSymname()))
             J = sympy.diff(uj, dep_var.getSymname())
-            print J.atoms()
+            print(J.atoms())
             J_symbols = list(sorted(J.atoms(sympy.Symbol), key = str))
             if len(J_symbols) > 0:
                 jacobian_vars = [self.sym_to_rv[s] for s in J_symbols]
@@ -169,7 +172,7 @@ class Model(object):
                 jacobian_vars = []
 
             if params.models.debug_info:
-                print ";  Jacobian=", J
+                print(";  Jacobian=", J)
             #print "variables: ", J_symbols, jacobian_vars
 
             var_changes.append((uj, inv_transf, inv_transf_vars, jacobian))
@@ -177,18 +180,18 @@ class Model(object):
 
     def subst_for_rv_in_children(self, var, Xsym):
         """Substitute Xsym for occurrences of var in its children"""
-        for rv, eq in self.rv_to_equation.iteritems():
+        for rv, eq in self.rv_to_equation.items():
             if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                 self.rv_to_equation[rv] = eq.subs(var.getSymname(), Xsym)
 
     def eliminate(self, var):
         var = self.prepare_var(var)
         if params.models.debug_info:
-            print "eliminate variable: ", var.getSymname(),
+            print("eliminate variable: ", var.getSymname(), end=' ')
         if var in self.free_rvs:
             if params.models.debug_info:
-                print " eliminate free via integration"
-            for rv, eq in self.rv_to_equation.iteritems():
+                print(" eliminate free via integration")
+            for rv, eq in self.rv_to_equation.items():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                     raise RuntimeError("Cannot eliminate free variable on which other variables depend")
             self.nddistr = self.nddistr.eliminate(var)
@@ -196,7 +199,7 @@ class Model(object):
             self.all_vars.remove(var)
         elif var in self.dep_rvs:
             if params.models.debug_info:
-                print " eliminate dependent via substitution"
+                print(" eliminate dependent via substitution")
             subs_eq = self.rv_to_equation[var]
             del self.rv_to_equation[var]
             self.subst_for_rv_in_children(var, subs_eq)
@@ -211,22 +214,22 @@ class Model(object):
             self.eliminate(var)
     def unchain(self, vars, excluded=[]):
         vars_to_unchain = set(vars) - set(self.free_rvs)
-        print "unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain)
-        print "unchain variables: ",self.are_free(vars)
-        print "unchain variables: ",self.are_free(vars_to_unchain)
-        print ": ", vars_to_unchain
+        print("unchain variables: ", ", ".join(str(rv.getSymname()) for rv in vars_to_unchain))
+        print("unchain variables: ",self.are_free(vars))
+        print("unchain variables: ",self.are_free(vars_to_unchain))
+        print(": ", vars_to_unchain)
         for i in range(len(vars_to_unchain)):
             for var in vars_to_unchain:
                 #print ">>>>>>.", var.getSymname(), self.rv_to_equation[var]
                 #print ">>", self.rv_to_equation[var].atoms
                 if self.is_dependent(var) and self.are_free(self.rv_to_equation[var].atoms()):
                     for a in self.rv_to_equation[var].atoms():
-                        print ">", a
+                        print(">", a)
                         av = self.prepare_var(a)
-                        print ">=", av
-                        print self.__str__()
+                        print(">=", av)
+                        print(self.__str__())
                         if self.is_free(av) and not av in set(excluded):
-                            print "varschangeL:", av.getSymname(), var.getSymname()
+                            print("varschangeL:", av.getSymname(), var.getSymname())
                             self.varschange(av, var)
                             break
 
@@ -249,7 +252,7 @@ class Model(object):
             cond[v] = x
         ii=0
         while wanted_rvs != set(M.all_vars):
-            print "OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars], "dep:", [tmp_rv.getSymname() for tmp_rv in M.dep_rvs]
+            print("OUTER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars], "dep:", [tmp_rv.getSymname() for tmp_rv in M.dep_rvs])
             # eliminate all dangling variables
             to_remove = []
             for v in M.dep_rvs:
@@ -273,16 +276,16 @@ class Model(object):
             exchanged_vars = set()
 
             while wanted_rvs | exchanged_vars != set(M.all_vars):
-                print "INNER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "exchanged:", [tmp_rv.getSymname() for tmp_rv in exchanged_vars], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars]
+                print("INNER LOOP| wanted:", [tmp_rv.getSymname() for tmp_rv in wanted_rvs], "exchanged:", [tmp_rv.getSymname() for tmp_rv in exchanged_vars], "all:", [tmp_rv.getSymname() for tmp_rv in M.all_vars])
                 #print M.nddistr
                 # find a free var to eliminate
                 ii += 1
                 if params.models.debug_info:
-                    print "---------------step:", ii
+                    print("---------------step:", ii)
                     M.toGraphwiz(f =open("file"+str(ii)+".dot","w+"))
-                    print M
-                    print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
-                    print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
+                    print(M)
+                    print("---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(list(M.rv_to_equation.keys())), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(list(M.rv_to_equation.keys()))))
+                    print("------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars))
                     if have_pgv:
                         G = pgv.AGraph("file"+str(ii)+".dot")
                         G.layout("dot")
@@ -320,9 +323,10 @@ class Model(object):
                         key = (1*(fv in wanted_rvs), (nparents-1)*(nchildren-1)) # heuristic for deciding which vars to exchange
                         #key = ((nparents-1 + nterms)*(nchildren-1), 1*(fv in wanted_rvs)) # heuristic for deciding which vars to exchange
                         pairs.append((key, fv, dv))
-                print [(key, fv.getSymname(), dv.getSymname()) for key, fv, dv in sorted(pairs)]
+                print([(key, fv.getSymname(), dv.getSymname()) for key, fv, dv
+                           in sorted(pairs, key=lambda x: (x[0], id(x[1]), id(x[2])))])
                 if len(pairs) > 0:
-                    pairs.sort()
+                    pairs.sort(key=lambda x: (x[0], id(x[1]), id(x[2])))
                     _key, fv, dv = pairs[0]
                     M.varschange(fv, dv)
                     if fv not in wanted_rvs:
@@ -334,11 +338,11 @@ class Model(object):
                     break
         if params.models.debug_info:
             ii += 1
-            print "---===-=-=-===-=--=", ii
-            print "==",M.toGraphwiz(f =open("file"+str(ii)+".dot","w+"))
-            print M
-            print "---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(M.rv_to_equation.keys()), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(M.rv_to_equation.keys()))
-            print "------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars)
+            print("---===-=-=-===-=--=", ii)
+            print("==",M.toGraphwiz(f =open("file"+str(ii)+".dot","w+")))
+            print(M)
+            print("---", ii, " ---> #free_vars:", len(M.free_rvs), "#dep_vars:", len(M.dep_rvs), "#eqns=", len(list(M.rv_to_equation.keys())), "sum=", (len(M.free_rvs) + len(M.dep_rvs)+len(list(M.rv_to_equation.keys()))))
+            print("------> #free_vars:", len(wanted_rvs), "#dep_vars:", len(exchanged_vars))
             if have_pgv:
                 G = pgv.AGraph("file"+str(ii)+".dot")
                 G.layout("dot")
@@ -371,7 +375,7 @@ class Model(object):
                 else:
                     note += 1000
         else:
-            for rv, eq in self.rv_to_equation.iteritems():
+            for rv, eq in self.rv_to_equation.items():
                 if var.getSymname() in set(eq.atoms(sympy.Symbol)):
                     note += 1
         return note
@@ -379,7 +383,7 @@ class Model(object):
     def condition(self, var, X, **kwargs):
         var = self.prepare_var(var)
         if params.models.debug_info:
-            print "condition on variable: ",  var.getSymname(), "=" ,X
+            print("condition on variable: ",  var.getSymname(), "=" ,X)
         if not self.is_free(var):
             raise RuntimeError("You can only condition on free variables")
         self.subst_for_rv_in_children(var, sympy.S(X))
@@ -434,15 +438,15 @@ class Model(object):
         return var in self.dep_rvs
 
     def toGraphwiz(self, f = sys.stdout):
-        print >>f, "digraph G {rankdir = BT"
+        print("digraph G {rankdir = BT", file=f)
         for key in self.free_rvs:
-            print >>f, "\"{0}\"".format(key.getSymname()), " [label=\"{0}\"]".format(key.getSymname())
+            print("\"{0}\"".format(key.getSymname()), " [label=\"{0}\"]".format(key.getSymname()), file=f)
         for key in self.dep_rvs:
-            print >>f, "\"{0}\"".format(key.getSymname()), " [label=\"{0}={1}\"]".format(key.getSymname(),self.rv_to_equation[key])
-        for rv, eq in self.rv_to_equation.iteritems():
+            print("\"{0}\"".format(key.getSymname()), " [label=\"{0}={1}\"]".format(key.getSymname(),self.rv_to_equation[key]), file=f)
+        for rv, eq in self.rv_to_equation.items():
             for a in eq.atoms(sympy.Symbol):
-                print >>f, "\"{0}\" -> \"{1}\"".format(str(a), str(rv.getSymname()))
-        print >>f, "}"
+                print("\"{0}\" -> \"{1}\"".format(str(a), str(rv.getSymname())), file=f)
+        print("}", file=f)
 
 class TwoVarsModel(Model):
     """Two dimensional model with one equation"""
@@ -724,14 +728,14 @@ if __name__ == "__main__":
     S = X + Y; S.setSym("S")
     #P = NDProductDistr([X, Y])
     M = Model([X, Y], [S])
-    print M
+    print(M)
     #M2 = M.inference(wanted_rvs = [X])
     #M2 = M.inference(wanted_rvs = [X], cond_rvs = [Y], cond_X = [1.5])
     #M2 = M.inference(wanted_rvs = [S])
     #M2 = M.inference(wanted_rvs = [S], cond_rvs = [Y], cond_X = [1.5]) #! NaN moments!
     #M2 = M.inference(wanted_rvs = [X], cond_rvs = [S], cond_X = [2.5])
     M2 = M.inference(wanted_rvs = [X, Y], cond_rvs = [S], cond_X = [2.5]).plot()
-    print "===", M2
+    print("===", M2)
 
     #M.plot()
     show()
@@ -743,13 +747,13 @@ if __name__ == "__main__":
     R = N / D; R.setSym("R")
     P = NDProductDistr([X, Y])
     M = Model(P, [N, D, R])
-    print M
+    print(M)
     M2 = M.inference(wanted_rvs = [R])
     M2.plot()
     0/0
     M.varschange(X, N)
     M.eliminate(X)
-    print M
+    print(M)
     M.plot()
     show()
     0/0
@@ -843,7 +847,7 @@ if __name__ == "__main__":
 
     V=X2-X1
 
-    print "p=", V.parents[1].getSym()
+    print("p=", V.parents[1].getSym())
     mR = TwoVarsModel(cij, V)
     funR = mR.eval()
     funR.summary()

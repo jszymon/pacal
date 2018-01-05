@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 
 def noncentral_t(df, mu, x):
@@ -30,13 +32,13 @@ def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
                       ):
     if exact_pdf is None:
         exact_pdf = float(multiprec_pdf(df, mu, x))
-        print "exact_pdf", repr(exact_pdf)
+        print("exact_pdf", repr(exact_pdf))
     if exact_cdf is None:
         exact_cdf = float(multiprec_cdf(df, mu, x))
-        print "exact_cdf", repr(exact_cdf)
+        print("exact_cdf", repr(exact_cdf))
     d_, f, P = noncentral_t(df, mu, x)
-    print "pacal_pdf", f
-    print "pacal_cdf", P
+    print("pacal_pdf", f)
+    print("pacal_cdf", P)
     # print f, P
     pdf_err = abs(f - exact_pdf)
     cdf_err = abs(P - exact_cdf)
@@ -49,12 +51,12 @@ def test_noncentral_t(df, mu, x, exact_pdf = None, exact_cdf = None,
         if cdf is not None:
             r_err += " cdf_err={0}".format(abs(exact_cdf - cdf))
         return r_err + "\n"
-    print str_errors("PaCal:      ", df, mu, x, f, P, exact_pdf, exact_cdf),
-    print str_errors("R:          ", df, mu, x, R_pdf, R_cdf, exact_pdf, exact_cdf),
-    print str_errors("Mathematica:", df, mu, x, Mathematica_pdf, Mathematica_cdf, exact_pdf, exact_cdf),
-    print str_errors("Mathematic8:", df, mu, x, Mathematic8_pdf, Mathematic8_cdf, exact_pdf, exact_cdf),
-    print str_errors("SAS:        ", df, mu, x, SAS_pdf, SAS_cdf, exact_pdf, exact_cdf),
-    print str_errors("Matlab:     ", df, mu, x, Matlab_pdf, Matlab_cdf, exact_pdf, exact_cdf),
+    print(str_errors("PaCal:      ", df, mu, x, f, P, exact_pdf, exact_cdf), end=' ')
+    print(str_errors("R:          ", df, mu, x, R_pdf, R_cdf, exact_pdf, exact_cdf), end=' ')
+    print(str_errors("Mathematica:", df, mu, x, Mathematica_pdf, Mathematica_cdf, exact_pdf, exact_cdf), end=' ')
+    print(str_errors("Mathematic8:", df, mu, x, Mathematic8_pdf, Mathematic8_cdf, exact_pdf, exact_cdf), end=' ')
+    print(str_errors("SAS:        ", df, mu, x, SAS_pdf, SAS_cdf, exact_pdf, exact_cdf), end=' ')
+    print(str_errors("Matlab:     ", df, mu, x, Matlab_pdf, Matlab_cdf, exact_pdf, exact_cdf), end=' ')
 
 
 #SAS code:

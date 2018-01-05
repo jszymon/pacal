@@ -3,6 +3,8 @@
 #! CHAPTER 5 - FUNCTIONS
 #!-----------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 import time
@@ -46,5 +48,5 @@ if __name__ == "__main__":
     figure()
     #demo_distr(d, theoretical = theor_ampl_uni, histogram=True)
     demo_distr(d)
-    print "time=", time.time() - tic
+    print("time=", time.time() - tic)
     show()

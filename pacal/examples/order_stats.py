@@ -1,14 +1,16 @@
 """Demo of order statistics."""
 
+from __future__ import print_function
+
 from pacal import *
 from pacal.utils import ordinal_ending
 from pylab import figure, legend, title, xlim, ylim
 
 if __name__ == "__main__":
     colors = "kbgrcmy"
-    
+
     c = 0
-    for i in xrange(1, 50, 5):
+    for i in range(1, 50, 5):
         os = iid_order_stat(BetaDistr(3, 2), 50, i)
         os.summary()
         os.plot(label = str(i) + "-" + ordinal_ending(i) + " ord. stat.", color = colors[c%len(colors)])
@@ -17,7 +19,7 @@ if __name__ == "__main__":
     ylim(ymin = 0)
     legend(loc = "upper left")
     title("Order statistics from a sample of 50 Beta(3,2) r.v.'s")
-    
+
     figure()
     N = 25
     title(str(N) + " independent Normal(0,1) r.v.'s")
@@ -37,5 +39,5 @@ if __name__ == "__main__":
     os20.summary()
     os20.plot(label = "20-th ord. stat", color = colors[4])
     legend()
-    
+
     show()

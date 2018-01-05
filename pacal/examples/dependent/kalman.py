@@ -1,6 +1,8 @@
 #! =================================
 #! Kalman filter with control input
 #! =================================
+from __future__ import print_function
+
 from pacal import *
 from pylab import figure, show, zeros, plot, legend, subplot, rc
 
@@ -42,7 +44,7 @@ h = 1.0 / n
 K = 0.7
 Y = []                          # list of states
 O, E, U = [], [], []            # lists of observations and errors
-for i in xrange(n):
+for i in range(n):
     U.append(UniformDistr(-0.2, 0.2, sym="U{0}".format(i)))
     if i == 0:
         Y.append(Y0 * K + U[i])
@@ -56,7 +58,7 @@ for i in xrange(n):
     O[-1].setSym("O{0}".format(i))
     #print O[-1].range(), O[-1].range_()
 M = Model(U + [Y0] + E, Y + O)
-print M
+print(M)
 M.toGraphwiz(f=open('bn.dot', mode="w+"))
 #!
 #! Simulation with signal filtering
@@ -94,8 +96,8 @@ legend(loc='lower left')
 
 #! Error of estimation using median 
 #! --------------------------------
-print "mse=", sqrt(mean((Yorg - Ynoised) ** 2)), sqrt(mean((Yorg - Ydenoised) ** 2)) 
-print "mae=", mean(abs(Yorg - Ynoised)), mean(abs(Yorg - Ydenoised)) 
+print("mse=", sqrt(mean((Yorg - Ynoised) ** 2)), sqrt(mean((Yorg - Ydenoised) ** 2))) 
+print("mae=", mean(abs(Yorg - Ynoised)), mean(abs(Yorg - Ydenoised))) 
 
 
 show()

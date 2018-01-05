@@ -3,9 +3,10 @@
 #! Capabilities of PaCAL with dependent variables
 #! ==============================================
 #!
+from __future__ import print_function
 
 import sys; 
-print('%s %s' % (sys.executable or sys.platform, sys.version))
+print(('%s %s' % (sys.executable or sys.platform, sys.version)))
 
 from functools import partial
 
@@ -34,8 +35,8 @@ xlabel("R_total")
 R_total.hist()
 R_total.summary()
 
-print R_total.cdf(3.0 / 4.0)
-print R_total.median()
+print(R_total.cdf(3.0 / 4.0))
+print(R_total.median())
 
 ylim(ymin=0)
 #axis((0.3, 1.0, 0.0, 3.0))
@@ -65,8 +66,8 @@ show()
 figure()
 plot_2d_distr(CIJ)
 show()
-print X7.mean() - X2.mean()
-print repr(R.mean())
+print(X7.mean() - X2.mean())
+print(repr(R.mean()))
 
 
 #! Sample range distribution
@@ -88,8 +89,8 @@ figure()
 plot_2d_distr(CIJ)
 show()
 #! Compare it with SAS/QC manual, functions: d2, d3
-print repr(R.mean())
-print repr(R.var()), repr(R.std())
+print(repr(R.mean()))
+print(repr(R.var()), repr(R.std()))
 R.summary()
 
 #! ----------------------------------
@@ -105,8 +106,8 @@ for theta, ls in [(-15, "--"), (-5, "-."), (0.05, "-"), (10, ":")]:
     C = FrankCopula2d(theta=theta, marginals=[X, Y])
     M = TwoVarsModel(C, B)
     B_ = M.varchange_and_eliminate()
-    print "---------------------------------------" 
-    print i, ", theta=", theta, ", tau=", C.tau(0, 1), ", rho=", C.rho_s(0, 1), ", corrcoef=",C.corrcoef(0, 1) 
+    print("---------------------------------------") 
+    print(i, ", theta=", theta, ", tau=", C.tau(0, 1), ", rho=", C.rho_s(0, 1), ", corrcoef=",C.corrcoef(0, 1)) 
     figure(8)
     subplot(2, 2, i, projection='3d')
     C.plot(n=20, colors="k", labels=False)

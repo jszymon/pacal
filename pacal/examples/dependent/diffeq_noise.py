@@ -1,6 +1,8 @@
 #! ============================
 #! Simple differential equation
 #! ============================
+from __future__ import print_function
+
 from pacal import *
 from pylab import figure, show, subplot, title, plot, xlabel, ylabel, legend, rc
 
@@ -42,7 +44,7 @@ h = 1.0 / n
 K = (1 + h * A)
 K.setSym("K") 
 Y, O, E, U  = [], [], [], []           # lists of states, observations and errors
-for i in xrange(n):
+for i in range(n):
     #Y.append(Y[i] * K)
     #Y[i + 1].setSym("Y" + str(i + 1))  
     U.append(UniformDistr(-0.1,0.1, sym="U{0}".format(i)))
@@ -62,9 +64,9 @@ for i in xrange(n):
 #! -----
 P = NDProductDistr([A, Y0] + E + U)
 M = Model(P, O)
-print M
+print(M)
 M.eliminate_other(E + Y + O + [A, Y0] + U)
-print M
+print(M)
 M.toGraphwiz(f=open('bn.dot', mode="w+"))
 
 #!
@@ -81,7 +83,7 @@ for yend in [0.25, 1.25, 2.25]:
     title("O_{0}={1}".format(n, yend))
     M2.plot()
     ay0.append(M2.nddistr.mode())           # "most probable" state
-    print "yend=", yend, ",  MAP  est. of A, Y0 =", ay0[i]
+    print("yend=", yend, ",  MAP  est. of A, Y0 =", ay0[i])
     i += 1
 show()
 #!
@@ -97,11 +99,11 @@ for j in range(len(ay0)):
         ymean.append(Myi.mean())
         ystd.append(Myi.std())
         Myi.boxplot(pos=i+1, useci=0.05, showMean=False)
-    plot(range(1, n+1, 1), ymean, 'k', linestyle=styles[j], label="A, Y[0] = {0:.3f},{1:.3f}".format(*ay0[j]))
+    plot(list(range(1, n+1, 1)), ymean, 'k', linestyle=styles[j], label="A, Y[0] = {0:.3f},{1:.3f}".format(*ay0[j]))
     ylabel("O[i]")
     xlabel("i")
 legend(loc='upper left')
 show()
-print "computation time=", time.time() - t0
+print("computation time=", time.time() - t0)
 
 

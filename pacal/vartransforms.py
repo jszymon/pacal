@@ -1,5 +1,6 @@
 """Variable transforms.  Used for mapping to infinite intervals etc."""
 
+from __future__ import print_function
 
 from numpy import Inf
 from numpy import hypot, sqrt, sign
@@ -54,7 +55,7 @@ class VarTransformIdentity(VarTransform):
     var_max = +1.0
     var_inf = [] # parameter values corresponding to infinity.  Do
                  # not distinguish +oo and -oo
-    
+
 ### Variable transforms
 class VarTransformReciprocal_PMInf(VarTransform):
     """Reciprocal variable transform."""
@@ -198,9 +199,9 @@ class VarTransformAlgebraic_PInf(VarTransform):
     def var_change(self, x):
         #assert all(x >= self.L)
         if ~all(x >= self.L):
-            print "assert all(x >= self.L)"
-            print x
-            print x < self.L
+            print("assert all(x >= self.L)")
+            print(x)
+            print(x < self.L)
         t = (x - self.L - self.c) / (x - self.L + self.c)
         return t
     def inv_var_change(self, t):
@@ -220,11 +221,11 @@ class VarTransformAlgebraic_MInf(VarTransform):
         self.c = c # this corresponds to Boyd's L param
     def var_change(self, x):
         #assert all(x <= self.U)
-        
+
         if ~all(x <= self.U):
-            print "assert all(x >= self.L)"
-            print x
-            print x < self.U
+            print("assert all(x >= self.L)")
+            print(x)
+            print(x < self.U)
         t = (-(x - self.U) - self.c) / (-(x - self.U) + self.c)
         return t
     def inv_var_change(self, t):
@@ -260,15 +261,15 @@ def plot_invtransformed_tail(f, vt):
     X = logspace(1, 50, 1000)
     Y = f(vt.var_change(X))
     loglog(X, Y)
-  
+
 
 if __name__ == "__main__":
     vt = VarTransformAlgebraic_PMInf()
-    print vt.inv_var_change_with_mask(array([-1,0,1]))
-    print vt.inv_var_change_with_mask(-1)
-    print vt.apply_with_inv_transform(lambda x: x+1, array([-1,0,1]))
-    print vt.apply_with_inv_transform(lambda x: x+1, 0)
-    print vt.apply_with_inv_transform(lambda x: x+1, -1)
+    print(vt.inv_var_change_with_mask(array([-1,0,1])))
+    print(vt.inv_var_change_with_mask(-1))
+    print(vt.apply_with_inv_transform(lambda x: x+1, array([-1,0,1])))
+    print(vt.apply_with_inv_transform(lambda x: x+1, 0))
+    print(vt.apply_with_inv_transform(lambda x: x+1, -1))
 
     from numpy import exp
     from pylab import show
@@ -290,5 +291,5 @@ if __name__ == "__main__":
 
     plot_invtransformed_tail(lambda x: x, VarTransformReciprocal_PInf(L = 10))
     plot_invtransformed_tail(lambda x: 1-x, VarTransformAlgebraic_PInf(L = 10))
-    
+
     show()

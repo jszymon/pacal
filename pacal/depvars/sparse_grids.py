@@ -1,5 +1,7 @@
 """Multidimensional interp. on sparse grids."""
 
+from __future__ import print_function
+
 import itertools
 
 from pacal.utils import cheb_nodes, binomial_coeff
@@ -14,9 +16,9 @@ try:
     #import pyximport; pyximport.install()
     from pacal.bary_interp import c_dense_grid_interp
     have_Cython = True
-    print "Using compiled sparse grid routine"
+    print("Using compiled sparse grid routine")
 except:
-    print "Compiled sparse grid routine not available"
+    print("Compiled sparse grid routine not available")
     have_Cython = False
 
 
@@ -25,7 +27,7 @@ def gen_partitions(nd, d):
     if nd == 1:
         return [(d,)]
     part = []
-    for x in xrange(1,d):
+    for x in range(1,d):
         new_part = [(x,)+p for p in gen_partitions(nd - 1, d-x)]
         part.extend(new_part)
     return part
@@ -37,7 +39,7 @@ def gen_Q(q, d):
     Q corresponds to P in the paper of Wasilkowski and Wozniakowski."""
     assert q >= d
     Q = []
-    for i in xrange(q-d+1, q+1):
+    for i in range(q-d+1, q+1):
         Q.extend(gen_partitions(d, i))
     return Q
 
@@ -69,11 +71,11 @@ class AdaptiveSparseGridInterpolator(object):
         ni = self.init_ni
         self.exps = [None]
         self.cheb_weights_cache = [None]
-        self.xroot_cache = [list([None]) for j in xrange(self.d)] # cache for X coords of roots
-        for i in xrange(self.q - self.d + 1 + 1):  # maximum degree is q - d + 1 by definition of Q
+        self.xroot_cache = [list([None]) for j in range(self.d)] # cache for X coords of roots
+        for i in range(self.q - self.d + 1 + 1):  # maximum degree is q - d + 1 by definition of Q
             self.exps.append(ni)
             self.cheb_weights_cache.append(cheb_weights(ni))
-            for j in xrange(self.d):
+            for j in range(self.d):
                 self.xroot_cache[j].append(cheb_nodes(ni, self.a[j], self.b[j]))
             if ni == 1:
                 ni = 3
@@ -82,7 +84,7 @@ class AdaptiveSparseGridInterpolator(object):
         self.ni = ni
 
         self.nodes, self.subgrid_map = self.get_nodes(self.q)
-        Xs = [array([self.xroot_cache[j][self.q - self.d + 1][n[j]] for n in self.nodes]) for j in xrange(self.d)]
+        Xs = [array([self.xroot_cache[j][self.q - self.d + 1][n[j]] for n in self.nodes]) for j in range(self.d)]
         self.Ys = atleast_1d(squeeze(self.f(*Xs)))
 
     def adaptive_interp(self, par = None):
@@ -98,7 +100,7 @@ class AdaptiveSparseGridInterpolator(object):
         while q <= maxq:
             self.exps.append(ni)
             self.cheb_weights_cache.append(cheb_weights(ni))
-            for j in xrange(self.d):
+            for j in range(self.d):
                 self.xroot_cache[j].append(cheb_nodes(ni, self.a[j], self.b[j]))
             if ni == 1:
                 ni = 3
@@ -111,12 +113,12 @@ class AdaptiveSparseGridInterpolator(object):
             inc_nodes = list(set(new_nodes) - set(old_nodes))
             inc_nodes.sort()
             max_q = q-self.d+1
-            inc_Xs = [array([self.xroot_cache[j][max_q][n[j]] for n in inc_nodes]) for j in xrange(self.d)]
+            inc_Xs = [array([self.xroot_cache[j][max_q][n[j]] for n in inc_nodes]) for j in range(self.d)]
             inc_Ys = atleast_1d(squeeze(self.f(*inc_Xs)))
             err = self.test_accuracy(inc_Xs, inc_Ys)
             maxy = max(abs(inc_Ys).max(), abs(self.Ys).max())
             if par.debug_info:
-                print "interp. err", err, old_err, q
+                print("interp. err", err, old_err, q)
             cm.add(err, maxy)
             if cm.test_convergence()[0]:
                 break
@@ -153,7 +155,7 @@ class AdaptiveSparseGridInterpolator(object):
             errs = abs(self.interp_at(*test_Xs) - test_Ys)
         err = errs.max()
         return err
-    
+
     def get_nodes(self, q):
         """Compute nodes for current ni."""
         nodes = []
@@ -168,9 +170,9 @@ class AdaptiveSparseGridInterpolator(object):
             max_q = q-self.d+1
             max_d = self.exps[max_q]
             if self.init_ni == 1:
-                new_nodes = itertools.product(*[range(0, max_d, 1 << (max_q - e)) if e > 1 else [max_d/2] for e in p])
+                new_nodes = itertools.product(*[list(range(0, max_d, 1 << (max_q - e))) if e > 1 else [max_d/2] for e in p])
             else:
-                new_nodes = itertools.product(*[range(0, max_d, 1 << (max_q - e)) for e in p])
+                new_nodes = itertools.product(*[list(range(0, max_d, 1 << (max_q - e))) for e in p])
 
             # node indices for this subgrid
             subgrid_indices = []
@@ -187,8 +189,8 @@ class AdaptiveSparseGridInterpolator(object):
             c = (-1)**(q-si) * binomial_coeff(self.d - 1, q-si)
             subgrid_map[p] = (c, array(subgrid_indices))
         if params.interpolation_nd.debug_info:
-            print len(subgrid_map), "rect. subgrids,", sum(len(subgrid_map[k]) for k in subgrid_map), "ops per X,", len(nodes), "nodes,",
-            print "full grid size", self.exps[q-self.d+1]**self.d, "dim", self.d
+            print(len(subgrid_map), "rect. subgrids,", sum(len(subgrid_map[k]) for k in subgrid_map), "ops per X,", len(nodes), "nodes,", end=' ')
+            print("full grid size", self.exps[q-self.d+1]**self.d, "dim", self.d)
         return nodes, subgrid_map
 
     def interp_at(self, *X):
@@ -203,7 +205,7 @@ class AdaptiveSparseGridInterpolator(object):
                 return array([])
         y = 0
         full_grid_cache = {}
-        for p, subgrid in self.subgrid_map.iteritems():
+        for p, subgrid in self.subgrid_map.items():
             c, ni = subgrid
             #yi = self.full_grid_interp(p, self.Ys[ni], X, full_grid_cache)
             yi = self.full_grid_interp_new(p, self.Ys[ni], X, full_grid_cache)
@@ -282,7 +284,7 @@ class AdaptiveSparseGridInterpolator(object):
                 fs = dot(one_over_x_m_xi, fs_r.T)
                 first = False
             else:
-                fs_r = fs.reshape((X[0].shape[0], fs.shape[1] / one_over_x_m_xi.shape[1], one_over_x_m_xi.shape[1]))
+                fs_r = fs.reshape((X[0].shape[0], fs.shape[1] // one_over_x_m_xi.shape[1], one_over_x_m_xi.shape[1]))
                 fs = (fs_r * one_over_x_m_xi[:,newaxis,:]).sum(axis=-1)
             fs /= den_factor[:,newaxis]
 
@@ -318,11 +320,10 @@ if __name__ == "__main__":
     ai = AdaptiveSparseGridInterpolator(f, d)#, a = a)
     yi = ai.interp_at(*X)
     yt = f(*X)
-    print yi, yt, yi - yt
+    print(yi, yt, yi - yt)
     debug = True
     X = [array([0.1, 0.2, 1.0]), array([0.2, 0.1, 0.5]), array([0.2, 0.1, 0.1])][0:d]
     X = [array([0.1, 0.2, 1.0]), array([0.2, 0.1, 0.5]), array([0.2, 0.1, 0.1])][0:d]
     yi = ai.interp_at(*X)
     yt = f(*X)
-    print yi, yt, yi - yt
-    
+    print(yi, yt, yi - yt)

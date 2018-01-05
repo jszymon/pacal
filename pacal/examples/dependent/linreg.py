@@ -1,6 +1,7 @@
 #!===================================================
 #! The Distribution of Linear Regression Coefficients
 #!===================================================
+from __future__ import print_function
 
 from pacal import *
 
@@ -22,9 +23,9 @@ n=10
 Xobs = UniformDistr().rand(n)
 a, b = 0.3, 0.7 
 Yobs = a * Xobs + b #+ E[0].rand(n)
-print '{0:{align}15}\t{0:{align}15}'.format("Xobs","Xobs", align = '>')
+print('{0:{align}15}\t{0:{align}15}'.format("Xobs","Xobs", align = '>'))
 for i in range(len(Xobs)):
-    print '{0:{align}20}\t{0:{align}14}'.format(Xobs[i], Yobs[i], align = '>')
+    print('{0:{align}20}\t{0:{align}14}'.format(Xobs[i], Yobs[i], align = '>'))
 #!
 #! Model
 #!
@@ -42,16 +43,16 @@ for i in range(n):
 
 M = Model(X + E + [A, B], Y)
 M.toGraphwiz(f=open('bn.dot', mode="w+"))
-print M
+print(M)
 #!
 #! Inference
 #!
 MAB = M.inference([A,B], X + Y,  concatenate((Xobs, Yobs)))
 MA = MAB.inference([A],[],[])
 MB = MAB.inference([B],[],[])
-print MAB
-print MA
-print MB
+print(MAB)
+print(MA)
+print(MB)
 figure(1)
 MAB.plot(have_3d=True)
 title("Joint distribution of A and B conditioned on sample")
@@ -71,10 +72,10 @@ show()
 #!
 #! Estimation of coefficients
 #!
-print "original coefficients a=", a, "b=", b
-print "mean   est. A=", MA.as1DDistr().mean(),   "est. B=", MB.as1DDistr().mean()
-print "median est. A=", MA.as1DDistr().median(), "est. B=", MB.as1DDistr().median()
-print "mode   est. A=", MA.as1DDistr().mode(),   "est. B=", MB.as1DDistr().mode()
+print("original coefficients a=", a, "b=", b)
+print("mean   est. A=", MA.as1DDistr().mean(),   "est. B=", MB.as1DDistr().mean())
+print("median est. A=", MA.as1DDistr().median(), "est. B=", MB.as1DDistr().median())
+print("mode   est. A=", MA.as1DDistr().mode(),   "est. B=", MB.as1DDistr().mode())
 MAB.nddistr(1, 3)
 abopt = MAB.nddistr.mode()
 (ar,br)=polyfit(Xobs,Yobs,1)
@@ -82,7 +83,7 @@ abopt = MAB.nddistr.mode()
 #! Least squares estimates are maximum log-likelihood estimates 
 #! (are equal to maximum a posteriori in this case, because of uniform a priori distribution of coefficients) 
 #!
-print "              MAP  a=", abopt[0], "b=", abopt[1]
-print "polyfit (LSE) est. a=", ar, "b=", br
-print "computation time=", time.time() - t0
+print("              MAP  a=", abopt[0], "b=", abopt[1])
+print("polyfit (LSE) est. a=", ar, "b=", br)
+print("computation time=", time.time() - t0)
 

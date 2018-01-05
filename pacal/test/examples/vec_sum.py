@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from pacal import *
 
 from pacal.depvars.models import Model
@@ -37,9 +39,9 @@ Z2 = X2 + Y2; Z2.setSym("Z2")
 M = Model([C1,C2], [Z1, Z2])
 #M = Model([C1,Y1,Y2], [Z1, Z2])
 #M = Model([X1,X2,Y1,Y2], [Z1, Z2])
-print M
+print(M)
 
 M2 = M.inference([Z1, Z2])
-print M2
+print(M2)
 M2.plot()
 show()

@@ -1,6 +1,8 @@
 #! Inaccurate places in PaCal 
 #! ==========================
 
+from __future__ import print_function
+
 from pylab import *
 from pacal import *
 from pacal.distr import demo_distr
@@ -97,7 +99,7 @@ if __name__ == "__main__":
     #$ by our interpolator (absolute accuracy 1e-3, integral accuracy 1e-8).
     #$ Here we try to interpolate function with unboded 1-st derivative.
     #$ Otherwise it seems to be evaluated correctly, e.g.:
-    print s(array(linspace(0,1,11))) - pi/4
+    print(s(array(linspace(0,1,11))) - pi/4)
     
     #! To improve accuracy one can try to change interpolation parameters
     #(params.segments.maxn).

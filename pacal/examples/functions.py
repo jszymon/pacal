@@ -2,13 +2,15 @@
 #os.system("E:\prog\python26_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf E:\m_\ecPro\pacal\pacal\\examples\\functions.py")
 #os.system("E:\prog\python26_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf E:\m_\ecPro\pacal\pacal\\examples\\singularities.py")
 #os.system("D:\prog\python_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf D:\m_\ecPro\pacal\demos\demo.py")
-#! Functions of random variables using PaCal 
+#! Functions of random variables using PaCal
 #! =========================================
 #!
 #! This demo shows how to use **PaCal** functions of random variables.
 #!
 #! The first import ``distr`` module.
 #!
+from __future__ import print_function
+
 from pylab import figure, show
 from numpy import pi
 
@@ -17,7 +19,7 @@ from pacal import *
 from pacal.distr import demo_distr
 
 #!
-#! Inverse of r.v. 
+#! Inverse of r.v.
 #! ---------------
 
 N = NormalDistr(0,1)
@@ -47,7 +49,7 @@ demo_distr(log(E1)+log(E2))
 
 try:
     l = log(NormalDistr(0, 1))
-    print "Error: log of negative distribution not reported!!!!"
+    print("Error: log of negative distribution not reported!!!!")
 except ValueError:
     pass
 
@@ -65,7 +67,7 @@ demo_distr(invC, C)
 
 figure()
 N2=min(I, N)
-demo_distr(N2) 
+demo_distr(N2)
 
 figure()
 demo_distr(abs(C + 2), xmax = 10)
@@ -84,11 +86,11 @@ demo_distr(sqrt(E2), xmin =0, xmax = 10)
 #!
 
 #!
-#! Arcus tangent of Cauchy distribution 
+#! Arcus tangent of Cauchy distribution
 #! -------------------------------------
 
 C = NormalDistr(0,1) / NormalDistr(0,1)
-U = atan(C); 
+U = atan(C);
 figure()
 demo_distr(U, theoretical = UniformDistr(-pi/2, pi/2), histogram = True)
 
@@ -97,7 +99,7 @@ C_shifted = NormalDistr(1.2,1) / NormalDistr(1.2,1)
 figure()
 demo_distr(C_shifted, theoretical = None, histogram = True, xmin=-5, xmax=5)
 
-U_shifted = atan(C_shifted); 
+U_shifted = atan(C_shifted);
 figure()
 demo_distr(U_shifted, theoretical = None, histogram = True)
 

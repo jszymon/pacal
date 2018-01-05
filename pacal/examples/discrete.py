@@ -1,8 +1,11 @@
 #os.system("D:\prog\python_packages\pyreport-0.3.4c\pyreport\pyreport.py -e -l -t pdf D:\m_\ecPro\pacal\demos\demo.py")
-#! Discrete random variables using PaCal 
+#! Discrete random variables using PaCal
 #! =========================================
 #$ This demo ilustrates hot to use **PaCal** with discrite random variables.
 #$
+
+from __future__ import print_function
+
 from pylab import figure, show, subplot
 
 from pacal import *
@@ -19,12 +22,12 @@ if __name__ == "__main__":
     params.general.warn_on_dependent = False
     SM = min(S, S)
     params.general.warn_on_dependent = True
-    
-    #! 
+
+    #!
     M.summary()
     S.summary()
     SM.summary()
-    
+
     figure()
     subplot(221)
     S.plot()
@@ -34,7 +37,7 @@ if __name__ == "__main__":
     S.get_piecewise_cdf().plot()
     subplot(224)
     SM.get_piecewise_cdf().plot()
-    
+
     #! Binomial and Bernoulli distributions
     #! -------------------------------------
     b5 = ZeroDistr()
@@ -48,7 +51,7 @@ if __name__ == "__main__":
     b5.summary()
     subplot(133)
     b5.hist()
-    
+
     #! Difference of binomial distributions
     #!-----------------------------------------
     #!
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     bd.hist()
     subplot(313)
     bd.get_piecewise_cdf().plot()
-    
+
     #! Mixing continuous and discrete distributions
     #!----------------------------------------------
     d = DiscreteDistr(xi=[1, 2], pi=[0.2, 0.8])
@@ -86,12 +89,12 @@ if __name__ == "__main__":
     subplot(224)
     A4.plot()
     A4.hist()
-    
+
     A1.summary()
     A2.summary()
     A3.summary()
     A4.summary()
-    
+
     figure()
     subplot(221)
     A1.get_piecewise_cdf().plot()
@@ -101,20 +104,20 @@ if __name__ == "__main__":
     A3.get_piecewise_cdf().plot(xmax=6.0)
     subplot(224)
     A4.get_piecewise_cdf().plot()
-    
-    
+
+
     #! Mixture distributions
     #!----------------------
-    
+
     d = DiscreteDistr(xi=[-1, 2, 6], pi=[0.2, 0.4, 0.4])
     N = NormalDistr()
     GM = d + N
     figure()
     GM.summary()
     GM.plot()
-    
-    
-    #! Sign, Abs 
+
+
+    #! Sign, Abs
     #! ----------
     figure()
     N = NormalDistr(0.1,1)
@@ -128,11 +131,11 @@ if __name__ == "__main__":
     params.general.warn_on_dependent = False
     demo_distr(S * A)#, theoretical=N)
     params.general.warn_on_dependent = True
-    
+
     #! min, max, Conditional distributions
     #! ------------------------------------
     #!
-    #! 
+    #!
     figure()
     E = max(ExponentialDistr() - 1, ZeroDistr())
     subplot(211)
@@ -144,8 +147,8 @@ if __name__ == "__main__":
     params.general.warn_on_dependent = True
     S.plot(linewidth=2.0)
     S.summary()
-    
-    
+
+
     figure()
     E = ExponentialDistr()
     E1 = CondGtDistr(E, 1)
@@ -158,9 +161,9 @@ if __name__ == "__main__":
     subplot(313)
     E2.plot(linewidth=2.0)
     E2.summary()
-    
+
     #! Memorylessness of exponential distribution
     figure()
     demo_distr(E1 - 1, theoretical=E)
-    
+
     show()

@@ -3,6 +3,8 @@
 #! CHAPTERS 6, 7, 8
 #!------------------
 #!
+from __future__ import print_function
+
 from functools import partial
 import numpy
 
@@ -39,7 +41,7 @@ d = x1+x2*x3-5*x4
 figure()
 demo_distr(d, xmax=20)
 exm = -6.7020187668243558
-print "exact mean =", exm, "err =", d.mean() - exm
+print("exact mean =", exm, "err =", d.mean() - exm)
 
 #! Example 8.7.1
 #!

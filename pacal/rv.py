@@ -10,8 +10,8 @@ from numpy import add, subtract, divide, prod, multiply
 import sympy
 from sympy import var
 
-import params
-from sympy_utils import sympy_min, sympy_max, sympy_abs
+from . import params
+from .sympy_utils import sympy_min, sympy_max, sympy_abs
 
 class RV(object):
     def __init__(self, parents = [], sym = None, a=0.0, b=1.0):
@@ -19,7 +19,7 @@ class RV(object):
         self.a = a
         self.b = b
         if sym is not None:         # ====set symbolic name of r.v
-            if isinstance(sym, basestring):
+            if isinstance(sym, str):
                 self.sym = sympy.Symbol(sym)
             else:
                 self.sym = sym      # user defined symbolic name of r.v.
@@ -194,24 +194,24 @@ class RV(object):
             return SumRV(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __radd__(self, d):
         """Overload sum with real number: distribution of X+r."""
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __sub__(self, d):
         """Overload subtraction: distribution of X-Y."""
         if isinstance(d, RV):
             return SubRV(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, shift = -d)
-        raise NotImplemented()
+        return NotImplemented
     def __rsub__(self, d):
         """Overload subtraction with real number: distribution of X-r."""
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, scale = -1, shift = d)
-        raise NotImplemented()
+        return NotImplemented
     def __mul__(self, d):
         """Overload multiplication: distribution of X*Y."""
         if isinstance(d, RV):
@@ -221,7 +221,7 @@ class RV(object):
                 return 0
             else:
                 return ShiftedScaledRV(self, scale = d)
-        raise NotImplemented()
+        return NotImplemented
     def __rmul__(self, d):
         """Overload multiplication by real number: distribution of X*r."""
         if isinstance(d, numbers.Real):
@@ -229,22 +229,37 @@ class RV(object):
                 return 0
             else:
                 return ShiftedScaledRV(self, scale = d)
-        raise NotImplemented()
-    def __div__(self, d):
-        """Overload division: distribution of X*r."""
+        return NotImplemented
+    def __truediv__(self, d):
+        """Overload division: distribution of X/r."""
         if isinstance(d, RV):
             return DivRV(self, d)
         if isinstance(d, numbers.Real):
             return ShiftedScaledRV(self, scale = 1.0 / d)
-        raise NotImplemented()
-    def __rdiv__(self, d):
-        """Overload division by real number: distribution of X*r."""
+        return NotImplemented
+    def __div__(self, d):
+        """Python2 version."""
+        if isinstance(d, RV):
+            return DivRV(self, d)
+        if isinstance(d, numbers.Real):
+            return ShiftedScaledRV(self, scale = 1.0 / d)
+        return NotImplemented
+    def __rtruediv__(self, d):
+        """Overload division by real number: distribution of r/X."""
         if isinstance(d, numbers.Real):
             if d == 0:
                 return 0
             d = float(d)
             return d * InvRV(self)
-        raise NotImplemented()
+        return NotImplemented
+    def __rdiv__(self, d):
+        """Python2 version."""
+        if isinstance(d, numbers.Real):
+            if d == 0:
+                return 0
+            d = float(d)
+            return d * InvRV(self)
+        return NotImplemented
     def __pow__(self, d):
         """Overload power: distribution of X**Y,
         and special cases: X**(-1), X**2, X**0. X must be positive definite."""
@@ -262,7 +277,7 @@ class RV(object):
             else:
                 return ExpRV(ShiftedScaledRV(LogRV(self), scale = d))
                 #return PowRV(self, alpha = d)
-        raise NotImplemented()
+        return NotImplemented
     def __rpow__(self, x):
         """Overload power: distribution of X**r"""
         if isinstance(x, numbers.Real):
@@ -273,7 +288,7 @@ class RV(object):
             if x < 0:
                 raise ValueError()
             return ExpRV(ShiftedScaledRV(self, scale = numpy.log(x)))
-        raise NotImplemented()
+        return NotImplemented
 
 
 def _wrapped_name(d, incl_classes = None):
@@ -530,7 +545,7 @@ def min(*args):
     if isinstance(d1, RV) and isinstance(d2, RV):
         return MinRV(d1, d2)
     elif isinstance(d1, RV) or isinstance(d2, RV):
-        raise NotImplemented()
+        raise TypeError("unorderable types: {}() < {}()".format(type(d1).__name__, type(d2).__name__))
     else:
         return _builtin_min(*args)
 _builtin_max = max
@@ -542,7 +557,7 @@ def max(*args):
     if isinstance(d1, RV) and isinstance(d2, RV):
         return MaxRV(d1, d2)
     elif isinstance(d1, RV) or isinstance(d2, RV):
-        raise NotImplemented()
+        raise TypeError("unorderable types: {}() < {}()".format(type(d1).__name__, type(d2).__name__))
     else:
         return _builtin_max(*args)
 
@@ -552,17 +567,17 @@ if __name__ == "__main__":
     y = RV(sym="y")
     z = RV(sym="z")
     u = x + y
-    print ">>", u.getParentsAll()
-    print ">>", u.getParentsFree()
+    print(">>", u.getParentsAll())
+    print(">>", u.getParentsFree())
     u.setSym("u")
-    print u.getEquations()
+    print(u.getEquations())
     v = u + z
     v.setSym("v")
 
-    print v.getEquations()
+    print(v.getEquations())
 
-    print u.getSym()
-    print v.getSym()
+    print(u.getSym())
+    print(v.getSym())
 
 
 #    print d;
