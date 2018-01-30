@@ -359,7 +359,7 @@ class Distr(RV):
         if width == 0:
             width = X.max() * 0.01
         for c, b in zip(counts, binx):
-            bar(b, float(c) * w, width = width, alpha = 0.25, **kwargs)
+            bar(b, float(c) * w, width = width, alpha = 0.25, align="edge", **kwargs)
     def five_number_summary(self):
         m = self.median()
         iqr = self.iqrange(0.25)
