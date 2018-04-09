@@ -555,6 +555,10 @@ def is_instance_method(obj):
 def list_map(*args):
     """map returning a list in line with multiprocessing Pool.map"""
     return list(map(*args))
+def par_map(f, x):
+    if len(x) < 100:
+        return list_map(f, x)
+    return params.general.process_pool.map(f, x)
 def get_parmap():
     if params.general.parallel:
         if params.general.process_pool is None:
@@ -567,6 +571,7 @@ def get_parmap():
             if params.general.process_pool is None:
                 raise RuntimeError("Process pool not initialized")
         pmap = params.general.process_pool.map
+        #pmap = par_map
     else:
         pmap = list_map
     return pmap

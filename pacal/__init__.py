@@ -2,6 +2,8 @@
 
 from __future__ import print_function
 
+from . import params
+
 import numpy as _np
 from pylab import show
 
@@ -60,15 +62,9 @@ from .depvars.copulas import PiCopula, FrankCopula, ClaytonCopula, GumbelCopula
 from .depvars.nddistr import NDNormalDistr, IJthOrderStatsNDDistr
 from .depvars.models import TwoVarsModel, Model
 
-from . import params
-
-#def _pickle_ufunc(ufunc):
-#    return ufunc.__name__
-#def _unpickle_ufunc(name):
-#    return getattr(_np, name)
 
 
-#
+
 def _pickle_method(method):
     obj = method.__self__
     cls = method.__self__.__class__
