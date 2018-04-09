@@ -1,4 +1,3 @@
-from numpy import finfo, double
 from inspect import getmembers
 
 def _str_params_list(p, depth = 0):
@@ -37,6 +36,20 @@ class general(params_class):
     parallel = True
     nprocs = None
     process_pool = None
+
+# disable threading in openblas when parallel computing is used this
+# is an awkward place to put this code but must be done before numpy
+# import
+if general.parallel:
+    import os
+    try:
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    except:
+        print("WARNING: could not disable openblas threading")
+
+
+from numpy import finfo, double
+
 
 class pole_detection(params_class):
     max_pole_exponent = -1e-2 # exponents above this value are treated as poles

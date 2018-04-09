@@ -94,10 +94,6 @@ def _unpickle_method(func_name, obj, cls):
     return func.__get__(obj, cls)
 
 if params.general.parallel:
-    # create process pool
-    #p = multiprocessing.current_process()
-    #if p.name.startswith("Main"):
-    #    params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
     # make ufuncs picklable
     import types
     try:
@@ -108,9 +104,3 @@ if params.general.parallel:
         import copy_reg
         #copy_reg.pickle(_np.ufunc, _pickle_ufunc, _unpickle_ufunc)
         copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
-    # disable threading in openblas
-    import os
-    try:
-        os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    except:
-        print("WARNING: could not disable openblas threading")
