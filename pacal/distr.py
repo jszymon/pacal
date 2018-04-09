@@ -321,7 +321,8 @@ class Distr(RV):
         other of pylab/plot **kvargs
         """
         self.get_piecewise_pdf().plot(*args, **kwargs)
-    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, max_samp = None, **kwargs):
+    def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, max_samp = None,
+             alpha=0.25, color="lightgray", edgecolor="darkgray", **kwargs):
         """Histogram of PDF.
 
         Keyword arguments:
@@ -359,7 +360,8 @@ class Distr(RV):
         if width == 0:
             width = X.max() * 0.01
         for c, b in zip(counts, binx):
-            bar(b, float(c) * w, width = width, alpha = 0.25, align="edge", **kwargs)
+            bar(b, float(c) * w, width = width, alpha=alpha, align="edge", color=color,
+                edgecolor=edgecolor, **kwargs)
     def five_number_summary(self):
         m = self.median()
         iqr = self.iqrange(0.25)
