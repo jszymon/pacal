@@ -18,6 +18,7 @@ from __future__ import print_function
 
 import types
 from functools import partial
+import multiprocessing
 
 from numpy import array, arange, empty, cos, sin, abs
 from numpy import pi, isnan, unique, diff
@@ -559,19 +560,20 @@ def par_map(f, x):
     if len(x) < 100:
         return list_map(f, x)
     return params.general.process_pool.map(f, x)
+def init_pacal_thread():
+    import multiprocessing, os
+    worker_name = "Pacal__worker__" + str(os.getpid())
+    multiprocessing.current_process().name = worker_name
 def get_parmap():
     if params.general.parallel:
-        if params.general.process_pool is None:
-            import multiprocessing
-            p = multiprocessing.current_process()
-            #print p.name
-            #import os; print os.getpid()
-            if p.name.startswith("Main"):
-                params.general.process_pool = multiprocessing.Pool(params.general.nprocs)
+        p = multiprocessing.current_process()
+        if p.name.startswith("Pacal__worker__"):
+            pmap = list_map
+        else:
             if params.general.process_pool is None:
-                raise RuntimeError("Process pool not initialized")
-        pmap = params.general.process_pool.map
-        #pmap = par_map
+                params.general.process_pool = multiprocessing.Pool(params.general.nprocs,
+                                                                   initializer=init_pacal_thread)
+            pmap = params.general.process_pool.map
     else:
         pmap = list_map
     return pmap
