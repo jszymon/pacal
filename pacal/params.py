@@ -28,12 +28,13 @@ class params_class(object):
 ###########################
 #### global parameters ####
 ###########################
+import os
 
 class general(params_class):
     warn_on_dependent = True
     class distr(params_class):
         independent = True
-    parallel = True
+    parallel = (os.name == 'posix')
     nprocs = None
     process_pool = None
 
@@ -41,7 +42,6 @@ class general(params_class):
 # is an awkward place to put this code but must be done before numpy
 # import
 if general.parallel:
-    import os
     try:
         os.environ["OPENBLAS_NUM_THREADS"] = "1"
     except:
