@@ -141,6 +141,8 @@ class ExtremeMixDistr(Distr):
 class NormalDistr(Distr):
     def __init__(self, mu=0.0, sigma=1.0, **kwargs):
         super(NormalDistr, self).__init__(**kwargs)
+        if mu <= 0:
+            raise ValueError("Standard deviation of normal distribution must be nonnegative")
         self.mu = mu
         self.sigma = sigma
         self.one_over_twosigma2 = 0.5 / (sigma * sigma)
