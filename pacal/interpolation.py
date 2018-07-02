@@ -518,6 +518,8 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
                 print("found", b, f(b))
         self.orig_a = a
         self.orig_b = b
+        if a < 0:
+            offset = a + offset
         self.offset = offset - 1
         super(LogTransformInterpolator, self).__init__(_wrap_f(self.spec_f),
                                                        self.xtinv(self.orig_a), self.xtinv(self.orig_b),
