@@ -1780,7 +1780,7 @@ class PiecewiseFunction(object):
             x = NaN
         return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
 
-    def invfun(self, use_end_poles = True, use_interpolated=True, rangeY=[0,1]):
+    def invfun(self, use_end_poles = True, use_interpolated=True, rangeY=[0,1], include_zero_break=True):
         """
         return inverse of cumulative distribution function as piecewise function
         """
@@ -1806,6 +1806,9 @@ class PiecewiseFunction(object):
             y = self.inverse(x)
             return y
         breakvals = epsunique(array(breakvals),0.0001)
+        if include_zero_break:
+            if 0 not in breakvals:
+                breakvals = numpy.insert(breakvals, numpy.searchsorted(breakvals, 0), 0)
         for i in breakvals:
             lpoles.append(False)
             rpoles.append(False)
@@ -1968,6 +1971,22 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
     def _inverse_(self, level):
         #TODO remove -1e-10
         return findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.reltol)
+    def inverse(self, y):
+        m = min(min(v) for v in self.getSegVals())
+        if m > 0:
+            minx = self.segments[0].findLeftEps()
+        # handle inverses for tiny y more gracefully
+        if isscalar(y):
+            if 0 <= y <= m:
+                return minx
+            else:
+                return super(CumulativePiecewiseFunction, self).inverse(y)
+        else:
+            mask = ((y>=0) & (y <= m))
+            yr = numpy.zeros_like(y)
+            yr[mask] = minx
+            yr[~mask] = super(CumulativePiecewiseFunction, self).inverse(y[~mask])
+            return yr
 #    def inverse(self, y):
 #        vals = self.getSegVals()
 #        breaks = self.getBreaks()
