@@ -22,7 +22,7 @@ build_script:
 
 after_test:
   - cmd: python setup.py bdist_wheel
-  - cmd: python setup.py bdist_wininst
+  #- cmd: python setup.py bdist_wininst  # fails on 3.6
   - cmd: python setup.py bdist_msi
 
 artifacts:
