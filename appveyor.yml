@@ -1,0 +1,26 @@
+version: 1.0.{build}
+
+environment:
+  matrix:
+
+  - PYTHON: C:\\Python27-x64
+    PYTHON_VERSION: 2.7.x
+    PYTHON_ARCH: 64
+
+  - PYTHON: C:\\Python36-x64
+    PYTHON_VERSION: 3.6.x
+    PYTHON_ARCH: 64
+
+install:
+  - cmd: pip install -r requirements.txt
+
+build_script:
+  - cmd: python setup.py build
+
+after_test:
+  - cmd: python setup.py bdist_wheel
+  - cmd: python setup.py bdist_wininst
+  - cmd: python setup.py bdist_msi
+
+artifacts:
+  - path: dist\*
