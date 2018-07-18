@@ -2,6 +2,9 @@ New in version 1.6:
 
 * Python 3 support (single code base used for Python 2 and 3)
 * bug fixes
+* disable parallel computiation by default on non-Posix systems
+  (set pacal.params.parallel=True to enable)
+* this is the last version of PaCal with support for Python 2
 
 New in version 1.5.1:
 
