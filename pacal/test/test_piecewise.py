@@ -71,8 +71,8 @@ def cauchy_10_3(x): return cauchy(x, 10.0, 3.0)
 def normpdf_1(x): return normpdf(x, 1.0)
 def minvlog(x): return -1.0/log(x)
 def f_sq(x): return x*x
-    
-def testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_theor = True, a = 0, b=Inf, isPoleAtZero = True, splitPoints=[],
+
+def do_testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_theor = True, a = 0, b=Inf, isPoleAtZero = True, splitPoints=[],
                         plot_tails = False, asympf = None):
     """Universal comarision with theoretical distribution
         a,b only -inf -1,0,1,inf allowed and a*b>=0"""
@@ -277,7 +277,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #print """====Test starting============================="""
         self.n = 3
         self.nseg = 5
-        self.tol = 1e-15
+        self.tol = 1e-13
         self.ts = time.time()
     def tearDown(self):
         te = time.time()
@@ -358,10 +358,10 @@ class TestPicewiseConvs(unittest.TestCase):
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
     def testConvCauchy(self):
         """Mean of the N Cauchy random variables, on figure difference between original single cauchy and mean of N ..."""
-        segf1 = Segment(-1.0, 0.0, cauchy(x))
-        segf2 = Segment(0.0, 1.0, cauchy(x))
-        segf3 = MInfSegment(-1.0, cauchy(x))
-        segf4 = PInfSegment(1, cauchy(x))
+        segf1 = Segment(-1.0, 0.0, cauchy)
+        segf2 = Segment(0.0, 1.0, cauchy)
+        segf3 = MInfSegment(-1.0, cauchy)
+        segf4 = PInfSegment(1, cauchy)
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         f.addSegment(segf2)
@@ -1084,7 +1084,7 @@ class TestPicewiseConvs(unittest.TestCase):
         print("h=", h)
         print("k=", k)
         print('difference=', max(Yh), max(Yk))
-        self.assertTrue(abs(max(Yh))<self.tol, 'diff = {0}'.format(abs(max(max(Yh), max(Yh)))))
+        self.assertTrue(abs(max(Yh))<1e-9, 'diff = {0}'.format(abs(max(max(Yh), max(Yh)))))
 
     def testConvDivMix(self):
         """Quotient of N mixtures of uniform random variables"""
@@ -1673,25 +1673,25 @@ class TestPicewiseConvs(unittest.TestCase):
         #print fun(w)
     def testThChi2(self):
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, theoretic = chisqr, a = 0, b=Inf, isPoleAtZero = True)
+        ints = do_testWithTheoretical(n = 3, op = conv, theoretic = chisqr, a = 0, b=Inf, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThNormal(self):
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, theoretic = lambda x,k: normpdf(x,0,sqrt(k)), a = -Inf, b=Inf, isPoleAtZero = False)
+        ints = do_testWithTheoretical(n = 3, op = conv, theoretic = lambda x,k: normpdf(x,0,sqrt(k)), a = -Inf, b=Inf, isPoleAtZero = False)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThCauchy(self):
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, theoretic = cauchy, a = -Inf, b=Inf, isPoleAtZero = False, plot_tails = True, asympf = f_m2x)
+        ints = do_testWithTheoretical(n = 3, op = conv, theoretic = cauchy, a = -Inf, b=Inf, isPoleAtZero = False, plot_tails = True, asympf = f_m2x)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThLevy05(self):
         plt.figure()
-        ints = testWithTheoretical(n = 2, op = conv, theoretic = lambda x,k: stable05pdf(x,0,k**2), a = 0, b=Inf, isPoleAtZero = False, splitPoints = array([1.0/3]), plot_tails = True, asympf = lambda x: -1.5*x)
+        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = lambda x,k: stable05pdf(x,0,k**2), a = 0, b=Inf, isPoleAtZero = False, splitPoints = array([1.0/3]), plot_tails = True, asympf = lambda x: -1.5*x)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testOneOverSqrRoot(self):
         plt.figure()
         f = PiecewiseFunction([])
         f.addSegment(SegmentWithPole(0, 1, sqrrrootdistr))
-        ints = testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True)
+        ints = do_testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testOneOverSqrRootAbs(self):
         def sqrrrootdistr(x, _n = 1):
@@ -1709,11 +1709,11 @@ class TestPicewiseConvs(unittest.TestCase):
         f = PiecewiseFunction([])
         f.addSegment(SegmentWithPole(-1, 0, sqrrrootdistr, left_pole = False))
         f.addSegment(SegmentWithPole(0, 1, sqrrrootdistr))
-        ints = testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = -1, b=1, isPoleAtZero = True)
+        ints = do_testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = -1, b=1, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThNegChi2(self):
         plt.figure()
-        ints = testWithTheoretical(n = 2, op = conv, theoretic = lambda x, n: chisqr(-x, n), a = -Inf, b=0, isPoleAtZero = True)
+        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = lambda x, n: chisqr(-x, n), a = -Inf, b=0, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testNegLog(self):
         def _logdistr(x, _n = 1):
@@ -1734,7 +1734,7 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(SegmentWithPole(0, 0.5, _logdistr))
         f.addSegment(Segment(0.5, 1, _logdistr))
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
+        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testNegLogAbs(self):
         def _logdistr(x, _n = 1):
@@ -1757,13 +1757,13 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(SegmentWithPole(0, 0.5, _logdistr2))
         f.addSegment(Segment(0.5, 1, _logdistr2))
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
+        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
 
 
     def testThProdUni(self):
         plt.figure()
-        ints = testWithTheoretical(n = 2, op = convprod, theoretic = prodNuniform01, a = 0, b = 1, isPoleAtZero = False, splitPoints = array([0.5]))
+        ints = do_testWithTheoretical(n = 2, op = convprod, theoretic = prodNuniform01, a = 0, b = 1, isPoleAtZero = False, splitPoints = array([0.5]))
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
 
     def testRatio2(self):
