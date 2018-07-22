@@ -50,7 +50,13 @@ def chisqr(x, k=1):
     coeffs = [0,2.506628274631001,2,2.506628274631,4,7.519884823893001,16,37.59942411946501,96,263.1959688362551,768,2368.763719526296,7680,26056.40091478925,92160,338733.2118922602,1290240,5080998.178383904,20643840,86376969.03252636,371589120,1641162411.618001,7431782400,34464410643.97802,163499212800,792681444811.4906,3923981107200,19817036120287.35,102023508787200,535059975247760.3,2856658246041600,1.551673928218494e+016,8.5699747381248e+016,4.810189177477336e+017,2.742391916199936e+018,1.587362428567526e+019,9.324132515079782e+019,5.55576849998637e+020,3.356687705428722e+021,2.055634344994941e+022,1.275541328062914e+023,8.016973945480292e+023,5.102165312251657e+024,3.28695931764694e+025,2.142909431145696e+026,1.413392506588176e+027,9.428801497041062e+027,6.360266279646801e+028,4.337248688638937e+029,2.989325151434023e+030,2.081879370546656e+031,1.464769324202674e+032,1.040939685273327e+033,7.470323553433536e+033,5.412886363421323e+034,3.959271483319787e+035,2.922958636247489e+036,2.17759931582587e+037,1.636856836298603e+038,1.24123161002075e+039,9.49376965053202e+039,7.32326649912245e+040,5.696261790319202e+041,4.467192564464701e+042,3.531682309997874e+043,2.814331315612744e+044,2.260276678398662e+045,1.829315355148299e+046,1.491782607743107e+047,1.225641287949337e+048,1.014412173265315e+049,8.456924886850515e+049,7.100885212857138e+050,6.004416669663804e+051,5.112637353257176e+052,4.38322416885467e+053,3.783351641410374e+054,3.287418126640914e+055,2.875347247471884e+056,2.531311957513567e+057,2.242770853028042e+058,1.99973644643572e+059,1.794216682422407e+060,1.619786521612925e+061,1.47125767958639e+062,1.344422812938723e+063,1.235856450852555e+064,1.142759390997911e+065,1.062836547733212e+066,9.942006701681694e+066,9.352961620052071e+067,8.848385964496985e+068,8.417665458046964e+069,8.052031227692019e+070,7.744252221403107e+071,7.488389041753833e+072,7.279597088118913e+073,7.113969589665893e+074,6.988413204594182e+075,6.900550501975964e+076,6.848644940502514e+077]
     return 1.0/coeffs[k] * x**(k/2.0-1.0) * exp(-x/2.0)
 def betapdf(x, alpha=2, beta=2):
-        return x**(alpha-1) * (1-x)**(beta-1)
+    return x**(alpha-1) * (1-x)**(beta-1)
+
+# helper functions to replace lambdas
+def theoretic_hlp1(theoretic, x):
+    return theoretic(x, 1)
+def inv_x(x): return 1.0 / x
+def inv_x_sq(x): return 1.0 / (x**2)
 
 def testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_theor = True, a = 0, b=Inf, isPoleAtZero = True, splitPoints=[],
                         plot_tails = False, asympf = None):
@@ -64,23 +70,23 @@ def testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_the
         X = array([])
         f=PiecewiseFunction([])
         if a ==- Inf and -1 <= b:
-            f.addSegment(MInfSegment(-1.0, lambda x: theoretic(x,1)))
+            f.addSegment(MInfSegment(-1.0, theoretic_hlp1(theoretic, x)))
             X = -logspace(Uexp, 0, Npts);
         if a<=-1 and 0<=b:
             X = concatenate([X, -logspace(0,Lexp, Npts)])
             if isPoleAtZero:
-                f.addSegment(SegmentWithPole(-1.0, 0.0, lambda x: theoretic(x,1), left_pole = False))
+                f.addSegment(SegmentWithPole(-1.0, 0.0, theoretic_hlp1(theoretic, x), left_pole = False))
             else:
-                f.addSegment(Segment(-1.0, 0.0,  lambda x: theoretic(x,1)))
+                f.addSegment(Segment(-1.0, 0.0,  theoretic_hlp1(theoretic, x)))
         if a<=0 and 1<=b:
             X = concatenate([X, logspace(Lexp,0, Npts)])
             if isPoleAtZero:
-                f.addSegment(SegmentWithPole(0.0, 1.0, lambda x: theoretic(x,1)))
+                f.addSegment(SegmentWithPole(0.0, 1.0, theoretic_hlp1(theoretic, x)))
             else:
-                f.addSegment(Segment(0.0, 1.0,  lambda x: theoretic(x,1)))
+                f.addSegment(Segment(0.0, 1.0,  theoretic_hlp1(theoretic, x)))
         if a<=1 and b==Inf:
             X = concatenate([X, logspace(0, Uexp, Npts)])
-            f.addSegment(PInfSegment(1.0, lambda x: theoretic(x,1)))
+            f.addSegment(PInfSegment(1.0, theoretic_hlp1(theoretic, x)))
         assert(len(f.segments)>0)
         if len(splitPoints)>0:
             f = f.splitByPoints(splitPoints)
@@ -185,7 +191,7 @@ def inversionTester(f, Lexp = -10, Uexp=1):
 
     subplot(3,1,1)
     f.plot(color='k')
-    r= f.copyComposition(lambda x: 1.0/x, lambda x: 1.0/x, lambda x: 1.0/x**2 )
+    r= f.copyComposition(inv_x, inv_x, inv_x_sq)
     p=convprod(f,r);
     d=convdiv(f,f);
 
@@ -232,9 +238,11 @@ def integrationTester(fun):
         print("level={0} cv={1}".format(level, ifun.inverse(level)))
     print("levels=",levels, "cv=", ifun.inverse(levels))
 
-def f_compl(x):
-    return 1.0 - (x-1.0)
-
+def f_compl(x): return 1.0 - (x-1.0)
+def f_sin(x): return sin(pi/2.0*x)
+def f_sqm2(x): return (x-2)**2
+def f_exp_sqm2(x): return exp(-(x-2)**2)
+def f_m2x(x): return -2*x
 class TestPicewiseConvs(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""
@@ -249,12 +257,12 @@ class TestPicewiseConvs(unittest.TestCase):
         """Fragment of Cauchy distribution as piecewise function"""
         fig = plt.figure()
         f=PiecewiseFunction([])
-        seg1 = Segment(0.0, 1.0, lambda x: sin(pi/2.0*x))
-        seg2 = Segment(1.0, 2.0, lambda x: 2.0-x)
+        seg1 = Segment(0.0, 1.0, f_sin)
+        seg2 = Segment(1.0, 2.0, f_compl)
         seg3 = DiracSegment(2.0, 0.25)
         #seg4 = Segment(2.0, 3.0, lambda x: exp(-(x-2)**2))
-        seg4 = Segment(2.0, 3.0, lambda x: (x-2)**2)
-        seg5 = PInfSegment(3.0, lambda x: exp(-(x-2)**2))
+        seg4 = Segment(2.0, 3.0, f_sqm2)
+        seg5 = PInfSegment(3.0, f_exp_sqm2)
         f.addSegment(seg1)
         f.addSegment(seg2)
         f.addSegment(seg3)
@@ -321,10 +329,10 @@ class TestPicewiseConvs(unittest.TestCase):
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
     def testConvCauchy(self):
         """Mean of the N Cauchy random variables, on figure difference between original single cauchy and mean of N ..."""
-        segf1 = Segment(-1.0, 0.0, lambda x:cauchy(x))
-        segf2 = Segment(0.0, 1.0, lambda x:cauchy(x))
-        segf3 = MInfSegment(-1.0, lambda x:cauchy(x))
-        segf4 = PInfSegment(1, lambda x:cauchy(x))
+        segf1 = Segment(-1.0, 0.0, cauchy(x))
+        segf2 = Segment(0.0, 1.0, cauchy(x))
+        segf3 = MInfSegment(-1.0, cauchy(x))
+        segf4 = PInfSegment(1, cauchy(x))
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         f.addSegment(segf2)
@@ -355,7 +363,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print(i, h)
         I = h.integrate()
         figure()
-        h.plot_tails(asympf = lambda x: -2*x)
+        h.plot_tails(asympf = f_m2x)
         self.assertTrue(abs(I-1)<self.tol, 'integral = {0}'.format(abs(I-1)))
 
     def testConvXalpha(self):
