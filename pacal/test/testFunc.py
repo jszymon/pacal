@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import unittest
 from pylab import *
-from scipy.integrate import quad, Inf
+from scipy.integrate import quad
 from numpy import *
 from scipy.stats import *
 from pacal import *
@@ -31,7 +31,7 @@ class TestFunc(unittest.TestCase):
         testChi2 = self.N1 ** 2
         orgChi2.plot()
         testChi2.plot()
-        L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,Inf)
+        L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,inf)
         print('L_1 difference = {0}'.format(L1diff))
         self.assertTrue(L1diff < 1e-8);
 
@@ -49,7 +49,7 @@ class TestFunc(unittest.TestCase):
         orgChi2.plot()
         testChi2.plot()
         squareN1.hist()
-        L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,Inf)
+        L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,inf)
         print('L_1 difference = {0}'.format(L1diff))
         self.assertTrue(0< 1e-8);
 

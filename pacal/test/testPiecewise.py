@@ -231,6 +231,10 @@ def integrationTester(fun):
     for level in levels:
         print("level={0} cv={1}".format(level, ifun.inverse(level)))
     print("levels=",levels, "cv=", ifun.inverse(levels))
+
+def f_compl(x):
+    return 1.0 - (x-1.0)
+
 class TestPicewiseConvs(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""
@@ -1249,7 +1253,7 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf3)
         g = PiecewiseFunction([])
         #seg1 = Segment(-1.0, 0.0, lambda x: 1.0*x+1.0)
-        seg2 = Segment(1.0, 2.0, lambda x: 1.0 - (x-1.0))
+        seg2 = Segment(1.0, 2.0, f_compl)
         seg3 = ConstSegment(0.0, 1.0, 0.2)
         seg4 = DiracSegment(0.0, 0.1)
         seg5 = DiracSegment(1.0, 0.2)

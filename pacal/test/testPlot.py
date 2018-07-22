@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import unittest
 from pylab import *
-from scipy.integrate import quad, Inf
 from numpy import *
 from scipy.stats import *
 from pacal import *

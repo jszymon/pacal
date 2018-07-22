@@ -363,8 +363,8 @@ class TestInterpolators(unittest.TestCase):
         figure()
         for i in range (n):
             D=D.diff()
-            maxi, xmaxi = D.max()
-            mini, xmini = D.min()
+            maxi, xmaxi = D.maximum()
+            mini, xmini = D.minimum()
             D.plot()
             plot(xmaxi,maxi,  'ko')
             plot(xmini,mini,  'ro')
