@@ -1,6 +1,9 @@
 from __future__ import print_function
 
 import unittest
+
+import operator
+
 from pylab import show, subplot, pi
 from numpy import linspace, multiply, add, divide
 from numpy import unique, isnan, isscalar, diff
@@ -19,6 +22,7 @@ import matplotlib.text as text
 
 from pacal.segments import *
 from pacal.indeparith import *
+del testPole
 from pacal.integration import integrate_fejer2
 from math import factorial
 
@@ -53,11 +57,21 @@ def betapdf(x, alpha=2, beta=2):
     return x**(alpha-1) * (1-x)**(beta-1)
 
 # helper functions to replace lambdas
-def theoretic_hlp1(theoretic, x):
-    return theoretic(x, 1)
+class theoretic_hlp1:
+    def __init__(self, theoretic):
+        self.theoretic = theoretic
+    def __call__(self, x):
+        return self.theoretic(x, 1)
 def inv_x(x): return 1.0 / x
 def inv_x_sq(x): return 1.0 / (x**2)
-
+def f_zero(x): return x*0 + 0.0
+def f_one(x): return x*0 + 1.0
+def f_half(x): return x*0 + 0.5
+def cauchy_10_3(x): return cauchy(x, 10.0, 3.0)
+def normpdf_1(x): return normpdf(x, 1.0)
+def minvlog(x): return -1.0/log(x)
+def f_sq(x): return x*x
+    
 def testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_theor = True, a = 0, b=Inf, isPoleAtZero = True, splitPoints=[],
                         plot_tails = False, asympf = None):
     """Universal comarision with theoretical distribution
@@ -70,23 +84,23 @@ def testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_the
         X = array([])
         f=PiecewiseFunction([])
         if a ==- Inf and -1 <= b:
-            f.addSegment(MInfSegment(-1.0, theoretic_hlp1(theoretic, x)))
+            f.addSegment(MInfSegment(-1.0, theoretic_hlp1(theoretic)))
             X = -logspace(Uexp, 0, Npts);
         if a<=-1 and 0<=b:
             X = concatenate([X, -logspace(0,Lexp, Npts)])
             if isPoleAtZero:
-                f.addSegment(SegmentWithPole(-1.0, 0.0, theoretic_hlp1(theoretic, x), left_pole = False))
+                f.addSegment(SegmentWithPole(-1.0, 0.0, theoretic_hlp1(theoretic), left_pole = False))
             else:
-                f.addSegment(Segment(-1.0, 0.0,  theoretic_hlp1(theoretic, x)))
+                f.addSegment(Segment(-1.0, 0.0,  theoretic_hlp1(theoretic)))
         if a<=0 and 1<=b:
             X = concatenate([X, logspace(Lexp,0, Npts)])
             if isPoleAtZero:
-                f.addSegment(SegmentWithPole(0.0, 1.0, theoretic_hlp1(theoretic, x)))
+                f.addSegment(SegmentWithPole(0.0, 1.0, theoretic_hlp1(theoretic)))
             else:
-                f.addSegment(Segment(0.0, 1.0,  theoretic_hlp1(theoretic, x)))
+                f.addSegment(Segment(0.0, 1.0,  theoretic_hlp1(theoretic)))
         if a<=1 and b==Inf:
             X = concatenate([X, logspace(0, Uexp, Npts)])
-            f.addSegment(PInfSegment(1.0, theoretic_hlp1(theoretic, x)))
+            f.addSegment(PInfSegment(1.0, theoretic_hlp1(theoretic)))
         assert(len(f.segments)>0)
         if len(splitPoints)>0:
             f = f.splitByPoints(splitPoints)
@@ -243,6 +257,21 @@ def f_sin(x): return sin(pi/2.0*x)
 def f_sqm2(x): return (x-2)**2
 def f_exp_sqm2(x): return exp(-(x-2)**2)
 def f_m2x(x): return -2*x
+def f_2x(x): return 2*x
+def f_cubrt(x): return x**(1.0/3)
+def f_cub(x): return x*x*x
+def f_cub_der(x): return 3*x*x
+def sqrrrootdistr(x, _n = 1):
+    if isscalar(x):
+        if x <= 0 or x > 1:
+            y = 0
+        else:
+            y = 1.0 / sqrt(x)
+    else:
+        mask = (x > 0) & (x <= 1)
+        y = zeros_like(asfarray(x))
+        y[mask] = 1.0 / sqrt(x[mask])
+    return y / 2
 class TestPicewiseConvs(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""
@@ -369,11 +398,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvXalpha(self):
         """Mean of the N Cauchy random variables, on figure difference between original single cauchy and mean of N ..."""
         fig = plt.figure()
-        expo=3
-        segf11 = Segment(-1.0, 0.0, lambda x:cauchy(x, c=10.0, ex=expo))
-        segf12 = Segment(0.0, 1.0, lambda x:cauchy(x, c=10.0, ex=expo))
-        segf2 = MInfSegment(-1.0, lambda x:cauchy(x, c=10.0, ex=expo))
-        segf3 = PInfSegment(1, lambda x:cauchy(x, c=10.0, ex=expo))
+        segf11 = Segment(-1.0, 0.0, cauchy_10_3)
+        segf12 = Segment(0.0, 1.0,  cauchy_10_3)
+        segf2 = MInfSegment(-1.0,   cauchy_10_3)
+        segf3 = PInfSegment(1,      cauchy_10_3)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf11)
@@ -402,9 +430,9 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvNormalScaled(self):
         """Mean of the N normal random variables, on figure difference between original single cauchy and mean of N ..."""
         fig = plt.figure()
-        segf1 = MInfSegment(0.0, lambda x:normpdf(x, mu= 1))
-        segf2 = PInfSegment(2.0, lambda x:normpdf(x, mu=1))
-        segf3 = Segment(0.0, 2.0, lambda x:normpdf(x, mu=1))
+        segf1 = MInfSegment(0.0,  normpdf_1)
+        segf2 = PInfSegment(2.0,  normpdf_1)
+        segf3 = Segment(0.0, 2.0, normpdf_1)
         #segf4 = Segment(-1.0,  0.0, lambda x:normpdf(x, mu=1))
         f = PiecewiseFunction([])
         f.addSegment(segf2)
@@ -461,8 +489,8 @@ class TestPicewiseConvs(unittest.TestCase):
 
     def testConvStable0_5(self):
         """Sum of stable distributions with alpha=0.5."""
-        segf1 = Segment(0.0, 2.0, lambda x: stable05pdf(x))
-        segf2 = PInfSegment(2.0, lambda x: stable05pdf(x))
+        segf1 = Segment(0.0, 2.0, stable05pdf)
+        segf2 = PInfSegment(2.0, stable05pdf)
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         f.addSegment(segf2)
@@ -598,10 +626,10 @@ class TestPicewiseConvs(unittest.TestCase):
         #f.addSegment(segf5)
         #f.addSegment(segf6)
         #h=f
-        segf1 = MInfSegment(-1.0, lambda x:cauchy(x, 1))
-        segf2 = PInfSegment(1.0, lambda x:cauchy(x))
-        segf3 = Segment(-1.0, 0.0, lambda x:cauchy(x))
-        segf4 = Segment(0.0, 1.0, lambda x:cauchy(x))
+        segf1 = MInfSegment(-1.0,  cauchy)
+        segf2 = PInfSegment(1.0,   cauchy)
+        segf3 = Segment(-1.0, 0.0, cauchy)
+        segf4 = Segment(0.0, 1.0,  cauchy)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -629,10 +657,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvprodCauchyUni(self):
         """Product of Cauchy and uniform variables"""
         fig = plt.figure()
-        segf1 = MInfSegment(-1.0, lambda x:cauchy(x, 1))
-        segf2 = PInfSegment(1.0, lambda x:cauchy(x))
-        segf3 = Segment(-1.0, 0.0, lambda x:cauchy(x))
-        segf4 = Segment(0.0, 1.0, lambda x:cauchy(x))
+        segf1 = MInfSegment(-1.0, cauchy)
+        segf2 = PInfSegment(1.0, cauchy)
+        segf3 = Segment(-1.0, 0.0, cauchy)
+        segf4 = Segment(0.0, 1.0, cauchy)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -692,10 +720,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvProdNormal(self):
         """Product two normal random variables"""
         ffig = plt.figure()
-        segf1 = MInfSegment(-1.0, lambda x:normpdf(x))
-        segf2 = PInfSegment(1.0, lambda x:normpdf(x))
-        segf3 = Segment(-1.0, -0.0, lambda x:normpdf(x))
-        segf4 = Segment(0.0,  1, lambda x:normpdf(x))
+        segf1 = MInfSegment(-1.0, normpdf(x))
+        segf2 = PInfSegment(1.0, normpdf(x))
+        segf3 = Segment(-1.0, -0.0, normpdf(x))
+        segf4 = Segment(0.0,  1, normpdf(x))
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -719,8 +747,8 @@ class TestPicewiseConvs(unittest.TestCase):
         #segf1 = Segment(0.0, 1.0, lambda x:(n+1)/(n) * x ** (1/n))
         #segf1 = Segment(0.0, 2.0, lambda x:pi/2 * sqrt(1 - (x-1) ** 2))
         #segf1 = Segment(0.0, 1.0, lambda x: exp(-1/x))
-        segf1 = Segment(0.0, 0.5, lambda x:-1/log(x))
-        segf3 = Segment(0.0, 1.0, lambda x:1.0 +0.0*x)
+        segf1 = Segment(0.0, 0.5,  minvlog)
+        segf3 = Segment(0.0, 1.0,  f_one)
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         g = PiecewiseFunction([])
@@ -745,18 +773,18 @@ class TestPicewiseConvs(unittest.TestCase):
         f = PiecewiseFunction([])
         for i in range(n):
             if i>=0:
-                segf0 = Segment(2**i - 1.0/2**(i+2) , 2**i + 1.0/2**(i+2) , lambda x: 0.0*x + 1.0)
+                segf0 = Segment(2**i - 1.0/2**(i+2) , 2**i + 1.0/2**(i+2) , f_one)
                 f.addSegment(segf0)
             if i<n:
-                segfi = Segment(2**i + 1.0/2**(i+2) , 2**(i+1) - 1.0/2**(i+3) , lambda x: 0.0*x +0.0)
+                segfi = Segment(2**i + 1.0/2**(i+2) , 2**(i+1) - 1.0/2**(i+3) , f_zero)
                 f.addSegment(segfi)
-        segf0 = Segment(2**(-1), 1 - 1.0/2**(2) , lambda x: 0.0*x +0.0)
+        segf0 = Segment(2**(-1), 1 - 1.0/2**(2) , f_zero)
         f.addSegment(segf0)
 
         #f.plot();
         h=convdiv(f,f);
 
-        g= f.copyComposition(lambda x: 1.0/x, lambda x: 1.0/x, lambda x: 1.0/x**2 )
+        g= f.copyComposition(inv_x, inv_x, inv_x_sq)
         h2=convprod(f,g);
 
         #h=convprod(f,f); # no poles in this case
@@ -844,19 +872,19 @@ class TestPicewiseConvs(unittest.TestCase):
         f = PiecewiseFunction([])
         for i in range(n):
             if i>=0:
-                segf0 = Segment(2**i - 1.0/2**(i+2) , 2**i + 1.0/2**(i+2) , lambda x: 0.0*x + 1.0)
+                segf0 = Segment(2**i - 1.0/2**(i+2) , 2**i + 1.0/2**(i+2) , f_one)
                 f.addSegment(segf0)
             if i<n:
-                segfi = Segment(2**i + 1.0/2**(i+2) , 2**(i+1) - 1.0/2**(i+3) , lambda x: 0.0*x +0.0)
+                segfi = Segment(2**i + 1.0/2**(i+2) , 2**(i+1) - 1.0/2**(i+3) , f_zero)
                 f.addSegment(segfi)
         #segf0 = Segment(2**n - 1.0/2**(n+2) , 2**(n) + 1.0/2**(n+2) , lambda x: 0.0*x + 1)
         #f.addSegment(segf0)
-        segf0 = Segment(2**(-1), 1 - 1.0/2**(2) , lambda x: 0.0*x + 0.0)
+        segf0 = Segment(2**(-1), 1 - 1.0/2**(2) , f_zero)
         f.addSegment(segf0)
 
 
         #f.plot();
-        g= f.copyComposition(lambda x: 1.0/x, lambda x: 1.0/x, lambda x: 1.0/x**2 )
+        g= f.copyComposition(inv_x, inv_x, inv_x_sq)
         h=convprod(f,g);
         f.semilogx(linewidth=2, color = 'k', linestyle='-')
         g.semilogx(linewidth=2, color = 'b', linestyle='-')
@@ -877,8 +905,8 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvDivUni2(self):
         """Product two normal random variables"""
         fig = plt.figure()
-        seg1 =  Segment( 0.0, 1.0,  lambda x: 0.5 + 0.0*x)
-        seg2 =  Segment(-1.0, 0.0,  lambda x: 0.5 + 0.0*x)
+        seg1 =  Segment( 0.0, 1.0,  f_half)
+        seg2 =  Segment(-1.0, 0.0,  f_half)
         f = PiecewiseFunction([])
         f.addSegment(seg2)
         f.addSegment(seg1)
@@ -900,10 +928,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvDivNormal(self):
         """Quotient two normal random variables"""
         fig = plt.figure()
-        segf1 = MInfSegment(-1.0, lambda x:normpdf(x, mu = 0))
-        segf2 = PInfSegment(1.0, lambda x:normpdf(x, mu = 0))
-        segf3 = Segment(-1.0, 0, lambda x:normpdf(x, mu = 0))
-        segf4 = Segment(0, 1.0, lambda x:normpdf(x, mu = 0))
+        segf1 = MInfSegment(-1.0, normpdf)
+        segf2 = PInfSegment(1.0, normpdf)
+        segf3 = Segment(-1.0, 0, normpdf)
+        segf4 = Segment(0, 1.0, normpdf)
         #segf5 = Segment(-3.0, -1.0, lambda x:normpdf(x))
         #segf6 = Segment(1.0, 3.0, lambda x:normpdf(x))
         f = PiecewiseFunction([])
@@ -912,9 +940,9 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf3)
         f.addSegment(segf4)
 
-        segg1 = MInfSegment(-1.0, lambda x:cauchy(x))
-        segg2 = PInfSegment(1.0, lambda x:cauchy(x))
-        segg3 = Segment(-1.0, 1.0, lambda x:cauchy(x))
+        segg1 = MInfSegment(-1.0, cauchy(x))
+        segg2 = PInfSegment(1.0, cauchy(x))
+        segg3 = Segment(-1.0, 1.0, cauchy(x))
         g = PiecewiseFunction([])
         g.addSegment(segg1)
         g.addSegment(segg2)
@@ -925,7 +953,7 @@ class TestPicewiseConvs(unittest.TestCase):
         h.plot(linewidth=3, color = 'b', linestyle='-')
         h = convdiv(h,f)
         figure()
-        h.plot_tails(asympf = lambda x: -2*x)
+        h.plot_tails(asympf = f_m2x)
         h.plot(linewidth=1, color = 'k', linestyle='-')
         k = h - g
         int = h.integrate()
@@ -942,12 +970,12 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvDivCauchy(self):
         """Quotient of two cauchy random variables"""
         fig = plt.figure()
-        segf1 = MInfSegment(-10.0, lambda x:cauchy(x, 1))
-        segf2 = PInfSegment(10.0, lambda x:cauchy(x))
-        segf3 = Segment(-1.0, 0, lambda x:cauchy(x))
-        segf4 = Segment(0, 1.0, lambda x:cauchy(x))
-        segf5 = Segment(-10.0, -1.0, lambda x:cauchy(x))
-        segf6 = Segment(1.0, 10.0, lambda x:cauchy(x))
+        segf1 = MInfSegment(-10.0,   cauchy)
+        segf2 = PInfSegment(10.0,    cauchy)
+        segf3 = Segment(-1.0, 0,     cauchy)
+        segf4 = Segment(0, 1.0,      cauchy)
+        segf5 = Segment(-10.0, -1.0, cauchy)
+        segf6 = Segment(1.0, 10.0,   cauchy)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -1020,12 +1048,12 @@ class TestPicewiseConvs(unittest.TestCase):
         """Quotient of two cauchy random variables"""
 
         fig = plt.figure()
-        segf1 = MInfSegment(-2.0, lambda x:cauchy(x, 1))
-        segf2 = PInfSegment(2.0, lambda x:cauchy(x))
-        segf3 = Segment(-0.5, 0, lambda x:cauchy(x))
-        segf4 = Segment(0, 0.5, lambda x:cauchy(x))
-        segf5 = Segment(-2.0, -0.5, lambda x:cauchy(x))
-        segf6 = Segment(0.5, 2.0, lambda x:cauchy(x))
+        segf1 = MInfSegment(-2.0, cauchy)
+        segf2 = PInfSegment(2.0, cauchy)
+        segf3 = Segment(-0.5, 0, cauchy)
+        segf4 = Segment(0, 0.5, cauchy)
+        segf5 = Segment(-2.0, -0.5, cauchy)
+        segf6 = Segment(0.5, 2.0, cauchy)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -1129,9 +1157,9 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvmaxNormal(self):
         """Mean of the N normal random variables, on figure difference between original single cauchy and mean of N ..."""
         fig = plt.figure()
-        segf1 = MInfSegment(-2.0, lambda x:normpdf(x, mu= 0.0))
-        segf2 = PInfSegment(2.0, lambda x:normpdf(x, mu=0.0))
-        segf3 = Segment(-2.0, 2.0, lambda x:normpdf(x, mu=0.0))
+        segf1 = MInfSegment(-2.0, normpdf)
+        segf2 = PInfSegment(2.0, normpdf)
+        segf3 = Segment(-2.0, 2.0, normpdf)
         #segf4 = Segment(-1.0,  0.0, lambda x:normpdf(x, mu=1))
         f = PiecewiseFunction([])
         f.addSegment(segf2)
@@ -1196,12 +1224,12 @@ class TestPicewiseConvs(unittest.TestCase):
         print(f.getDiracs())
         for i in range(3):
             print(i)
-            f=convdiracs(f, f, fun = lambda x,y : x+y)
+            f=convdiracs(f, f, fun = operator.add)
             print("cumsum=", f.integrate()-1, f)
         plt.figure()
         f.plot();
         for i in range(3):
-            f=convdiracs(f, f, fun = lambda x,y : x-y)
+            f=convdiracs(f, f, fun = operator.sub)
             print("cumsum=", f.integrate()-1, f)
         plt.figure()
         f.plot();
@@ -1348,8 +1376,8 @@ class TestPicewiseConvs(unittest.TestCase):
         fun1 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
         fun2 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
         #fun2 =  lambda x: exp(-x)/sqrt(abs(x))
-        segf1 = InterpolatedSegmentWithPole( 0.0, 1.0, fun1, pole=0.0, residue = 0.0, exponent=1.5)
-        segf2 = InterpolatedSegmentWithPole( 0.0, 1.0, fun2, pole=0.0, residue = 1.0/sqrt(2.0)/1.772453850905516, exponent=0.5)
+        segf1 = InterpolatedSegmentWithPole( 0.0, 1.0, fun1, residue = 0.0, exponent=1.5)
+        segf2 = InterpolatedSegmentWithPole( 0.0, 1.0, fun2, residue = 1.0/sqrt(2.0)/1.772453850905516, exponent=0.5)
         f = PiecewiseFunction([])
         g = PiecewiseFunction([])
         f.addSegment(segf1)
@@ -1392,10 +1420,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testSquareNormal(self):
         """Quotient two normal random variables"""
         fun = lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
-        segf1 = MInfSegment(-1.0, lambda x:normpdf(x))
-        segf2 = PInfSegment(1.0, lambda x:normpdf(x))
-        segf3 = Segment(-1.0, 0, lambda x:normpdf(x))
-        segf4 = Segment(0, 1.0, lambda x:normpdf(x))
+        segf1 = MInfSegment(-1.0, normpdf)
+        segf2 = PInfSegment(1.0,  normpdf)
+        segf3 = Segment(-1.0, 0,  normpdf)
+        segf4 = Segment(0, 1.0,   normpdf)
         #segf5 = Segment(-3.0, -1.0, lambda x:normpdf(x))
         #segf6 = Segment(1.0, 3.0, lambda x:normpdf(x))
         f1 = PiecewiseFunction([])
@@ -1452,18 +1480,18 @@ class TestPicewiseConvs(unittest.TestCase):
             seg = ConstSegment((i+1.0) - 1.0/(i), i+1.0, 1.0/(i+1))
             f1.addSegment(seg)
         fig = plt.figure()
-        g = f1.copyComposition(lambda x: log(x), lambda x: exp(x), lambda x: exp(x) )
+        g = f1.copyComposition(log, exp, exp )
         f2 = PiecewiseFunction([])
         for i in range(1,25):
             seg = ConstSegment((i+1.0) - 1.0/(i), i+1.0, 1.0/(i+1))
             f2.addSegment(seg)
 
-        g2 = f2.copyComposition(lambda x: sqrt(x), lambda x: x*x, lambda x: 2*x )  # this is O(1/x)
+        g2 = f2.copyComposition(sqrt, f_sq, f_2x)  # this is O(1/x)
         f3 = PiecewiseFunction([])
         for i in range(1,125):
             seg = ConstSegment((i+1.0) - 1.0/(i), i+1.0, 1.0/(i+1))
             f3.addSegment(seg)
-        g3 = f3.copyComposition(lambda x: x**(1.0/3), lambda x: x*x*x, lambda x: 3*x*x )  # this is O(1/x)
+        g3 = f3.copyComposition(f_cubrt, f_cub, f_cub_der )  # this is O(1/x)
         #g = f.copyComposition(lambda x: 1.0/x, lambda x: 1.0/x, lambda x: -1.0/x/x )  # this is O(1/x)
         #g.plot()
         xi=linspace(1,5,1000)
@@ -1620,9 +1648,9 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf1)
         g = PiecewiseFunction([])
         g.addSegment(segf2)
-        segn1 = MInfSegment(-0.0, lambda x:normpdf(x, mu=1))
-        segn2 = PInfSegment(2.0, lambda x:normpdf(x, mu=1))
-        segn3 = Segment(0.0, 2.0, lambda x:normpdf(x, mu=1))
+        segn1 = MInfSegment(-0.0, normpdf_1)
+        segn2 = PInfSegment(2.0,  normpdf_1)
+        segn3 = Segment(0.0, 2.0, normpdf_1)
         n = PiecewiseFunction([])
         n.addSegment(segn1)
         n.addSegment(segn2)
@@ -1653,24 +1681,13 @@ class TestPicewiseConvs(unittest.TestCase):
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThCauchy(self):
         plt.figure()
-        ints = testWithTheoretical(n = 3, op = conv, theoretic = cauchy, a = -Inf, b=Inf, isPoleAtZero = False, plot_tails = True, asympf = lambda x: -2*x)
+        ints = testWithTheoretical(n = 3, op = conv, theoretic = cauchy, a = -Inf, b=Inf, isPoleAtZero = False, plot_tails = True, asympf = f_m2x)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThLevy05(self):
         plt.figure()
         ints = testWithTheoretical(n = 2, op = conv, theoretic = lambda x,k: stable05pdf(x,0,k**2), a = 0, b=Inf, isPoleAtZero = False, splitPoints = array([1.0/3]), plot_tails = True, asympf = lambda x: -1.5*x)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testOneOverSqrRoot(self):
-        def sqrrrootdistr(x, _n = 1):
-            if isscalar(x):
-                if x <= 0 or x > 1:
-                    y = 0
-                else:
-                    y = 1.0 / sqrt(x)
-            else:
-                mask = (x > 0) & (x <= 1)
-                y = zeros_like(asfarray(x))
-                y[mask] = 1.0 / sqrt(x[mask])
-            return y / 2
         plt.figure()
         f = PiecewiseFunction([])
         f.addSegment(SegmentWithPole(0, 1, sqrrrootdistr))
@@ -1752,8 +1769,8 @@ class TestPicewiseConvs(unittest.TestCase):
     def testRatio2(self):
         plt.figure()
         fun = PiecewiseFunction([])
-        segf1 = Segment(0.0, 1.0, lambda x: x)
-        segf2 = Segment(1.0, 2.0, lambda x: 2.0 - x)
+        segf1 = Segment(0.0, 1.0, operator.pos)
+        segf2 = Segment(1.0, 2.0, f_compl)
         fun.addSegment(segf1)
         fun.addSegment(segf2)
         err = ratioTester(fun)
@@ -1761,7 +1778,7 @@ class TestPicewiseConvs(unittest.TestCase):
     def testRatio3(self):
         plt.figure()
         fun = PiecewiseFunction([])
-        segf1 = Segment(0.0, 1.0, lambda x: 1.0/1.0 + 0*x)
+        segf1 = Segment(0.0, 1.0, lambda x: f_one)
         fun.addSegment(segf1)
         err = ratioTester(fun)
         self.assertTrue(err < self.tol, 'integral error = {0}'.format(err))
@@ -1778,10 +1795,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testInversionNormal(self):
         plt.figure()
         fun = PiecewiseFunction([])
-        segf1 = MInfSegment(-1.0, lambda x:normpdf(x))
-        segf2 = PInfSegment(1.0, lambda x:normpdf(x))
-        segf3 = Segment(-1.0, 0, lambda x:normpdf(x))
-        segf4 = Segment(0, 1.0, lambda x:normpdf(x))
+        segf1 = MInfSegment(-1.0, normpdf)
+        segf2 = PInfSegment(1.0,  normpdf)
+        segf3 = Segment(-1.0, 0,  normpdf)
+        segf4 = Segment(0, 1.0,   normpdf)
         fun.addSegment(segf1)
         fun.addSegment(segf2)
         fun.addSegment(segf3)
@@ -1794,10 +1811,10 @@ class TestPicewiseConvs(unittest.TestCase):
         segf3 = ConstSegment(1.0, 3.0, 1.0/5.0)
         segf4 = Segment(3.0, 4.0, lambda x: 4.0-x)
 
-        segg1 = MInfSegment(-1.0, lambda x:normpdf(x))
-        segg2 = PInfSegment(1.0, lambda x:normpdf(x))
-        segg3 = Segment(-1.0, 0, lambda x:normpdf(x))
-        segg4 = Segment(0, 1.0, lambda x:normpdf(x))
+        segg1 = MInfSegment(-1.0, normpdf)
+        segg2 = PInfSegment(1.0,  normpdf)
+        segg3 = Segment(-1.0, 0,  normpdf)
+        segg4 = Segment(0, 1.0,   normpdf)
 
         segh1 = SegmentWithPole(0.0, 1.0, lambda x:chisqr(x,1))
         segh2 = PInfSegment(1.0, lambda x:chisqr(x,1))
