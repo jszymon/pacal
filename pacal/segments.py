@@ -16,7 +16,7 @@ from . import params
 from numpy import asfarray
 from numpy import linspace, multiply, add, divide, size
 from numpy import unique, union1d, isnan, isscalar, diff, size
-from numpy import Inf, NaN, sign, isinf, isfinite, exp
+from numpy import inf, Inf, NaN, sign, isinf, isfinite, exp
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
 from numpy import append, nan_to_num, select
 from numpy.random import uniform
@@ -1171,7 +1171,7 @@ class PiecewiseFunction(object):
         if not have_Scipy_optimize:
             print("Warning: scipy's fminbound not found")
             return None
-        m = 0
+        m = -inf
         x = None
         for seg in self.segments:
             if not seg.isDirac() :
@@ -1193,7 +1193,7 @@ class PiecewiseFunction(object):
         if not have_Scipy_optimize:
             print("Warning: scipy's fminbound not found")
             return None
-        m = 0
+        m = inf
         x = None
         for seg in self.segments:
             if not seg.isDirac() :
