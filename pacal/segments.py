@@ -1975,6 +1975,8 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
         m = min(min(v) for v in self.getSegVals())
         if m > 0:
             minx = self.segments[0].findLeftEps()
+        else:
+            minx = finfo(float).min
         # handle inverses for tiny y more gracefully
         if isscalar(y):
             if 0 <= y <= m:
