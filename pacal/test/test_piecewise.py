@@ -19,6 +19,7 @@ from pacal.utils import findinv
 import time
 import matplotlib.pyplot as plt
 import matplotlib.text as text
+plt.rcParams.update({'figure.max_open_warning': 0})
 
 from pacal.segments import *
 from pacal.indeparith import *
@@ -67,10 +68,19 @@ def inv_x_sq(x): return 1.0 / (x**2)
 def f_zero(x): return x*0 + 0.0
 def f_one(x): return x*0 + 1.0
 def f_half(x): return x*0 + 0.5
+def f_2_3(x): return x*0 + 2.0/3.0
 def cauchy_10_3(x): return cauchy(x, 10.0, 3.0)
 def normpdf_1(x): return normpdf(x, 1.0)
 def minvlog(x): return -1.0/log(x)
 def f_sq(x): return x*x
+def f_pole_helper(x): return 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
+def f_helper1(x): return 1.0/4.5*(3-x)
+def f_helper2(x): return 2772.0*betapdf(x-1,alpha = 6, beta=6)
+def f_helper3(x,k): return normpdf(x,0,sqrt(k))
+def f_helper4(x,k): return stable05pdf(x,0,k**2)
+def neg_chisq(x, n): return chisqr(-x, n)
+def f_4mx(x): return 4.0-x
+def m_half_log_abs(x): return -0.5*log(abs(x))
 
 def do_testWithTheoretical(n = 1, op = conv, f = None, theoretic = None, comp_w_theor = True, a = 0, b=Inf, isPoleAtZero = True, splitPoints=[],
                         plot_tails = False, asympf = None):
@@ -272,6 +282,32 @@ def sqrrrootdistr(x, _n = 1):
         y = zeros_like(asfarray(x))
         y[mask] = 1.0 / sqrt(x[mask])
     return y / 2
+def sqrrrootdistr2(x, _n = 1):
+    if isscalar(x):
+        if x < -1 or x > 1:
+            y = 0
+        else:
+            y = 1.0 / sqrt(abs(x))
+    else:
+        mask = (x >= -1) & (x <= 1)
+        y = zeros_like(asfarray(x))
+        y[mask] = 1.0 / sqrt(abs(x[mask]))
+    return y / 4
+def logdistr(x, _n = 1):
+    if isscalar(x):
+        if x < -1 or x > 1:
+            y = 0
+        else:
+            y = abs(log(abs(x)))
+    else:
+        x = asfarray(x)
+        mask = (x >= -1) & (x <= 1)
+        y = zeros_like(x)
+        y[mask] = abs(log(abs(x[mask])))
+    return y
+def logdistr2(x, n = 1):
+    return logdistr(x, n) / 2
+
 class TestPicewiseConvs(unittest.TestCase):
     def setUp(self):
         #print """====Test starting============================="""
@@ -503,8 +539,8 @@ class TestPicewiseConvs(unittest.TestCase):
         me = zeros(n+1)
         va = zeros(n+1)
 
-        me[0] = f.mean()
-        va[0] = f.var()
+        #me[0] = f.mean()
+        #va[0] = f.var()
         ints = zeros(n);
         for i in range(n):
             h= conv(h,f)
@@ -516,8 +552,8 @@ class TestPicewiseConvs(unittest.TestCase):
             print(i, h)
             int = h.integrate()
             print('initegral=', int, repr(int), abs(int-1))
-        print("mean=", me)
-        print("var=", va)
+        #print("mean=", me)
+        #print("var=", va)
         figure()
         h.plot_tails()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
@@ -720,10 +756,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testConvProdNormal(self):
         """Product two normal random variables"""
         ffig = plt.figure()
-        segf1 = MInfSegment(-1.0, normpdf(x))
-        segf2 = PInfSegment(1.0, normpdf(x))
-        segf3 = Segment(-1.0, -0.0, normpdf(x))
-        segf4 = Segment(0.0,  1, normpdf(x))
+        segf1 = MInfSegment(-1.0, normpdf)
+        segf2 = PInfSegment(1.0, normpdf)
+        segf3 = Segment(-1.0, -0.0, normpdf)
+        segf4 = Segment(0.0,  1, normpdf)
         f = PiecewiseFunction([])
         f.addSegment(segf2)
         f.addSegment(segf1)
@@ -862,7 +898,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #h.plot(linewidth=1, color = 'k', linestyle='-')
         #fig = plt.figure()
         #f.semilogx(linewidth=2, color = 'k', linestyle='-')
-        self.assertTrue(abs(fint-int)<self.tol, 'integral = {0}'.format(abs(fint*fint-int)))
+        self.assertTrue(abs(fint-int)<self.tol, 'integral = {0} != {1} (absdiff={2})'.format(fint, int, abs(fint-int)))
 
     def testConvProdInf1(self):
         """Product two normal random variables"""
@@ -922,7 +958,7 @@ class TestPicewiseConvs(unittest.TestCase):
             int = g.integrate()
             print(i, g)
             print('initegral=', int)
-        axis((-10,10,0,0.51))
+        axis((1e-10,10,1e-10,0.51))
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
     def testConvDivNormal(self):
@@ -940,9 +976,9 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf3)
         f.addSegment(segf4)
 
-        segg1 = MInfSegment(-1.0, cauchy(x))
-        segg2 = PInfSegment(1.0, cauchy(x))
-        segg3 = Segment(-1.0, 1.0, cauchy(x))
+        segg1 = MInfSegment(-1.0, cauchy)
+        segg2 = PInfSegment(1.0, cauchy)
+        segg3 = Segment(-1.0, 1.0, cauchy)
         g = PiecewiseFunction([])
         g.addSegment(segg1)
         g.addSegment(segg2)
@@ -1274,7 +1310,6 @@ class TestPicewiseConvs(unittest.TestCase):
         c.plot()
         plt.figure()
         g.plot()
-        c.hist()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
     def testConvDiscreteMix2(self):
@@ -1373,8 +1408,10 @@ class TestPicewiseConvs(unittest.TestCase):
     def testSegmentsWithPoles(self):
         """Poles..."""
         #fun1 =  lambda x: x**2.5+1.0/abs(x) ** 0.5
-        fun1 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
-        fun2 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
+        #fun1 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
+        #fun2 =  lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
+        fun1 = f_pole_helper
+        fun2 = f_pole_helper
         #fun2 =  lambda x: exp(-x)/sqrt(abs(x))
         segf1 = InterpolatedSegmentWithPole( 0.0, 1.0, fun1, residue = 0.0, exponent=1.5)
         segf2 = InterpolatedSegmentWithPole( 0.0, 1.0, fun2, residue = 1.0/sqrt(2.0)/1.772453850905516, exponent=0.5)
@@ -1419,7 +1456,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #plot(X, Y, 'r')
     def testSquareNormal(self):
         """Quotient two normal random variables"""
-        fun = lambda x: 1.0/sqrt(2.0)/1.772453850905516/sqrt(x)*exp(-x/2.0)
+        fun = f_pole_helper
         segf1 = MInfSegment(-1.0, normpdf)
         segf2 = PInfSegment(1.0,  normpdf)
         segf3 = Segment(-1.0, 0,  normpdf)
@@ -1574,7 +1611,7 @@ class TestPicewiseConvs(unittest.TestCase):
          with different variance, optimal solution"""
         plt.figure()
         segf1 = ConstSegment(0.0, 1.0, 1.0/1.0)
-        segf2 = Segment(0.0, 3.0, lambda x: 1.0/4.5*(3-x))
+        segf2 = Segment(0.0, 3.0, f_helper1)#lambda x: 1.0/4.5*(3-x))
         #segf2 = Segment(0.0, 6.0, lambda x: 1.0/6.0 +0.0*x)
         segf3 = ConstSegment(-1.0, 2.0, 1.0/3.0)
         f = PiecewiseFunction([])
@@ -1582,10 +1619,10 @@ class TestPicewiseConvs(unittest.TestCase):
         g = PiecewiseFunction([])
         g.addSegment(segf3)
         #h.plot()
-        mf = f.mean()
-        vf = f.var()
-        mg = g.mean()
-        vg = g.var()
+        #mf = f.mean()
+        #vf = f.var()
+        #mg = g.mean()
+        #vg = g.var()
         f.plot(linewidth=1, color = 'r', linestyle='-')
         g.plot(linewidth=1, color = 'r', linestyle='-')
         #int = h.integrate()
@@ -1642,7 +1679,7 @@ class TestPicewiseConvs(unittest.TestCase):
         """Weighted mean of two uniform random variables
          with different variance, optimal solution"""
         plt.figure()
-        segf1 = Segment(1.0, 2.0, lambda x: 2772.0*betapdf(x-1,alpha = 6, beta=6))
+        segf1 = Segment(1.0, 2.0, f_helper2)#lambda x: 2772.0*betapdf(x-1,alpha = 6, beta=6))
         segf2 = ConstSegment(1.5, 4.5, 1.0/3.0)
         f = PiecewiseFunction([])
         f.addSegment(segf1)
@@ -1657,14 +1694,14 @@ class TestPicewiseConvs(unittest.TestCase):
         n.addSegment(segn3)
         n.plot(color='r')
         g.plot(color='g')
-        mf = f.mean()
-        vf = f.var()
-        mg = g.mean()
-        vg = g.var()
+        #mf = f.mean()
+        #vf = f.var()
+        #mg = g.mean()
+        #vg = g.var()
         h = convmean(n,g, p=0.57142393, q= 0.42857607)
         h.plot(linewidth=1, color = 'k', linestyle='-')
         int = h.integrate()
-        print(n.var(), g.var(), h.var())
+        #print(n.var(), g.var(), h.var())
         #w0=[0.5, 0.5]
         #fun = lambda w : convmean(n,g, p=w[0],q=w[1]).var();
         #w = fmin(fun, w0)
@@ -1677,7 +1714,7 @@ class TestPicewiseConvs(unittest.TestCase):
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThNormal(self):
         plt.figure()
-        ints = do_testWithTheoretical(n = 3, op = conv, theoretic = lambda x,k: normpdf(x,0,sqrt(k)), a = -Inf, b=Inf, isPoleAtZero = False)
+        ints = do_testWithTheoretical(n = 3, op = conv, theoretic = f_helper3, a = -Inf, b=Inf, isPoleAtZero = False)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThCauchy(self):
         plt.figure()
@@ -1685,7 +1722,7 @@ class TestPicewiseConvs(unittest.TestCase):
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThLevy05(self):
         plt.figure()
-        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = lambda x,k: stable05pdf(x,0,k**2), a = 0, b=Inf, isPoleAtZero = False, splitPoints = array([1.0/3]), plot_tails = True, asympf = lambda x: -1.5*x)
+        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = f_helper4, a = 0, b=Inf, isPoleAtZero = False, splitPoints = array([1.0/3]), plot_tails = True, asympf = lambda x: -1.5*x)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testOneOverSqrRoot(self):
         plt.figure()
@@ -1694,70 +1731,31 @@ class TestPicewiseConvs(unittest.TestCase):
         ints = do_testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testOneOverSqrRootAbs(self):
-        def sqrrrootdistr(x, _n = 1):
-            if isscalar(x):
-                if x < -1 or x > 1:
-                    y = 0
-                else:
-                    y = 1.0 / sqrt(abs(x))
-            else:
-                mask = (x >= -1) & (x <= 1)
-                y = zeros_like(asfarray(x))
-                y[mask] = 1.0 / sqrt(abs(x[mask]))
-            return y / 4
         plt.figure()
         f = PiecewiseFunction([])
-        f.addSegment(SegmentWithPole(-1, 0, sqrrrootdistr, left_pole = False))
-        f.addSegment(SegmentWithPole(0, 1, sqrrrootdistr))
-        ints = do_testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr, comp_w_theor = False, a = -1, b=1, isPoleAtZero = True)
+        f.addSegment(SegmentWithPole(-1, 0, sqrrrootdistr2, left_pole = False))
+        f.addSegment(SegmentWithPole(0, 1, sqrrrootdistr2))
+        ints = do_testWithTheoretical(n = 2, op = conv, f = f, theoretic = sqrrrootdistr2, comp_w_theor = False, a = -1, b=1, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testThNegChi2(self):
         plt.figure()
-        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = lambda x, n: chisqr(-x, n), a = -Inf, b=0, isPoleAtZero = True)
+        ints = do_testWithTheoretical(n = 2, op = conv, theoretic = neg_chisq, a = -Inf, b=0, isPoleAtZero = True)
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testNegLog(self):
-        def _logdistr(x, _n = 1):
-            if isscalar(x):
-                if x < -1 or x > 1:
-                    y = 0
-                else:
-                    y = abs(log(abs(x)))
-            else:
-                x = asfarray(x)
-                mask = (x >= -1) & (x <= 1)
-                y = zeros_like(x)
-                y[mask] = abs(log(abs(x[mask])))
-            return y
-        def _logdistr2(x, n = 1):
-            return _logdistr(x, n) / 2
         f = PiecewiseFunction([])
-        f.addSegment(SegmentWithPole(0, 0.5, _logdistr))
-        f.addSegment(Segment(0.5, 1, _logdistr))
+        f.addSegment(SegmentWithPole(0, 0.5, logdistr))
+        f.addSegment(Segment(0.5, 1, logdistr))
         plt.figure()
-        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
+        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
     def testNegLogAbs(self):
-        def _logdistr(x, _n = 1):
-            if isscalar(x):
-                if x < -1 or x > 1:
-                    y = 0
-                else:
-                    y = abs(log(abs(x)))
-            else:
-                x = asfarray(x)
-                mask = (x >= -1) & (x <= 1)
-                y = zeros_like(x)
-                y[mask] = abs(log(abs(x[mask])))
-            return y
-        def _logdistr2(x, n = 1):
-            return _logdistr(x, n) / 2
         f = PiecewiseFunction([])
-        f.addSegment(Segment(-1, -0.5, _logdistr2))
-        f.addSegment(SegmentWithPole(-0.5, 0, _logdistr2, left_pole = False))
-        f.addSegment(SegmentWithPole(0, 0.5, _logdistr2))
-        f.addSegment(Segment(0.5, 1, _logdistr2))
+        f.addSegment(Segment(-1, -0.5, logdistr2))
+        f.addSegment(SegmentWithPole(-0.5, 0, logdistr2, left_pole = False))
+        f.addSegment(SegmentWithPole(0, 0.5, logdistr2))
+        f.addSegment(Segment(0.5, 1, logdistr2))
         plt.figure()
-        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = _logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
+        ints = do_testWithTheoretical(n = 3, op = conv, f = f, theoretic = logdistr, comp_w_theor = False, a = 0, b=1, isPoleAtZero = True, splitPoints = [0.5])
         self.assertTrue(max(abs(ints-1.0))<self.tol, 'integral error = {0}'.format(max(abs(ints-1))))
 
 
@@ -1778,7 +1776,7 @@ class TestPicewiseConvs(unittest.TestCase):
     def testRatio3(self):
         plt.figure()
         fun = PiecewiseFunction([])
-        segf1 = Segment(0.0, 1.0, lambda x: f_one)
+        segf1 = Segment(0.0, 1.0, f_one)
         fun.addSegment(segf1)
         err = ratioTester(fun)
         self.assertTrue(err < self.tol, 'integral error = {0}'.format(err))
@@ -1787,7 +1785,7 @@ class TestPicewiseConvs(unittest.TestCase):
         plt.figure()
         fun = PiecewiseFunction([])
         #segf1 = Segment(0.0, 1.0, lambda x: x)
-        segf2 = Segment(0.5, 2.0, lambda x: 2.0/3.0 - x*0)
+        segf2 = Segment(0.5, 2.0, f_2_3)
         #fun.addSegment(segf1)
         fun.addSegment(segf2)
         err = ratioTester(fun)
@@ -1806,23 +1804,23 @@ class TestPicewiseConvs(unittest.TestCase):
         err = ratioTester(fun)
         self.assertTrue(err < self.tol, 'integral error = {0}'.format(err))
     def testIntegration(self):
-        segf1 = Segment(1.0, 2.0, lambda x: 2772.0*betapdf(x-1,alpha = 6, beta=6))
+        segf1 = Segment(1.0, 2.0, f_helper2)#lambda x: 2772.0*betapdf(x-1,alpha = 6, beta=6))
         segf2 = ConstSegment(0.0, 1.0, 0.5/5.0)
         segf3 = ConstSegment(1.0, 3.0, 1.0/5.0)
-        segf4 = Segment(3.0, 4.0, lambda x: 4.0-x)
+        segf4 = Segment(3.0, 4.0, f_4mx)
 
         segg1 = MInfSegment(-1.0, normpdf)
         segg2 = PInfSegment(1.0,  normpdf)
         segg3 = Segment(-1.0, 0,  normpdf)
         segg4 = Segment(0, 1.0,   normpdf)
 
-        segh1 = SegmentWithPole(0.0, 1.0, lambda x:chisqr(x,1))
-        segh2 = PInfSegment(1.0, lambda x:chisqr(x,1))
+        segh1 = SegmentWithPole(0.0, 1.0, chisqr)
+        segh2 = PInfSegment(1.0, chisqr)
 
-        segk1 = SegmentWithPole( 0.0, 0.1, lambda x:-0.5*log(abs(x)))
-        segk2 = SegmentWithPole(-0.1, 0.0, lambda x:-0.5*log(abs(x)), left_pole= False)
-        segk3 = Segment(-1.0, -0.1, lambda x:-0.5*log(abs(x)))
-        segk4 = Segment( 0.1,  1.0, lambda x:-0.5*log(abs(x)))
+        segk1 = SegmentWithPole( 0.0, 0.1, m_half_log_abs)
+        segk2 = SegmentWithPole(-0.1, 0.0, m_half_log_abs, left_pole= False)
+        segk3 = Segment(-1.0, -0.1, m_half_log_abs)
+        segk4 = Segment( 0.1,  1.0, m_half_log_abs)
 
         #segk1 = SegmentWithPole( 0.0, 0.1, lambda x:0.25/(abs(x))**0.5)
         #segk2 = SegmentWithPole(-0.1, 0.0, lambda x:0.25/(abs(x))**0.5, left_pole= False)
@@ -1856,7 +1854,7 @@ class TestPicewiseConvs(unittest.TestCase):
         for fi in [f1, f2, g3, g4, g5]:
             plt.figure()
             print("==========================================================")
-            print(fi.summary());
+            #print(fi.summary());
             integrationTester(fi)
 
 def suite():
