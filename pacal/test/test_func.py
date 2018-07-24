@@ -16,13 +16,13 @@ class TestFunc(unittest.TestCase):
         """
             square of single normal variable
         """
-        fig = plt.figure()
+        #fig = plt.figure()
         print("comparing \chi^2_1 with N(0,1)^2")
         orgChi2 =  ChiSquareDistr(1)
         N1 = NormalDistr(0,1)
         testChi2 = N1 ** 2
-        orgChi2.plot()
-        testChi2.plot()
+        #orgChi2.plot()
+        #testChi2.plot()
         L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,inf)
         print('L_1 difference = {0}'.format(L1diff))
         self.assertTrue(L1diff < 1e-8);
@@ -31,16 +31,16 @@ class TestFunc(unittest.TestCase):
         """
             square of single normal variable
         """
-        fig = plt.figure()
+        #fig = plt.figure()
         print("testing \chi^2_1 = N(0,1)^2, with interpolation")
         N1 = NormalDistr(0,1)
         orgChi2 =  ChiSquareDistr(1)
         squareN1 = N1**2
         testChi2 = squareN1
         #testChi2 = SquareDistr(N1)
-        orgChi2.plot()
-        testChi2.plot()
-        squareN1.hist()
+        #orgChi2.plot()
+        #testChi2.plot()
+        #squareN1.hist()
         L1diff, err = quad(lambda x : abs(orgChi2.pdf(x)-testChi2.pdf(x)),0,inf)
         print('L_1 difference = {0}'.format(L1diff))
         self.assertTrue(0< 1e-8);

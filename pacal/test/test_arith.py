@@ -45,7 +45,7 @@ class TestArith(unittest.TestCase):
         S = UniformDistr(a, b)
         #S.plot()
         for i in range(n-1):
-            S.hist()
+            #S.hist()
             S = S + UniformDistr(a,b)
             #S.plot()
         #S.hist()
