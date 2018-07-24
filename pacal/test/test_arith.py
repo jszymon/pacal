@@ -20,16 +20,16 @@ class TestArith(unittest.TestCase):
         print('test done,   time=%7.5f s' % (te - self.ts))
 
     def testCentralLimit(self):
-        fig = plt.figure()
+        #fig = plt.figure()
         n = 2
         mu = 2
         sigma = 1
         S = NormalDistr(mu, sigma)
         for i in range(n-1):
-            S.hist()
+            #S.hist()
             S = S + NormalDistr(mu,sigma)
-        S.plot()
-        S.hist()
+        #S.plot()
+        #S.hist()
         m = S.mean()
         s = S.std()
         #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)
@@ -37,18 +37,18 @@ class TestArith(unittest.TestCase):
         self.assertTrue(abs(s-sqrt(n))<1e-15 and (te-self.ts)<10, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
 
     def testCentralLimitUniform(self):
-        fig = plt.figure()
+        #fig = plt.figure()
         n = 7
         a = 0
         b = 1
         sigma = 1
         S = UniformDistr(a, b)
-        S.plot()
+        #S.plot()
         for i in range(n-1):
             S.hist()
             S = S + UniformDistr(a,b)
-            S.plot()
-        S.hist()
+            #S.plot()
+        #S.hist()
         m = S.mean()
         s = S.std()
         #Y = InterpolatedDistr(S)
@@ -60,7 +60,7 @@ class TestArith(unittest.TestCase):
         self.assertTrue(abs(s-sqrt(n/12.0))<1e-14, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2}/12.0)={3}'.format(m,s,n,sqrt(n/12.0)))
 
     def testSumOfSquares(self):
-        fig = plt.figure()
+        #fig = plt.figure()
         n = 7
         mu=5
         sigma=1
@@ -68,7 +68,7 @@ class TestArith(unittest.TestCase):
         for i in range(n-1):
             X = NormalDistr(mu, sigma)
             S = S + X
-            S.hist()
+            #S.hist()
         print('sum of {0} normal N({1}, {2}) variables:'.format(n, mu, sigma))
 
     # sum of two dependent variables would require different semantics
