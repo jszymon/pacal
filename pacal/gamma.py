@@ -43,9 +43,9 @@ def lgamma(x):
     if math.isnan(x):
         return x
     if math.isinf(x) and x > 0:
-	return x
+        return x
     if math.isinf(x) and x < 0:
-	return -x
+        return -x
 
     if x < -34.0:
         q = -x
