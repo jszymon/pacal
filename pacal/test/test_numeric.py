@@ -319,7 +319,7 @@ class TestInterpolators(unittest.TestCase):
         S = PiecewiseFunction(fun=lambda x: sin(4*(x-0.5)), breakPoints=[-1, 1]).toInterpolated()
         I = S.trimInterpolators(abstol=1e-15)
         #figure()
-        subplot(211)
+        #subplot(211)
         #S.plot(color="r")
         #I.plot(color="k")
         r = S-I
