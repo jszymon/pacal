@@ -16,6 +16,7 @@ install:
   - python --version
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   - cmd: pip install -r requirements.txt
+  - cmd: pip install pytest
 
 build_script:
   - cmd: python setup.py install
