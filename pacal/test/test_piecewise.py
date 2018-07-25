@@ -385,10 +385,10 @@ class TestPicewiseConvs(unittest.TestCase):
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         h=f
-        h.plot()
+        #h.plot()
         for i in range(self.n) :
             h = conv(h,f)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             print(i, h)
         int = h.integrate()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
@@ -420,15 +420,15 @@ class TestPicewiseConvs(unittest.TestCase):
             #k.plot(linewidth=1, color = 'k', linestyle='-')
             X = linspace(-10000,10000,10000)
             E = k(X) - cauchy(X,c=i+2)#f(X)
-            plot(X, E, linewidth=0.5, color = 'k', linestyle='-')
+            #plot(X, E, linewidth=0.5, color = 'k', linestyle='-')
             figure()
             X = linspace(-10,10,10000)
             E = k(X) - cauchy(X,c=i+2)#f(X)
-            plot(X, E, linewidth=0.5, color = 'k', linestyle='-')
+            #plot(X, E, linewidth=0.5, color = 'k', linestyle='-')
             print(i, h)
         I = h.integrate()
         figure()
-        h.plot_tails(asympf = f_m2x)
+        #h.plot_tails(asympf = f_m2x)
         self.assertTrue(abs(I-1)<self.tol, 'integral = {0}'.format(abs(I-1)))
 
     def testConvXalpha(self):
@@ -443,7 +443,7 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf11)
         f.addSegment(segf12)
         f.addSegment(segf3)
-        f.plot(linewidth=1, color = 'r', linestyle='-')
+        #f.plot(linewidth=1, color = 'r', linestyle='-')
 
         #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(1):
@@ -451,7 +451,7 @@ class TestPicewiseConvs(unittest.TestCase):
             k = h.copyShiftedAndScaled(0.0,1.0*(0+2))
             #subplot(self.n,1,i+1)
             h.plot(linewidth=1, color = 'k', linestyle='-')
-            f.plot(linewidth=1, color = 'r', linestyle='-')
+            #f.plot(linewidth=1, color = 'r', linestyle='-')
             k.plot(color = 'b')
             #fig = plt.figure()
             estimateDegreeOfPole(f, Inf)
@@ -481,7 +481,7 @@ class TestPicewiseConvs(unittest.TestCase):
             h= conv(h,f)
             #h= convmean(h,f, p=0.5, q=0.5)
             #subplot(3,1,1)
-            h.plot(linewidth=1, linestyle='-')
+            #h.plot(linewidth=1, linestyle='-')
             print(i, h)
             #int = h.integrate()
             #print 'initegral=', int
@@ -507,13 +507,13 @@ class TestPicewiseConvs(unittest.TestCase):
         Ys = Ys[1:-1]
         Ys = log(Ys)
         Ys -= log(normpdf(Xs, i+2, sqrt(i+2)))
-        plot(Xs,Ys,"bo")
+        #plot(Xs,Ys,"bo")
         Xs, Ys = k.segments[0].f.getNodes()
         Xs = Xs[1:-1]
         Ys = Ys[1:-1]
         Ys = log(Ys)
         Ys -= log(normpdf(Xs, i+2, sqrt(i+2)))
-        plot(Xs,Ys,"bo")
+        #plot(Xs,Ys,"bo")
         fig.gca().set_xlim(-100, 100)
 
         #figure()
@@ -532,7 +532,7 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf2)
         h=f
 
-        h.plot(linewidth=1, linestyle='-')
+        #h.plot(linewidth=1, linestyle='-')
         figure()
         n =2
 
@@ -548,14 +548,14 @@ class TestPicewiseConvs(unittest.TestCase):
             #subplot(n,1,1+i)
             me[i+1] = h.mean()
             va[i+1] = h.var()
-            h.plot(linewidth=1, linestyle='-')
+            #h.plot(linewidth=1, linestyle='-')
             print(i, h)
             int = h.integrate()
             print('initegral=', int, repr(int), abs(int-1))
         #print("mean=", me)
         #print("var=", va)
         figure()
-        h.plot_tails()
+        #h.plot_tails()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
 
@@ -566,10 +566,10 @@ class TestPicewiseConvs(unittest.TestCase):
         f = PiecewiseFunction([])
         f.addSegment(segf1)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(self.n) :
             h = convprod(h,f)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             print(i, h)
             int = h.integrate()
             print('initegral=', int)
@@ -583,19 +583,19 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf1)
         f.addSegment(segf2)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         n = 5
         int = zeros(n)
         relerr = zeros(n)
         for i in range(n) :
             h = convprod(h,f)
             plt.subplot(2,1,1)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             X  = logspace(-10,0,1000)
             Y = prodNuniform01(X,i+2)
-            plot(X,Y,linewidth=1, color = 'r', linestyle='--')
+            #plot(X,Y,linewidth=1, color = 'r', linestyle='--')
             plt.subplot(2,1,2)
-            plot(X, abs(Y-h(X))/Y, linewidth=1, color = 'b', linestyle='-')
+            #plot(X, abs(Y-h(X))/Y, linewidth=1, color = 'b', linestyle='-')
             print(i, h)
             int[i] = h.integrate()
             relerr[i] = max(abs(Y-h(X))/Y)
@@ -618,11 +618,11 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(segg3)
 
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
-        g.plot(linewidth=3, color = 'm', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
+        #g.plot(linewidth=3, color = 'm', linestyle='-')
         for i in range(1) :
             h = convprod(g,h)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             print(i, h)
             int = h.integrate()
             print('initegral=', int)
@@ -637,10 +637,10 @@ class TestPicewiseConvs(unittest.TestCase):
         #f.addSegment(segf2)
         f.addSegment(segf3)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(self.n) :
             h = convprod(h,f)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -673,12 +673,12 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf4)
         h=f
         #subplot(3,1,1)
-        h.plot(linewidth=1, color = 'b', linestyle='-')
+        #h.plot(linewidth=1, color = 'b', linestyle='-')
         for i in range(1) :
             h = convprod(h,f)
             k = convdiv(h,f)
             #subplot(3,1,2)
-            h.plot(linewidth=1, color = 'r', linestyle='-')
+            #h.plot(linewidth=1, color = 'r', linestyle='-')
             k.plot(linewidth=1, color = 'k', linestyle='-')
             inth = h.integrate()
             intk = h.integrate()
@@ -686,7 +686,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print(intk, k)
             X=linspace(-100,100, 100000 )
             Y=h(X)-k(X)
-            plot(X,Y,'k')
+            #plot(X,Y,'k')
 
             #subplot(3,1,3)
         self.assertTrue(abs(max(inth,intk)-1)<self.tol, 'integral = {0}'.format(max(inth,intk)-1))
@@ -709,14 +709,14 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(segg2)
         h=f
         #subplot(3,1,1)
-        h.plot(linewidth=1, color = 'b', linestyle='-')
+        #h.plot(linewidth=1, color = 'b', linestyle='-')
         for i in range(1) :
             h = convprod(h,g)
             #g2= g.copyComposition(lambda x: 1.0/x, lambda x: 1.0/x, lambda x: 1.0/x**2 )
             #h = convdiv(h,g2)
             k = convdiv(h,g)
             #subplot(3,1,2)
-            h.plot(linewidth=1, color = 'r', linestyle='-')
+            #h.plot(linewidth=1, color = 'r', linestyle='-')
             #subplot(3,1,3)
             k.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
@@ -737,14 +737,14 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf3)
         g.addSegment(segf1)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
-        g.plot(linewidth=3, color = 'g', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
+        #g.plot(linewidth=3, color = 'g', linestyle='-')
         #print "left_degree=", estimateDegreeOfPole(h,-Inf)
         #print "left_degree=", estimateDegreeOfPole(h,Inf)
         for i in range(1):
             print(i)
             h = convprod(g,h)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -766,10 +766,10 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf4)
         f.addSegment(segf3)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(1) :
             h = convprod(h,f)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -792,13 +792,13 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(segf3)
 
         h=convprod(g,f);
-        f.plot(linewidth=1, color = 'r', linestyle='-')
-        g.plot(linewidth=1, color = 'b', linestyle='-')
-        h.plot(linewidth=1, color = 'k', linestyle='-')
+        #f.plot(linewidth=1, color = 'r', linestyle='-')
+        #g.plot(linewidth=1, color = 'b', linestyle='-')
+        #h.plot(linewidth=1, color = 'k', linestyle='-')
         int = h.integrate();
         fint = f.integrate()
         gint = g.integrate()
-        axis((0,2,0,5))
+        #axis((0,2,0,5))
         print(">>>>>>>>>>>>>>",fint, int, gint*fint-int)
         print(h)
         self.assertTrue(abs(fint-int)<self.tol, 'integral = {0}'.format(abs(gint*fint-int)))
@@ -830,12 +830,12 @@ class TestPicewiseConvs(unittest.TestCase):
         #fig = plt.figure()
         #subplot(2,1,1)
         f.semilogx(linewidth=2, color = 'k', linestyle='-')
-        axis((0.1, 10, 0, 1.1))
+        #axis((0.1, 10, 0, 1.1))
         plt.title('$f_4$')
         #subplot(2,1,2)
 
         f.semilogx(linewidth=2, color = 'k', linestyle='-')
-        axis((0.1, 10, 0, 1.1))
+        #axis((0.1, 10, 0, 1.1))
         plt.title('$f_4$')
         #h.semilogx(linewidth=1, color = 'k', linestyle='-')03,
         #X=logspace(-2,3,10000)
@@ -850,25 +850,25 @@ class TestPicewiseConvs(unittest.TestCase):
         #fig = plt.figure()
         h.semilogx(linewidth=1, color = 'b', linestyle='-')
         h2.semilogx(linewidth=1, color = 'k', linestyle='-')
-        axis((0.08, 12, 0, 2.1))
+        #axis((0.08, 12, 0, 2.1))
         plt.title('$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$')
 
         #fig = plt.figure()
         h.semilogx(linewidth=1, color = 'b', linestyle='-')
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
-        axis((0.08, 12, 0, 2.1))
+        #axis((0.08, 12, 0, 2.1))
         plt.title('$h_4 = f_4 \oslash g_4$')
 
         #fig = plt.figure()
         #subplot(2,1,1)
         f.semilogx(linewidth=2, color = 'k', linestyle='-')
-        axis((0.1, 10, 0, 1.1))
+        #axis((0.1, 10, 0, 1.1))
         #subplot(2,1,2)
         g.semilogx(linewidth=2, color = 'k', linestyle='-')
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
-        axis((0.1, 10, 0, 70.0))
+        #axis((0.1, 10, 0, 70.0))
         plt.ylabel('$g_4 = 1\oslash f_4$', fontsize=20)
 
         #subplot(2,1,1)
@@ -876,14 +876,14 @@ class TestPicewiseConvs(unittest.TestCase):
 
         #fig = plt.figure()
         h2.semilogx(linewidth=1, color = 'k', linestyle='-')
-        axis((0.08, 12, 0, 2.1))
+        #axis((0.08, 12, 0, 2.1))
         plt.title('$f_4 \odot g_4$')
 
         #fig = plt.figure()
         #subplot(2,1,1)
         h.semilogx(linewidth=1, color = 'b', linestyle='-')
         h2.semilogx(linewidth=1, color = 'k', linestyle='-')
-        axis((0.08, 12, 0, 2.1))
+        #axis((0.08, 12, 0, 2.1))
         #subplot(2,1,2)
         xi = linspace(0.08,12,10000)
         yi = abs(h(xi) - h2(xi))
@@ -891,7 +891,7 @@ class TestPicewiseConvs(unittest.TestCase):
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
         plt.ylabel('$\log|h_4-h_4^\prime|$', fontsize=20)
-        axis((0.08, 12, 1e-19, 1.5e-14))
+        #axis((0.08, 12, 1e-19, 1.5e-14))
 
         #subplot(2,1,1)
         plt.ylabel('$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$', fontsize=20)
@@ -950,17 +950,17 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(seg1)
 
         g=f
-        g.plot(linewidth=3, color = 'b', linestyle='-')
+        #g.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(2) :
             g = convdiv(g,f)
-            g.plot(linewidth=1, color = 'k', linestyle='-')
+            #g.plot(linewidth=1, color = 'k', linestyle='-')
             plt.figure()
             plt.title('tails i={0}'.format(i))
-            g.plot_tails()
+            #g.plot_tails()
             int = g.integrate()
             print(i, g)
             print('initegral=', int)
-        axis((1e-10,10,1e-10,0.51))
+        #axis((1e-10,10,1e-10,0.51))
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
     def testConvDivNormal(self):
@@ -988,18 +988,18 @@ class TestPicewiseConvs(unittest.TestCase):
         #f.addSegment(segf5)
         #f.addSegment(segf6)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         h = convdiv(h,f)
         figure()
-        h.plot_tails(asympf = f_m2x)
-        h.plot(linewidth=1, color = 'k', linestyle='-')
+        #h.plot_tails(asympf = f_m2x)
+        #h.plot(linewidth=1, color = 'k', linestyle='-')
         k = h - g
         int = h.integrate()
         print(h)
         print('initegral=', int)
         #fig = plt.figure()
-        g.plot(color = 'b')
-        h.plot(color = 'k')
+        #g.plot(color = 'b')
+        #h.plot(color = 'k')
         #fig = plt.figure()
         k.plot(color = 'r')
         plt.title("Quotient two normal random variables - difference between theoretical Cauchy distribution")
@@ -1026,7 +1026,7 @@ class TestPicewiseConvs(unittest.TestCase):
         for i in range(1) :
             h = convdiv(h,f)
 
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -1044,17 +1044,17 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(segg1)
         g.addSegment(segg2)
         h=f
-        h.plot(linewidth=3, color = 'b', linestyle='-')
-        g.plot(linewidth=3, color = 'b', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
+        #g.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(3) :
             h = convdiv(f,g)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             #k = convdiv(f,h)
             #k.plot(linewidth=1, color = 'b', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
-        axis((-10,10,0,0.51))
+        #axis((-10,10,0,0.51))
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
     @unittest.skip("loss of accuracy")
     def testConvDivUniWide(self):
@@ -1073,11 +1073,11 @@ class TestPicewiseConvs(unittest.TestCase):
         h=f
         #ffig = plt.figure()
         #h.plot(linewidth=3, color = 'b', linestyle='-')
-        #g.plot(linewidth=3, color = 'b', linestyle='-')
+        ##g.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(1) :
             h = convdiv(h,g)
             figure()
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -1109,15 +1109,15 @@ class TestPicewiseConvs(unittest.TestCase):
         yc = prodcauchy(X)
         Yh = abs((h(X) - yc)/yc)
         Yk = abs((k(X) - yc)/yc)
-        plot(X, Yh, linewidth=1, color = 'k', linestyle='-')
-        plot(X, Yk, linewidth=1, color = 'b', linestyle='-')
+        #plot(X, Yh, linewidth=1, color = 'k', linestyle='-')
+        #plot(X, Yk, linewidth=1, color = 'b', linestyle='-')
         #plt.figure()
         #fig = plt.figure()
-        h.plot(linewidth=1, color = 'k', linestyle='-')
-        plot(X, prodcauchy(X), color = 'g', linestyle='-', linewidth=2)
+        #h.plot(linewidth=1, color = 'k', linestyle='-')
+        #plot(X, prodcauchy(X), color = 'g', linestyle='-', linewidth=2)
         #fig = plt.figure()
         k.plot(linewidth=1, color = 'k', linestyle='-')
-        plot(X, prodcauchy(X), color = 'g', linestyle='-', linewidth=2)
+        #plot(X, prodcauchy(X), color = 'g', linestyle='-', linewidth=2)
         print("int(h)=", 1.0-h.integrate())
         print("int(k)=", 1.0-k.integrate())
         print("h=", h)
@@ -1133,11 +1133,11 @@ class TestPicewiseConvs(unittest.TestCase):
         f.addSegment(segf1)
         f.addSegment(segf2)
         h=f
-        #h.plot(linewidth=3, color = 'b', linestyle='-')
+        ##h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(self.n):
             h = convdiv(h,f)
             #fig = plt.figure()
-            h.plot(linewidth=2, color = 'k', linestyle='-')
+            #h.plot(linewidth=2, color = 'k', linestyle='-')
             ## fig = plt.figure()
             ## h.plot_tails()
             ## # plot vartransformed right tail
@@ -1162,12 +1162,12 @@ class TestPicewiseConvs(unittest.TestCase):
             ## loglog(T, Y2)
             ## loglog(T, Y3, "r")
             figure()
-            h.plot_tails()
+            #h.plot_tails()
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
         figure()
-        h.plot_tails()
+        #h.plot_tails()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
     def testConvMin(self):
         """Max of N of uniform random variables"""
@@ -1184,11 +1184,11 @@ class TestPicewiseConvs(unittest.TestCase):
         h.addSegment(segf3)
         h.addSegment(segf4)
         h=f;
-        f.plot(linewidth=3, color = 'r', linestyle='-')
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #f.plot(linewidth=3, color = 'r', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(2) :
             h = convmin(f,h)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral - 1 =', int-1)
@@ -1208,9 +1208,9 @@ class TestPicewiseConvs(unittest.TestCase):
         h=f
         ts = time.time()
         #subplot(2,1,1)
-        f.plot()
+        #f.plot()
         for i in  range(3):
-            h.plot(linewidth=1, linestyle='-')
+            #h.plot(linewidth=1, linestyle='-')
             h= convmin(h,f)
             #h= convmean(h,f, p=0.5, q=0.5)
             #subplot(2,1,2)
@@ -1218,7 +1218,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print(i, h)
             print('initegral=', int)
         #subplot(2,1,2)
-        h.plot(linewidth=1, linestyle='-')
+        #h.plot(linewidth=1, linestyle='-')
         #subplot(3,1,3)
         #print mean(h)
         #print std(h)
@@ -1242,11 +1242,11 @@ class TestPicewiseConvs(unittest.TestCase):
         #h.addSegment(segf3)
         #h.addSegment(segf4)
         h=f;
-        f.plot(linewidth=3, color = 'r', linestyle='-')
-        h.plot(linewidth=3, color = 'b', linestyle='-')
+        #f.plot(linewidth=3, color = 'r', linestyle='-')
+        #h.plot(linewidth=3, color = 'b', linestyle='-')
         for i in range(2) :
             h = convmax(f,h)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral - 1 =', int-1)
@@ -1266,12 +1266,12 @@ class TestPicewiseConvs(unittest.TestCase):
             f=convdiracs(f, f, fun = operator.add)
             print("cumsum=", f.integrate()-1, f)
         #plt.figure()
-        f.plot();
+        #f.plot();
         for i in range(3):
             f=convdiracs(f, f, fun = operator.sub)
             print("cumsum=", f.integrate()-1, f)
         #plt.figure()
-        f.plot();
+        #f.plot();
     def testConvDiscreteMix1(self):
         """Sum of N of binomial random variables"""
         print("===============")
@@ -1292,10 +1292,10 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(seg2)
         n=3
         #subplot(n+1,1,1)
-        f.plot(linewidth=2, color = 'b');
-        g.plot(linewidth=2, color = 'k');
+        #f.plot(linewidth=2, color = 'b');
+        #g.plot(linewidth=2, color = 'k');
 
-        axis((-1,8,0,1.1))
+        #axis((-1,8,0,1.1))
         print("===", f, f.integrate())
         print("===", g, g.integrate())
 
@@ -1303,7 +1303,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print(i)
             g=conv(f, g)
             #subplot(n+1,1,i+2)
-            g.plot(linewidth=2, color = 'k')
+            #g.plot(linewidth=2, color = 'k')
             print("cumsum=", g.integrate()-1, g)
             int = g.integrate()
             print(i, g)
@@ -1312,7 +1312,7 @@ class TestPicewiseConvs(unittest.TestCase):
         c =g.cumint()
         c.plot()
         #plt.figure()
-        g.plot()
+        #g.plot()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
     def testConvDiscreteMix2(self):
@@ -1338,13 +1338,13 @@ class TestPicewiseConvs(unittest.TestCase):
         g.addSegment(seg5)
         n=1
         #subplot(n+3,2,1)
-        f.plot(linewidth=2, color = 'b');
-        #g.plot(linewidth=2, color = 'k');
+        #f.plot(linewidth=2, color = 'b');
+        ##g.plot(linewidth=2, color = 'k');
         #subplot(n+3,2,2)
         #f.plot(linewidth=2, color = 'b');
-        g.plot(linewidth=2, color = 'k');
+        #g.plot(linewidth=2, color = 'k');
 
-        axis((-1,8,0,1.1))
+        #axis((-1,8,0,1.1))
         print("===", f, f.integrate())
         print("===", g, g.integrate())
         h=g
@@ -1353,7 +1353,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print(i)
             #subplot(n+3,2,2*i+3)
             h=convmin(h, f)
-            h.plot(linewidth=2, color = 'k')
+            #h.plot(linewidth=2, color = 'k')
             #subplot(n+3,2,2*i+4)
             p=convmax(p, f)
             p.plot(linewidth=2, color = 'k')
@@ -1372,7 +1372,7 @@ class TestPicewiseConvs(unittest.TestCase):
         cp.plot()
 
         #subplot(n+3,2,2*n+5)
-        h.plot()
+        #h.plot()
 
         #subplot(n+3,2,2*n+6)
         p.plot()
@@ -1403,7 +1403,7 @@ class TestPicewiseConvs(unittest.TestCase):
         X=logspace(log10(1.0/16.0),log10(16.0), 100000 )
         Y=p(X)-q(X)
         #subplot(3,1,3)
-        plot(X,Y,'k')
+        #plot(X,Y,'k')
         pint = p.integrate()
         qint = q.integrate()
         print(pint, qint, pint-qint)
@@ -1427,10 +1427,10 @@ class TestPicewiseConvs(unittest.TestCase):
         print("est=", estimateDegreeOfPole(fun1, 0.0))
 
         #plt.figure()
-        f.plot(linewidth=2)
+        #f.plot(linewidth=2)
         X=logspace(-3,-0.0001,100000)
         Y = fun1(X)
-        plot(X,Y)
+        #plot(X,Y)
 
         #plt.figure()
         X=logspace(-10,-0.0001,10000)
@@ -1440,7 +1440,7 @@ class TestPicewiseConvs(unittest.TestCase):
         semilogx(X, (Yf -Y)/Y, 'r')
 
         #plt.figure()
-        g.plot(linewidth=2)
+        #g.plot(linewidth=2)
 
         #plt.figure()
         #g.plot()
@@ -1482,7 +1482,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #g2.plot()
         x1=logspace(-3,1,10000)
         y1 = fun(x1)
-        plot(x1,y1,'g',linewidth = 5.0)
+        #plot(x1,y1,'g',linewidth = 5.0)
         g1.plot()
         #plt.figure(2)
         estimateDegreeOfPole(g1,0)
@@ -1496,10 +1496,10 @@ class TestPicewiseConvs(unittest.TestCase):
         n=2;
         for i in range(n):
             #plt.figure(3)
-            h.plot(color = 'g', linewidth = 4)
+            #h.plot(color = 'g', linewidth = 4)
             xx = logspace(-10,2,10000)
             yy = chisqr(xx,i+1)
-            plot(xx,yy, color='k')
+            #plot(xx,yy, color='k')
             #plt.figure(4)
             #subplot(n,1,i+1)
             semilogx(xx, (abs(h(xx) - yy)))
@@ -1627,8 +1627,8 @@ class TestPicewiseConvs(unittest.TestCase):
         #vf = f.var()
         #mg = g.mean()
         #vg = g.var()
-        f.plot(linewidth=1, color = 'r', linestyle='-')
-        g.plot(linewidth=1, color = 'r', linestyle='-')
+        #f.plot(linewidth=1, color = 'r', linestyle='-')
+        #g.plot(linewidth=1, color = 'r', linestyle='-')
         #int = h.integrate()
         #mh = h.mean()
         #vh = h.var()
@@ -1697,14 +1697,14 @@ class TestPicewiseConvs(unittest.TestCase):
         n.addSegment(segn1)
         n.addSegment(segn2)
         n.addSegment(segn3)
-        n.plot(color='r')
-        g.plot(color='g')
+        #n.plot(color='r')
+        #g.plot(color='g')
         #mf = f.mean()
         #vf = f.var()
         #mg = g.mean()
         #vg = g.var()
         h = convmean(n,g, p=0.57142393, q= 0.42857607)
-        h.plot(linewidth=1, color = 'k', linestyle='-')
+        #h.plot(linewidth=1, color = 'k', linestyle='-')
         int = h.integrate()
         #print(n.var(), g.var(), h.var())
         #w0=[0.5, 0.5]
