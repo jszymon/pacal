@@ -450,9 +450,9 @@ class TestPicewiseConvs(unittest.TestCase):
             h = conv(f,f)
             k = h.copyShiftedAndScaled(0.0,1.0*(0+2))
             #subplot(self.n,1,i+1)
-            h.plot(linewidth=1, color = 'k', linestyle='-')
+            #h.plot(linewidth=1, color = 'k', linestyle='-')
             #f.plot(linewidth=1, color = 'r', linestyle='-')
-            k.plot(color = 'b')
+            #k.plot(color = 'b')
             #fig = plt.figure()
             estimateDegreeOfPole(f, Inf)
             estimateDegreeOfPole(h, Inf)
@@ -501,7 +501,7 @@ class TestPicewiseConvs(unittest.TestCase):
         y=abs(k(x)-normpdf(x, i+2, sqrt(i+2)))
         #figure()
         #semilogy(x,y,linewidth=0.5, linestyle='-')
-        fig = figure()
+        #fig = figure()
         Xs, Ys = k.segments[-1].f.getNodes()
         Xs = Xs[1:-1]
         Ys = Ys[1:-1]
@@ -533,7 +533,7 @@ class TestPicewiseConvs(unittest.TestCase):
         h=f
 
         #h.plot(linewidth=1, linestyle='-')
-        figure()
+        #figure()
         n =2
 
         me = zeros(n+1)
@@ -554,7 +554,7 @@ class TestPicewiseConvs(unittest.TestCase):
             print('initegral=', int, repr(int), abs(int-1))
         #print("mean=", me)
         #print("var=", va)
-        figure()
+        #figure()
         #h.plot_tails()
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
@@ -589,12 +589,12 @@ class TestPicewiseConvs(unittest.TestCase):
         relerr = zeros(n)
         for i in range(n) :
             h = convprod(h,f)
-            plt.subplot(2,1,1)
+            #plt.subplot(2,1,1)
             #h.plot(linewidth=1, color = 'k', linestyle='-')
             X  = logspace(-10,0,1000)
             Y = prodNuniform01(X,i+2)
             #plot(X,Y,linewidth=1, color = 'r', linestyle='--')
-            plt.subplot(2,1,2)
+            #plt.subplot(2,1,2)
             #plot(X, abs(Y-h(X))/Y, linewidth=1, color = 'b', linestyle='-')
             print(i, h)
             int[i] = h.integrate()
@@ -679,7 +679,7 @@ class TestPicewiseConvs(unittest.TestCase):
             k = convdiv(h,f)
             #subplot(3,1,2)
             #h.plot(linewidth=1, color = 'r', linestyle='-')
-            k.plot(linewidth=1, color = 'k', linestyle='-')
+            #k.plot(linewidth=1, color = 'k', linestyle='-')
             inth = h.integrate()
             intk = h.integrate()
             print(inth, h)
@@ -718,7 +718,7 @@ class TestPicewiseConvs(unittest.TestCase):
             #subplot(3,1,2)
             #h.plot(linewidth=1, color = 'r', linestyle='-')
             #subplot(3,1,3)
-            k.plot(linewidth=1, color = 'k', linestyle='-')
+            #k.plot(linewidth=1, color = 'k', linestyle='-')
             int = h.integrate()
             print(i, h)
             print('initegral=', int)
@@ -954,8 +954,8 @@ class TestPicewiseConvs(unittest.TestCase):
         for i in range(2) :
             g = convdiv(g,f)
             #g.plot(linewidth=1, color = 'k', linestyle='-')
-            plt.figure()
-            plt.title('tails i={0}'.format(i))
+            #plt.figure()
+            #plt.title('tails i={0}'.format(i))
             #g.plot_tails()
             int = g.integrate()
             print(i, g)
@@ -1002,7 +1002,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #h.plot(color = 'k')
         #fig = plt.figure()
         #k.plot(color = 'r')
-        plt.title("Quotient two normal random variables - difference between theoretical Cauchy distribution")
+        #plt.title("Quotient two normal random variables - difference between theoretical Cauchy distribution")
         self.assertTrue(abs(int-1)<self.tol, 'integral = {0}'.format(abs(int-1)))
 
     def testConvDivCauchy(self):
@@ -1436,8 +1436,8 @@ class TestPicewiseConvs(unittest.TestCase):
         X=logspace(-10,-0.0001,10000)
         Y = fun1(X)
         Yf = f(X)
-        semilogx(X, (Yf -Y), 'b')
-        semilogx(X, (Yf -Y)/Y, 'r')
+        #semilogx(X, (Yf -Y), 'b')
+        #semilogx(X, (Yf -Y)/Y, 'r')
 
         #plt.figure()
         #g.plot(linewidth=2)
@@ -1448,8 +1448,8 @@ class TestPicewiseConvs(unittest.TestCase):
         Y = fun2(X)
         Yf = g(X)
 
-        semilogx(X, (Yf - Y), 'b')
-        semilogx(X, (Yf - Y)/Y, 'r')
+        #semilogx(X, (Yf - Y), 'b')
+        #semilogx(X, (Yf - Y)/Y, 'r')
         print(f.integrate());
         print(g.integrate());
         print(integrate_fejer2(fun1, 0.0, 1.0));
@@ -1476,14 +1476,14 @@ class TestPicewiseConvs(unittest.TestCase):
         g1 = f1.copySquareComposition()
         #g2 = f2.copySquareComposition()
         #plt.figure(1)
-        f1.plot();
+        #f1.plot();
         #f2.plot();
-        g1.plot()
+        #g1.plot()
         #g2.plot()
         x1=logspace(-3,1,10000)
         y1 = fun(x1)
         #plot(x1,y1,'g',linewidth = 5.0)
-        g1.plot()
+        #g1.plot()
         #plt.figure(2)
         estimateDegreeOfPole(g1,0)
         print("g1=", g1, g1(2))
@@ -1502,8 +1502,8 @@ class TestPicewiseConvs(unittest.TestCase):
             #plot(xx,yy, color='k')
             #plt.figure(4)
             #subplot(n,1,i+1)
-            semilogx(xx, (abs(h(xx) - yy)))
-            ylabel('abs. error')
+            #semilogx(xx, (abs(h(xx) - yy)))
+            #ylabel('abs. error')
             print("iii====", i, h)
             int = h.integrate()
             print("int error=", 1.0-int)
