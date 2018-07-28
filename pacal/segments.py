@@ -16,7 +16,7 @@ from . import params
 from numpy import asfarray
 from numpy import linspace, multiply, add, divide, size
 from numpy import unique, union1d, isnan, isscalar, diff, size
-from numpy import inf, Inf, NaN, sign, isinf, isfinite, exp
+from numpy import inf, Inf, NaN, sign, isinf, isfinite, exp, isneginf, isposinf
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
 from numpy import append, nan_to_num, select
 from numpy.random import uniform
@@ -502,13 +502,12 @@ class MInfSegment(Segment):
         """definite integral over interval (c, d) \cub (a, b) """
         if b==None or b>self.b:
             b=self.b
-        if a==None or isinf(a) :
+        if a==None or isneginf(a):
             i,e = integrate_fejer2_minf(self.f, b, exponent = params.integration_infinite.exponent)
         elif a<b:
-            i,e = integrate_fejer2_minf(self.f, a, b, exponent = params.integration_infinite.exponent)
+            i,e = integrate_fejer2_minf(self.f, b, a, exponent = params.integration_infinite.exponent)
         else:
-            i, e = 0, 0
-        #i,e = integrate_fejer2_minf(self.f, b)
+            i,e = 0,0
         return i
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""
@@ -564,12 +563,12 @@ class PInfSegment(Segment):
         """definite integral over interval (c, d) \cub (a, b) """
         if a==None or a<self.a:
             a=self.a
-        if b==None or isinf(b):
+        if b==None or isiposinf(b):
             i,e = integrate_fejer2_pinf(self.f, a, exponent = params.integration_infinite.exponent)
         elif b>a:
             i,e = integrate_fejer2_pinf(self.f, a, b, exponent = params.integration_infinite.exponent)
         else:
-            i, e = 0, 0
+            i,e = 0,0
         return i
     def cumint(self, y0 = 0.0):
         """indefinite integral over interval (a, x)"""
@@ -1118,7 +1117,7 @@ class PiecewiseFunction(object):
     def characteristicPoints(self):
         mi, xi = array([]), array([])
         df = self.diff()
-        xi = self.diff().roots()
+        xi = df.roots()
         mi = self(xi);
         segVals = self.getSegVals()
         xi = concatenate((xi, self.getBreaks()[0:-1], self.getBreaks()[1:]))
@@ -1449,13 +1448,13 @@ class PiecewiseFunction(object):
         return diracs
 
     def getSegVals(self):
-        list = []
+        val_list = []
         i = 0
         for seg in self.segments:
             if seg.isMInf():
-                list = list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
+                val_list = val_list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
             elif seg.isPInf():
-                list = list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
+                val_list = val_list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
             else:
                 if not isscalar(seg.f):
                     left = seg.f(seg.a)
@@ -1466,11 +1465,11 @@ class PiecewiseFunction(object):
                 else:
                     right= seg.f
                 if not isfinite(left):
-                    if len(list)>0:
-                        left  = list[-1][1]
-                list = list + [(left, right)]
+                    if len(val_list)>0:
+                        left  = val_list[-1][1]
+                val_list = val_list + [(left, right)]
             i = i + 1
-        return list
+        return val_list
 
     def getDirac(self, xi):
         for seg in self.segments:

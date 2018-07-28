@@ -19,7 +19,7 @@ from __future__ import print_function
 from numpy.fft import ifft
 from numpy import array, zeros, ones, hstack, arange, zeros_like, asfarray
 from numpy import dot, isscalar
-from numpy import finfo, double, isinf
+from numpy import finfo, double, isinf, isposinf, isneginf
 from numpy import ceil,log10, logspace
 
 from .utils import cheb_nodes, incremental_cheb_nodes
@@ -173,10 +173,14 @@ def integrate_clenshaw_pminf(f):
     return _integrate_with_vartransform(f, vt, integrate_clenshaw)
 def integrate_clenshaw_pinf(f, a):
     """Clenshaw integration from a to +oo."""
+    if isposinf(a):
+        return 0,0
     vt = VarTransformAlgebraic_PInf(a)
     return _integrate_with_vartransform(f, vt, integrate_clenshaw)
 def integrate_clenshaw_minf(f, b):
     """Clenshaw integration from -oo to b."""
+    if isneginf(b):
+        return 0,0
     vt = VarTransformAlgebraic_MInf(b)
     return _integrate_with_vartransform(f, vt, integrate_clenshaw)
 
@@ -188,12 +192,16 @@ def integrate_fejer2_pminf(f, *args, **kwargs):
     return _integrate_with_vartransform(f, vt, integrate_fejer2, *args, **kwargs)
 def integrate_fejer2_pinf(f, a, b = None, exponent = None, *args, **kwargs):
     """Fejer2 integration from a to +oo."""
+    if isposinf(a):
+        return 0,0
     if exponent is None:
         exponent = params.integration_infinite.exponent
     vt = VarTransformReciprocal_PInf(a, U = b, exponent = exponent)
     return _integrate_with_vartransform(f, vt, integrate_fejer2, *args, **kwargs)
 def integrate_fejer2_minf(f, b, a = None, exponent = None, *args, **kwargs):
     """Fejer2 integration from -oo to b."""
+    if isneginf(b):
+        return 0,0
     if exponent is None:
         exponent = params.integration_infinite.exponent
     vt = VarTransformReciprocal_MInf(b, L = a, exponent = exponent)
