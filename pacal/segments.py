@@ -563,7 +563,7 @@ class PInfSegment(Segment):
         """definite integral over interval (c, d) \cub (a, b) """
         if a==None or a<self.a:
             a=self.a
-        if b==None or isiposinf(b):
+        if b==None or isposinf(b):
             i,e = integrate_fejer2_pinf(self.f, a, exponent = params.integration_infinite.exponent)
         elif b>a:
             i,e = integrate_fejer2_pinf(self.f, a, b, exponent = params.integration_infinite.exponent)
