@@ -9,7 +9,7 @@ from functools import partial
 
 from .integration import *
 from .interpolation import *
-from .utils import epsunique, estimateDegreeOfPole, testPole, findinv, estimateTailExponent, is_instance_method
+from .utils import epsunique, estimateDegreeOfPole, testPole, findinv, findinv_minf, findinv_pinf, estimateTailExponent, is_instance_method
 
 from . import params
 
@@ -495,7 +495,7 @@ class MInfSegment(Segment):
         return x
     def findLeftEps(self):
         x = self.b - 1
-        while (self.f(x) > 1e-16):
+        while (isfinite(x) and self.f(x) > 1e-16):
             x = x-1.2*abs(x-self.b)
         return x
     def integrate(self, a = None, b = None):
@@ -554,10 +554,8 @@ class PInfSegment(Segment):
         while (abs(self.f(x) - self.f(1.2*x))>1e-16):
             y = x+1.2*abs(x-self.a)
             if isnan(self.f(y)) | isinf(self.f(y)):
-                #print "fidRightEps()=", x, self.f(x), self.f(y)
                 break
             x = x+1.2*abs(x-self.a)
-
         return x
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \cub (a, b) """
@@ -1449,26 +1447,28 @@ class PiecewiseFunction(object):
 
     def getSegVals(self):
         val_list = []
-        i = 0
         for seg in self.segments:
-            if seg.isMInf():
-                val_list = val_list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
-            elif seg.isPInf():
-                val_list = val_list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
-            else:
-                if not isscalar(seg.f):
-                    left = seg.f(seg.a)
-                else:
-                    left = seg.f
-                if not isscalar(seg.f):
-                    right= seg.f(seg.b)
-                else:
-                    right= seg.f
-                if not isfinite(left):
-                    if len(val_list)>0:
-                        left  = val_list[-1][1]
-                val_list = val_list + [(left, right)]
-            i = i + 1
+            left = seg(seg.a)
+            right = seg(seg.b)
+            val_list = val_list + [(left, right)]
+#        for seg in self.segments:
+#            if seg.isMInf():
+#                val_list = val_list + [(seg.f(seg.findLeftEps()), seg.f(seg.b))]
+#            elif seg.isPInf():
+#                val_list = val_list + [(seg.f(seg.a+1e-14), seg.f(seg.findRightEps()))]
+#            else:
+#                if not isscalar(seg.f):
+#                    left = seg.f(seg.a)
+#                else:
+#                    left = seg.f
+#                if not isscalar(seg.f):
+#                    right= seg.f(seg.b)
+#                else:
+#                    right= seg.f
+#                if not isfinite(left):
+#                    if len(val_list)>0:
+#                        left  = val_list[-1][1]
+#                val_list = val_list + [(left, right)]
         return val_list
 
     def getDirac(self, xi):
@@ -1734,49 +1734,45 @@ class PiecewiseFunction(object):
             else:
                 fun.addSegment(Segment(a, b, wrapped_f))
         return fun
-    def inverse(self, y):
+    def inverse_scalar(self, y):
         vals = self.getSegVals()
         breaks = self.getBreaks()
         x = None
-        if isscalar(y):
-            # coinituaous part of cumilative function
-            for i in range(len(vals)):
-                segi = self.segments[i]
-                #if (vals[i][0]<=y<=vals[i][1]):
-                if (vals[i][0]<=y<=vals[i][1] or vals[i][0]>=y>=vals[i][1]):
-                    if segi.isMInf():
-                        x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
-                    elif segi.isPInf():
-                        x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
-                    else:
-                        x = findinv(segi.f,  a = segi.a, b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) # TODO PInd, MInf
-            # discrete part of cumilative function
-            for i in range(len(vals)-1):
-                if (vals[i][1]<=y) & (y<=vals[i+1][0]):
-                    x = breaks[i+1]
-        else:
-            y = array(y)
-            x = zeros(size(y))
-            # coinituaous part of cumilative function
-            for i in range(len(vals)):
-                segi = self.segments[i]
-                #ind = where((vals[i][0]<=y) & (y<=vals[i][1]) )
-                ind = where(((vals[i][0]<=y) & (y<=vals[i][1]) ) | ((vals[i][0]>=y) & (y>=vals[i][1])))
+        # continuous part of cumilative function
+        for i in range(len(vals)):
+            segi = self.segments[i]
+            #if (vals[i][0]<=y<=vals[i][1]):
+            if (vals[i][0]<=y<=vals[i][1] or vals[i][0]>=y>=vals[i][1]):
                 if segi.isMInf():
-                    x[ind] = [findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+                    #x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+                    if y == 0:
+                        x = -inf
+                    else:
+                        x = findinv_minf(segi.f, b = segi.b, c = y, rtol = params.segments.cumint.reltol, xtol=params.segments.cumint.abstol, maxiter = params.segments.cumint.maxiter)
                 elif segi.isPInf():
-                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
+                    #x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
+                    if y == 1:
+                        x = inf
+                    else:
+                        x = findinv_pinf(segi.f, a = segi.a, c = y, rtol = params.segments.cumint.reltol, xtol=params.segments.cumint.abstol, maxiter = params.segments.cumint.maxiter)
                 else:
-                    x[ind] = [findinv(segi.f, a = segi.a, b = segi.b, c = yj, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter) for yj in y[ind]]
-            # discrete part of cumilative function
-            for i in range(len(vals)-1):
-                ind = where((vals[i][1]<=y) & (y<=vals[i+1][0]))
-                x[ind] = breaks[i+1]
+                    x = findinv(segi.f,  a = segi.a, b = segi.b, c = y, rtol = params.segments.cumint.reltol, xtol=params.segments.cumint.abstol, maxiter = params.segments.cumint.maxiter) # TODO PInd, MInf
+        # discrete part of cumilative function
+        for i in range(len(vals)-1):
+            if (vals[i][1]<=y) & (y<=vals[i+1][0]):
+                x = breaks[i+1]
         if (x is None): # It means
             print("ASSERT x is None y=", y, self.__str__())
             print("ASSERT x is None vals=", vals)
-            #assert(False)
             x = NaN
+        return x
+    def inverse(self, y):
+        if isscalar(y):
+            return self.inverse_scalar(y)
+        y = array(y)
+        x = zeros(size(y))
+        for i in range(len(x)):
+            x[i] = self.inverse_scalar(y[i])
         return x #findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.rtol)
 
     def invfun(self, use_end_poles = True, use_interpolated=True, rangeY=[0,1], include_zero_break=True):
@@ -1793,6 +1789,10 @@ class PiecewiseFunction(object):
                 breakvals.extend(vals[i])
             breakvals[0] = vals[0][0]
             breakvals[-1] = vals[-1][1]
+            x0 = self(0)
+            if x0 not in breakvals:
+                breakvals.append(x0)
+                breakvals.sort()
         else:
             #breakvals[0] = rangeY[0]
             #breakvals[-1] = rangeY[1]
@@ -1970,7 +1970,7 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
     def _inverse_(self, level):
         #TODO remove -1e-10
         return findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.reltol)
-    def inverse(self, y):
+    def inverse__(self, y):
         m = min(min(v) for v in self.getSegVals())
         if m > 0:
             minx = self.segments[0].findLeftEps()

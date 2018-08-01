@@ -390,6 +390,42 @@ def findinv(fun, a = 0.0, b = 1.0, c = 0.5, **kwargs):
         return brentq(lambda x : fun(x) - c, a, b, **kwargs)
     else:
         return bisect(lambda x : fun(x) - c, a, b, **kwargs)
+def findinv_minf(fun, b = 0.0, c=0.5, **kwargs):
+    """Find inverse fun(x)==c below b, possibly at -oo."""
+    a = b - max(1, 0.1*abs(b))
+    fa = fun(a)
+    fb = fun(b)
+    assert fun(b) >= c  # assume fun decreasing
+    while isfinite(a) and fa > c:
+        d = (b - a) * 1.2
+        fb = fa
+        a, b = a-d, a
+        fa = fun(a)
+    if isfinite(a):
+        x = findinv(fun, a, b, c, **kwargs)
+    else:
+        x = a
+    return x
+def findinv_pinf(fun, a = 0.0, c=0.5, increasing=True, **kwargs):
+    """Find inverse fun(x)==c below b, possibly at -oo."""
+    if increasing:
+        s = 1
+    else:
+        s = -1
+    b = a + max(1, 0.1*abs(a))
+    fa = fun(a)
+    fb = fun(b)
+    assert s*(fun(a) - c) <= 0
+    while isfinite(b) and fb < c:
+        d = (b - a) * 1.2
+        fa = fb
+        a, b = b, b+d
+        fb = fun(b)
+    if isfinite(b):
+        x = findinv(fun, a, b, c, **kwargs)
+    else:
+        x = b
+    return x
 # copied from scipy
 def bisect(f, xa, xb, xtol = 10*finfo(double).eps, rtol = 2*finfo(double).eps, maxiter = 1000, args = ()):
     tol = min(xtol, rtol*(abs(xa) + abs(xb))) # fix for long intervals
