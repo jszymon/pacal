@@ -106,7 +106,7 @@ class BarycentricInterpolator(Interpolator):
         """Barycentric interpolation"""
         scalar_x = isscalar(x)
         if have_Cython:
-            y = bary_interp(self.Xs, self.Ys, self.weights, atleast_1d(x))
+            y = bary_interp(self.Xs, self.Ys, self.weights, asfarray(atleast_1d(x)))
             if scalar_x:
                 y = y[0]
         else:
