@@ -9,7 +9,7 @@ import operator
 
 from numpy import asfarray
 from numpy import multiply, add, divide
-from numpy import unique, isnan, isscalar, size, nonzero
+from numpy import unique, isnan, isscalar, size, flatnonzero
 from numpy import sign, isinf, isfinite
 from numpy import minimum, maximum, pi
 
@@ -881,10 +881,10 @@ def _split_for_prod_and_div(fun):
     if (breaks[0]>0 or breaks[-1]<0):
         return fun
     breakslist = breaks.tolist()
-    ind = nonzero(breakslist == 0.0)
+    ind = flatnonzero(breaks == 0.0)
     if len(ind)==0:
         bisect.insort_left(breakslist, 0.0)
-    ind = nonzero(array([breakslist]) == 0.0)
+    ind = flatnonzero(array(breakslist) == 0.0)
     if len(ind)>0 and ind[0]==len(breakslist)-2:
         if isinf(breakslist[ind[0]+1]):
             bisect.insort_left(breakslist, -1.0)
@@ -915,7 +915,7 @@ def convprod(f, g):
     b = multiply.outer(bf, bg)
     op = operator.mul
     ub = epsunique(b)
-    #ind = nonzero(ub == 0.0)
+    #ind = flatnonzero(ub == 0.0)
     #ublist = ub.tolist()
     #print ind[0], ub[ind[0]-1.0]
     #if len(ind)>0 and ind[0]<len(ub)-1:
@@ -1115,7 +1115,7 @@ def convdiv(f, g):
         b = hstack([b, [0]])
     ub = epsunique(b)
 
-    ind = nonzero(ub == 0.0)
+    ind = flatnonzero(ub == 0.0)
     ublist = ub.tolist()
     if len(ind)>0 and ind[0]<len(ub)-1:
         if isinf(ub[ind[0]+1]):
