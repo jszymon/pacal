@@ -23,7 +23,7 @@ import multiprocessing
 from numpy import array, arange, empty, cos, sin, abs
 from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
-from numpy import isinf, log, exp, logspace, Inf
+from numpy import isinf, log, exp, logspace, Inf, nan
 from numpy import finfo, double, isscalar, asfarray
 from pylab import plot, loglog, show, semilogx, sqrt, figure
 from pylab import real, ones_like
@@ -395,7 +395,8 @@ def findinv_minf(fun, b = 0.0, c=0.5, **kwargs):
     a = b - max(1, 0.1*abs(b))
     fa = fun(a)
     fb = fun(b)
-    assert fun(b) >= c  # assume fun decreasing
+    if not fun(b) >= c:  # assume fun decreasing
+        return nan
     while isfinite(a) and fa > c:
         d = (b - a) * 1.2
         fb = fa
@@ -415,7 +416,8 @@ def findinv_pinf(fun, a = 0.0, c=0.5, increasing=True, **kwargs):
     b = a + max(1, 0.1*abs(a))
     fa = fun(a)
     fb = fun(b)
-    assert s*(fun(a) - c) <= 0
+    if not s*(fun(a) - c) <= 0:  # assume fun decreasing
+        return nan
     while isfinite(b) and fb < c:
         d = (b - a) * 1.2
         fa = fb
