@@ -1734,7 +1734,7 @@ class PiecewiseFunction(object):
             else:
                 fun.addSegment(Segment(a, b, wrapped_f))
         return fun
-    def inverse_scalar(self, y):
+    def inverse_scalar(self, y, fix_for_cdf=True):
         vals = self.getSegVals()
         breaks = self.getBreaks()
         x = None
@@ -1761,7 +1761,14 @@ class PiecewiseFunction(object):
         for i in range(len(vals)-1):
             if (vals[i][1]<=y) & (y<=vals[i+1][0]):
                 x = breaks[i+1]
-        if (x is None): # It means
+        if x is None and fix_for_cdf:
+            m = min(min(v) for v in self.getSegVals())
+            M = max(max(v) for v in self.getSegVals())
+            if 0 <= y < m:
+                x = -inf
+            if 1 >= y > M:
+                x = inf
+        if x is None: # It means
             print("ASSERT x is None y=", y, self.__str__())
             print("ASSERT x is None vals=", vals)
             x = NaN
@@ -1967,27 +1974,6 @@ class CumulativePiecewiseFunction(PiecewiseFunction):
                 interpolatedPFun.addSegment(seg.toInterpolatedSegment())
         return interpolatedPFun
 
-    def _inverse_(self, level):
-        #TODO remove -1e-10
-        return findinv(self, a = self.breaks[0], b = self.breaks[-1]-1e-10, c = level, rtol = params.segments.reltol)
-    def inverse__(self, y):
-        m = min(min(v) for v in self.getSegVals())
-        if m > 0:
-            minx = self.segments[0].findLeftEps()
-        else:
-            minx = finfo(float).min
-        # handle inverses for tiny y more gracefully
-        if isscalar(y):
-            if 0 <= y <= m:
-                return minx
-            else:
-                return super(CumulativePiecewiseFunction, self).inverse(y)
-        else:
-            mask = ((y>=0) & (y <= m))
-            yr = numpy.zeros_like(y)
-            yr[mask] = minx
-            yr[~mask] = super(CumulativePiecewiseFunction, self).inverse(y[~mask])
-            return yr
 #    def inverse(self, y):
 #        vals = self.getSegVals()
 #        breaks = self.getBreaks()
