@@ -457,7 +457,9 @@ class ConstFun(object):
     def __init__(self, c):
         self.c = c
     def __call__(self, x):
-        return 0.0*x + self.c
+        if isscalar(x):
+            return self.c
+        return zeros_like(x) + self.c
 class ConstSegment(Segment):
     """constant function over finite interval
     """
