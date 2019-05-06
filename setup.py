@@ -29,7 +29,7 @@ setup(
     license='GNU General Public License V.3 or later',
     url='http://pacal.sf.net',
     long_description=open('README.md').read(),
-    requires=['Python (>=2.7)', 'numpy (>=1.6)', 'matplotlib (>=1.0)', 'Cython', 'Sympy (>=0.6.7)', 'scipy (>=13.0)'],
+    install_requires=['Python>=3.5', 'numpy>=1.13', 'matplotlib>=2.0.0', 'Cython', 'Sympy>=1.0.0', 'scipy>=1.1.0)'],
 
     packages=['pacal', 'pacal.stats', 'pacal.depvars',
               'pacal.examples', 'pacal.examples.springer_book',
