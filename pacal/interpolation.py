@@ -16,6 +16,8 @@
 
 from __future__ import print_function
 
+import warnings
+
 from functools import partial
 
 from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
@@ -44,12 +46,10 @@ from .vartransforms import *
 
 # import faster Cython versions if possible
 try:
-    #import pyximport; pyximport.install()
     from .bary_interp import bary_interp
     have_Cython = True
-    print("Using compiled interpolation routine")
 except:
-    print("Compiled interpolation routine not available")
+    warnings.warn("Compiled interpolation routine not available")
     have_Cython = False
 
 

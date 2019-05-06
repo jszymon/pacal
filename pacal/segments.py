@@ -24,11 +24,7 @@ from numpy import argmax, argmin
 import numpy
 from pylab import plot, semilogx, xlabel, ylabel, axis, loglog, figure, subplot
 
-try:
-    from scipy.optimize.optimize import fminbound
-    have_Scipy_optimize = True
-except ImportError:
-    have_Scipy_optimize = False
+from scipy.optimize.optimize import fminbound
 
 
 
@@ -1167,9 +1163,6 @@ class PiecewiseFunction(object):
             return x1, m1
     def maximum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
-        if not have_Scipy_optimize:
-            print("Warning: scipy's fminbound not found")
-            return None
         m = -inf
         x = None
         for seg in self.segments:
@@ -1189,9 +1182,6 @@ class PiecewiseFunction(object):
         return x, m
     def minimum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
-        if not have_Scipy_optimize:
-            print("Warning: scipy's fminbound not found")
-            return None
         m = inf
         x = None
         for seg in self.segments:
@@ -1901,9 +1891,6 @@ class PiecewiseDistribution(PiecewiseFunction):
         return f3.median()
     def mode(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
-        if not have_Scipy_optimize:
-            print("Warning: scipy's fminbound not found")
-            return None
         m = 0
         x = None
         for seg in self.segments:

@@ -2,6 +2,8 @@
 
 from __future__ import print_function
 
+import warnings
+
 import numbers
 from functools import partial
 
@@ -68,7 +70,7 @@ class Distr(RV):
 
                 panc = p.getAncestorIDs()
                 if panc & anc:
-                    print("Warning: arguments treated as independent")
+                    warnings.warn("Warning: arguments treated as independent")
                     break
                 anc.update(panc)
     def getName(self):
