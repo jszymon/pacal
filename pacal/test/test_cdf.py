@@ -17,7 +17,7 @@ def test_inv_norm_cdf():
     ppf = cdf.invfun(rangeY=None)
     # test vectors
     tcdfi = [cdf.inverse(x) for x in np.linspace(0,1,11)]
-    tppf = [np.asscalar(np.asarray(ppf(x))) for x in np.linspace(0,1,11)]
+    tppf = [np.asarray(ppf(x)).item() for x in np.linspace(0,1,11)]
     tscipy = [norm.ppf(x, loc=2,scale=1) for x in np.linspace(0,1,11)]
     assert np.allclose(tcdfi, tscipy)
     #assert np.allclose(tppf, tscipy)  # disabled for now, inf/-inf not returned at 1/0

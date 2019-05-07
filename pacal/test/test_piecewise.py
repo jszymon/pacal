@@ -851,14 +851,14 @@ class TestPicewiseConvs(unittest.TestCase):
         h.semilogx(linewidth=1, color = 'b', linestyle='-')
         h2.semilogx(linewidth=1, color = 'k', linestyle='-')
         #axis((0.08, 12, 0, 2.1))
-        plt.title('$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$')
+        plt.title(r'$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$')
 
         #fig = plt.figure()
         h.semilogx(linewidth=1, color = 'b', linestyle='-')
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
         #axis((0.08, 12, 0, 2.1))
-        plt.title('$h_4 = f_4 \oslash g_4$')
+        plt.title(r'$h_4 = f_4 \oslash g_4$')
 
         #fig = plt.figure()
         #subplot(2,1,1)
@@ -869,7 +869,7 @@ class TestPicewiseConvs(unittest.TestCase):
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
         #axis((0.1, 10, 0, 70.0))
-        plt.ylabel('$g_4 = 1\oslash f_4$', fontsize=20)
+        plt.ylabel(r'$g_4 = 1\oslash f_4$', fontsize=20)
 
         #subplot(2,1,1)
         plt.ylabel('$f_4$', fontsize=20)
@@ -877,7 +877,7 @@ class TestPicewiseConvs(unittest.TestCase):
         #fig = plt.figure()
         h2.semilogx(linewidth=1, color = 'k', linestyle='-')
         #axis((0.08, 12, 0, 2.1))
-        plt.title('$f_4 \odot g_4$')
+        plt.title(r'$f_4 \odot g_4$')
 
         #fig = plt.figure()
         #subplot(2,1,1)
@@ -890,11 +890,11 @@ class TestPicewiseConvs(unittest.TestCase):
         loglog(xi,yi)
         for o in fig.findobj(text.Text):
             o.set_fontsize(14)
-        plt.ylabel('$\log|h_4-h_4^\prime|$', fontsize=20)
+        plt.ylabel(r'$\log|h_4-h_4^\prime|$', fontsize=20)
         #axis((0.08, 12, 1e-19, 1.5e-14))
 
         #subplot(2,1,1)
-        plt.ylabel('$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$', fontsize=20)
+        plt.ylabel(r'$h_4 = f_4 \oslash g_4$, ${h_4}^\prime = f_4 \odot g_4$', fontsize=20)
 
 
         #h.plot(linewidth=1, color = 'k', linestyle='-')
