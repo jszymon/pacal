@@ -229,7 +229,7 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
     if a!=0 and b!=0:
         if (b/a)>wide_cond and 0 < a < b: # positive innterwal
             exp_wide = b/a
-            number_of_intervals = ceil(log10(exp_wide)/log10(wide_cond))
+            number_of_intervals = int(ceil(log10(exp_wide)/log10(wide_cond)))
             nodes = logspace(log10(a), log10(b), number_of_intervals + 1)
             nodes[0] = a
             nodes[-1] = b
@@ -241,7 +241,7 @@ def integrate_wide_interval(f, a, b, *args, **kwargs):
             return I, E
         elif (b/a)<1/wide_cond and a < b < 0: # negative interval
             exp_wide = a/b
-            number_of_intervals = ceil(log10(exp_wide)/log10(wide_cond))
+            number_of_intervals = int(ceil(log10(exp_wide)/log10(wide_cond)))
             nodes = -logspace(log10(abs(a)), log10(abs(b)), number_of_intervals + 1)
             nodes[0] = a
             nodes[-1] = b
