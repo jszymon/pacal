@@ -17,7 +17,7 @@ class TestFunc(unittest.TestCase):
             square of single normal variable
         """
         #fig = plt.figure()
-        print("comparing \chi^2_1 with N(0,1)^2")
+        print("comparing \\chi^2_1 with N(0,1)^2")
         orgChi2 =  ChiSquareDistr(1)
         N1 = NormalDistr(0,1)
         testChi2 = N1 ** 2
@@ -32,7 +32,7 @@ class TestFunc(unittest.TestCase):
             square of single normal variable
         """
         #fig = plt.figure()
-        print("testing \chi^2_1 = N(0,1)^2, with interpolation")
+        print("testing \\chi^2_1 = N(0,1)^2, with interpolation")
         N1 = NormalDistr(0,1)
         orgChi2 =  ChiSquareDistr(1)
         squareN1 = N1**2
