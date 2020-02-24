@@ -29,7 +29,7 @@ from pylab import plot, loglog, show, semilogx, sqrt, figure
 from pylab import real, ones_like
 from numpy import zeros, sort
 from numpy.linalg import eigvals
-from numpy.fft.fftpack import fft, ifft
+from numpy.fft import fft, ifft
 from numpy import real, concatenate, linspace, argmin
 
 

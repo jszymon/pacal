@@ -231,13 +231,13 @@ class InterpRunner(object):
             arg[c_var] = X
             arg[v1] = x1
             y = f(*arg)
-            #return y
         else:
             Xcol = [None] * f.d
             for i, j in enumerate(c_var):
                 Xcol[j] = zeros(len(x1)) + X[i]
             Xcol[v1] = x1
-            return f(*Xcol)
+            y = f(*Xcol)
+        return y
     def interp_f(self, *X):
         ndfun = self.ndfun
         arg = self.arg

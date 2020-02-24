@@ -16,6 +16,8 @@
 
 from __future__ import print_function
 
+import numpy as np
+
 from numpy.fft import ifft
 from numpy import array, zeros, ones, hstack, arange, zeros_like, asfarray
 from numpy import dot, isscalar
@@ -48,18 +50,18 @@ def clenshaw_coefficients(n):
         coeffs = _clenshaw_cache[n]
     else:
         n1 = n - 1
-        N = arange(1, n1, 2)
+        N = np.arange(1, n1, 2)
         l = len(N)
         m = n1 - l
-        v0 = -hstack([2.0 / (N*(N-2)), [1.0/N[-1]], zeros(m)])
+        v0 = -np.hstack([2.0 / (N*(N-2)), [1.0/N[-1]], np.zeros(m)])
         v2 = v0[:-1] + v0[-1:0:-1]
 
-        g0 = -ones(n1)
+        g0 = -np.ones(n1)
         g0[l] += n1
         g0[m] += n1
         g = g0/(n1**2 - 1 + n1%2)
         coeffs = ifft(v2 + g).real
-        coeffs = hstack([coeffs, [coeffs[0]]])
+        coeffs = np.hstack([coeffs, [coeffs[0]]])
         _clenshaw_cache[n] = coeffs
     return coeffs
 
@@ -74,10 +76,10 @@ def fejer2_coefficients(n):
         coeffs = _fejer2_cache[n]
     else:
         n1 = n - 1
-        N = arange(1, n1, 2)
+        N = np.arange(1, n1, 2)
         l = len(N)
         m = n1 - l
-        v0 = -hstack([2.0 / (N*(N-2)), [1.0/N[-1]], zeros(m)])
+        v0 = -np.hstack([2.0 / (N*(N-2)), [1.0/N[-1]], np.zeros(m)])
         v2 = v0[:-1] + v0[-1:0:-1]
         coeffs = ifft(v2).real
         coeffs = coeffs[1:]
@@ -140,7 +142,7 @@ def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
             nodes, fs = combine_interpolation_nodes_fast(new_nodes, new_fs,
                                                          nodes, fs)
 
-        I = dot(fs, coeffs) * (b - a) / 2
+        I = np.dot(fs, coeffs) * (b - a) / 2
         if prevI is not None:
             err = abs(I - prevI)
             if debug_info:
