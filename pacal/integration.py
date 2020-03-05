@@ -26,6 +26,7 @@ from numpy import ceil,log10, logspace
 
 from .utils import cheb_nodes, incremental_cheb_nodes
 from .utils import combine_interpolation_nodes_fast
+from .utils import combine_interpolation_nodes_fast_array
 from .utils import convergence_monitor
 from .utils import debug_plot
 
@@ -158,6 +159,40 @@ def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
         debug_plot(a, b, nodes, fs, coeffs)
     # return currently best result
     I, err, _extra = cm.get_best_result()
+    return I, err
+
+def integrate_fejer2_array(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps):
+    """Integrate a function returning an array componentise."""
+    if par is not None:
+        maxn = par.maxn
+        cm = convergence_monitor(par = par.convergence)
+    else:
+        cm = convergence_monitor()
+    n = 65
+    prevI = None
+    nodes = None
+    while n <= maxn:
+        coeffs = fejer2_coefficients(n)
+        if nodes is None:
+            nodes = cheb_nodes(n, a, b)[1:-1]
+            fs = f(nodes)
+        else:
+            new_nodes = incremental_cheb_nodes(n, a, b)
+            new_fs = f(new_nodes)
+            # roles of new and old nodes are reversed in the call below
+            nodes, fs = combine_interpolation_nodes_fast_array(new_nodes, new_fs,
+                                                               nodes, fs)
+
+        I = np.dot(fs, coeffs) * (b - a) / 2
+        if prevI is not None:
+            err = np.max(np.abs(I - prevI))
+            cm.add(err, np.abs(I).mean())
+            if cm.test_convergence()[0]:  # TODO: test componentwise?
+                break
+        prevI = I
+        n = 2 * n - 1
+    # TODO: return currently best result componentwise
+    #I, err, _extra = cm.get_best_result()
     return I, err
 
 

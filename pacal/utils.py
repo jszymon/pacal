@@ -72,6 +72,20 @@ def combine_interpolation_nodes_fast(oldXs, oldYs, newXs, newYs):
     combinedYs[::2] = oldYs
     combinedYs[1::2] = newYs
     return combinedXs, combinedYs
+def combine_interpolation_nodes_fast_array(oldXs, oldYs, newXs, newYs):
+    """Combine old and new interpolation nodes in sorted order.
+
+    Allow Ys to be an array.  Combining is done on last axis."""
+    newsize = len(oldXs) + len(newXs)
+    new_y_shape = tuple(oldYs.shape)
+    new_y_shape[-1] = newsize
+    combinedXs = empty(newsize)
+    combinedYs = empty(new_y_shape)
+    combinedXs[::2] = oldXs
+    combinedXs[1::2] = newXs
+    combinedYs[...,::2] = oldYs
+    combinedYs[...,1::2] = newYs
+    return combinedXs, combinedYs
 
 # Chebyshev related utilities
 def cheb_nodes(n, a = -1, b = 1):
