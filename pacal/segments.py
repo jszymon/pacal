@@ -274,7 +274,7 @@ class Segment(object):
     def shiftAndScale(self, shift, scale):
         """Scale and shift a segment: replace scale*f(x)+shift
         """
-        if scale is 1:
+        if scale == 1:
             _1_scale = 1
         else:
             _1_scale = 1.0 / scale
