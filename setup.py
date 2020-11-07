@@ -22,7 +22,7 @@ else:
     
 setup(
     name='PaCal',
-    version='1.6',
+    version='1.6.1',
     description ='PaCal - ProbAbilistic CALculator',
     author='Szymon Jaroszewicz, Marcin Korzeń',
     author_email='s.jaroszewicz@ipipan.waw.pl, mkorzen@wi.zut.edu.pl',
