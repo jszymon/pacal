@@ -591,7 +591,7 @@ class ShiftedScaledDistr(ShiftedScaledRV, OpDistr):
     def __init__(self, d, shift = 0, scale = 1):
         assert(scale != 0)
         super(ShiftedScaledDistr, self).__init__(d, shift=shift, scale=scale)
-        if self.scale is 1:
+        if self.scale == 1:
             self._1_scale = 1
         else:
             self._1_scale = 1.0 / scale

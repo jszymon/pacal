@@ -1,3 +1,8 @@
+New in version 1.6.1:
+
+* fix fft imports in newer versions of numpy
+* other bug fixes
+
 New in version 1.6:
 
 * Python 3 support (single code base used for Python 2 and 3)
