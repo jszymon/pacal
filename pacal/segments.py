@@ -1521,16 +1521,16 @@ class PiecewiseFunction(object):
     def __truediv__(self, other):
         #TODO handle zeros in denominator, !!!currently unhandled!!!
         if isinstance(other, PiecewiseFunction):
-            return self._operation__(other, operation = operator.div)
+            return self._operation__(other, operation = operator.truediv)
         elif isinstance(other, numbers.Real):
-            return self.__rtruediv__(other)
+            return self._operation__(other, operation = operator.truediv)
         return NotImplemented
     def __div__(self, other):
         #TODO handle zeros in denominator, !!!currently unhandled!!!
         if isinstance(other, PiecewiseFunction):
             return self._operation__(other, operation = operator.div)
         elif isinstance(other, numbers.Real):
-            return self.__rdiv__(other)
+            return self._operation__(other, operation = operator.div)
         return NotImplemented
     def __radd__(self, r, operation = operator.add):
         """Overload sum with real number: distribution of r+X."""
