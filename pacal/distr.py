@@ -356,14 +356,15 @@ class Distr(RV):
         dw = (X.max() - X.min()) / bins
         if dw == 0:
             dw = 1
-        w = (float(n)/float(allDrawn)) / n / dw
+        w = (1.0 / float(allDrawn)) / dw
         counts, binx = histogram(X, bins)
         width = binx[1] - binx[0]
         if width == 0:
             width = X.max() * 0.01
         for c, b in zip(counts, binx):
-            bar(b, float(c) * w, width = width, alpha=alpha, align="edge", color=color,
+            bar(b, float(c) * w, width=width, alpha=alpha, align="edge", color=color,
                 edgecolor=edgecolor, **kwargs)
+
     def five_number_summary(self):
         m = self.median()
         iqr = self.iqrange(0.25)
