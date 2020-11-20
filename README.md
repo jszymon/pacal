@@ -1,6 +1,6 @@
 PaCal - ProbAbilistic Calculator
 
-[![Build Status](https://travis-ci.com/jszymon/pacal.svg?branch=master)](https://travis-ci.com/jszymon/pacal)
+[![CircleCI](https://circleci.com/gh/jszymon/pacal.svg?style=svg)](https://circleci.com/gh/jszymon/pacal)
 [![Build status](https://ci.appveyor.com/api/projects/status/ry23cy9h0n533qu3?svg=true)](https://ci.appveyor.com/project/jszymon/pacal)
 
 Compute with probability distributions.
