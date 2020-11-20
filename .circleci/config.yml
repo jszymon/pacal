@@ -12,11 +12,10 @@ jobs:
       - python/install-deps
       - python/save-cache
       - run:
-          command: pytest
+          command: python -m pytest
           name: Test
 
 workflows:
   main:
     jobs:
-      - build-and-test:
-          test-tool: pytest
+      - build-and-test
