@@ -10,6 +10,8 @@ jobs:
       - checkout
       - python/load-cache
       - python/install-deps
+      - run:
+          command: pip install pytest
       - python/save-cache
       - run:
           command: pytest
