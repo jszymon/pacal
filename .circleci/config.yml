@@ -11,6 +11,7 @@ jobs:
       - python/load-cache
       - python/install-deps
       - run:
+          name: install_pytest
           command: pip install pytest
       - python/save-cache
       - run:
