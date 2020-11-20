@@ -7,6 +7,6 @@ workflows:
   main:
     jobs:
       - python/test:
-          args: '--dev'
-          pkg-manager: pipenv
           test-tool: pytest
+	  setup:
+	    - pip install pytest
