@@ -8,5 +8,5 @@ workflows:
     jobs:
       - python/test:
           test-tool: pytest
-	  setup:
+          setup:
             - pip install pytest
