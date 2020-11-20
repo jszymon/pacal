@@ -1,21 +1,14 @@
 version: 2.1
 
 orbs:
-  python: circleci/python@0.2.1
-
-jobs:
-  build-and-test:
-    executor: python/default
-    steps:
-      - checkout
-      - python/load-cache
-      - python/install-deps
-      - python/save-cache
-      - run:
-          command: ./manage.py test
-          name: Test
+  python: circleci/python@1.2.1
 
 workflows:
   main:
     jobs:
-      - build-and-test
+      - python/test:
+          test-tool: pytest
+          args: '--dev'
+          pkg-manager: pipenv
+          setup:
+            - run: pip install pytest
