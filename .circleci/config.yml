@@ -9,4 +9,4 @@ workflows:
       - python/test:
           test-tool: pytest
 	  setup:
-	    - pip install pytest
+            - pip install pytest
