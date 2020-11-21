@@ -325,17 +325,19 @@ class Distr(RV):
         self.get_piecewise_pdf().plot(*args, **kwargs)
     def hist(self, n = 1000000, xmin = None, xmax = None, bins = 50, max_samp = None,
              alpha=0.25, color="lightgray", edgecolor="darkgray", **kwargs):
-        """Histogram of PDF.
+        """Histogram based on samples from PDF.
 
         Keyword arguments:
-        n -- number of points
+        n -- number of samples
         bins -- number of bins
         xmin -- minimum x range
         xmax -- maximum x range
 
-        Histogram show frequencies rather then cardinalities thus it can be
-        compared with PDF function in continuous case. When xmin, xmax
-        are defined then conditional histogram is presented."""
+        The histogram shows a density rather than bincounts thus it can
+        be compared with the PDF function in the continuous case. When
+        xmin, xmax are specified then conditional histogram is
+        plotted.
+        """
         if max_samp is None:
             max_samp = 100 * n
         if xmin is None and xmax is None:
@@ -352,7 +354,6 @@ class Distr(RV):
                 if xmax is not None:
                     x = x[(x <= xmax)]
                 X = hstack([X, x])
-        #hist(X, bins, normed = True, alpha = 0.25, **kwargs)
         dw = (X.max() - X.min()) / bins
         if dw == 0:
             dw = 1
