@@ -6,10 +6,7 @@ orbs:
 workflows:
   main:
     jobs:
-      steps:
-        - python/install-packages:
-            pip-dependency-file: requirements.txt
-            pkg-manager: pip
-        - python/test:
-            pkg-manager: pip-dist
-            test-tool: pytest
+      - python/test:
+        pip-dependency-file: requirements.txt
+        pkg-manager: pip-dist
+        test-tool: pytest
