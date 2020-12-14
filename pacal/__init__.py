@@ -32,6 +32,7 @@ from .standard_distr import FDistr
 from .standard_distr import WeibullDistr
 from .standard_distr import GumbelDistr
 from .standard_distr import FrechetDistr
+from .standard_distr import LogLogisticDistr
 from .standard_distr import MollifierDistr
 
 from .standard_distr import OneDistr
