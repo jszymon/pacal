@@ -9,4 +9,5 @@ workflows:
       - python/test:
           pkg-manager: pip-dist
           pip-dependency-file: requirements.txt
+	  args: args -r requirements.txt
           test-tool: pytest
