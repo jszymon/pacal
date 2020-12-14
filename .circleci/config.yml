@@ -8,6 +8,5 @@ workflows:
     jobs:
       - python/test:
           pkg-manager: pip-dist
-          pip-dependency-file: requirements.txt
           args: pytest -r requirements.txt
           test-tool: pytest
