@@ -791,6 +791,76 @@ class FrechetDistr(Distr):
     def range(self):
         return 0.0, Inf # TODO check it
 
+
+#f(x;\alpha ,\beta )= (k/s) * (x/s)**(k-1) / ((1 + (x/s)**k)**2)  # Wikipedia form
+#=k/ s**k * x**(k-1) / ((1 + x**k/s**k)**2)
+#=k/ s**k * x**(k-1) / (((s**k + x**k)/s**k)**2)
+#=k/ s**k * x**(k-1) / ((s**k + x**k)**2)/s**(2*k)
+#=k/ s**k * s**(2*k) * x**(k-1) / ((s**k + x**k)**2)
+#=k/ s**k * s**(2*k) * x**(k-1) / ((s**k + x**k)**2)
+#=k * s**k * x**(k-1) / ((s**k + x**k)**2)    # www.randomservices.org/ form
+
+class LogLogisticDistr(Distr):
+    def __init__(self, k, s=1.0, **kwargs):
+        if k <= 0:
+            raise RuntimeError("Shape parameter k must be > 0, got {}".format(alpha))
+        if s <= 0:
+            raise RuntimeError("Scale parameter s must be > 0, got {}".format(beta))
+        super().__init__(**kwargs)
+        self.k = k
+        self.s = s
+        self.log_k = np.log(k)
+        self.log_s_pow_k = k * np.log(s)
+    def log_pdf(self, x):
+        # pdf form from www.randomservices.org
+        lx = np.log(x)
+        return  self.log_k + self.log_s_pow_k + (self.k-1)*lx \
+          - 2*np.logaddexp(self.log_s_pow_k, self.k*lx)
+        
+    def pdf(self, x):
+        y = zeros_like(asfarray(x))
+        mask = (x >= 0)
+        # pdf form from www.randomservices.org
+        #y[mask] = self.k * self.s_pow_k * x[mask]**(self.k-1) \
+        #  / ((self.s_pow_k + x[mask]**self.k)**2)
+        y[mask] = np.exp(self.log_pdf(x))
+        return y
+    def init_piecewise_pdf(self):
+        wrapped_pdf = wrap_pdf(self.pdf)
+        breakPoints = [0.0]
+        pole_at_zero = (self.k < 1) | (self.k != np.floor(self.k))
+        lpoles = [pole_at_zero]
+        if self.k > 1:
+            infl_part1 = 2 * (self.k**2 - 1)
+            infl_part2 = self.k * np.sqrt(3*(self.k**2 - 1))
+            infl_part3 = (self.k + 1) * (self.k + 2)
+            if self.k > 2:
+                infl2 = self.s * ((infl_part1 - infl_part2) / infl_part3)**(1.0 / self.k)
+                breakPoints.append(infl2)
+                lpoles.append(False)
+            infl1 = self.s * ((infl_part1 + infl_part2) / infl_part3)**(1.0 / self.k)
+            breakPoints.append(infl1)
+            lpoles.append(False)
+        else:
+            breakPoints.append(1.0)
+            lpoles.append(False)
+        breakPoints.append(Inf)
+        lpoles.append(False)
+        self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
+                                                   breakPoints = breakPoints,
+                                                   lpoles=lpoles)
+    def rand_raw(self, n = None):
+        u = uniform(self.a, self.b, n)
+        ll = self.s * (u / (1-u))**(1.0 / self.k)
+        return ll
+    def __str__(self):
+        return "LogLogistic(k={}, s={})#{}".format(self.k, self.s, self.id())
+    def getName(self):
+        return "LogLogistic({},{})".format(self.k, self.s)
+    def range(self):
+        return 0.0, Inf
+
+    
 class MollifierDistr(Distr):
     """An infinitely smooth distribution which can be convolved with
     other distributions to smooth them out."""
