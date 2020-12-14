@@ -19,7 +19,7 @@ jobs:
           pypi-cache: false
       - run:
           command: |
-            pytest --version
+            pytest
           name: Test
 
 workflows:
