@@ -7,5 +7,6 @@ workflows:
   main:
     jobs:
       - python/test:
-        pkg-manager: pip-dist
-        test-tool: pytest
+          pkg-manager: pip-dist
+	  pip-dependency-file: requirements.txt
+          test-tool: pytest
