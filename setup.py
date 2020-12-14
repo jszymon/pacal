@@ -4,7 +4,6 @@ from __future__ import print_function
 
 from setuptools import setup, Extension
 
-import numpy as np
 try:
     from Cython.Distutils import build_ext
     have_Cython = True
@@ -13,6 +12,7 @@ except ImportError:
     have_Cython = False
 
 if have_Cython:
+    import numpy as np
     Cython_args = {
         "cmdclass" : {'build_ext': build_ext},
         "ext_modules" : [Extension("pacal.bary_interp", ["pacal/bary_interp.pyx"], include_dirs=[np.get_include()])],
