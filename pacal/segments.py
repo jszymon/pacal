@@ -1852,7 +1852,7 @@ class PiecewiseDistribution(PiecewiseFunction):
             E += abs(e)
             I = I + i
             absI += abs(i)
-        if  abs(E/absI)>1.0e-3 and abs(absI)>1e-10:
+        if  absI > 0 and abs(E/absI)>1.0e-3 and abs(absI)>1e-10:
             #print I, absI, E
             return NaN
         return I
