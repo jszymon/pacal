@@ -59,3 +59,11 @@ def test_integration_with_poles():
     check_integ(integrate_fejer2_Xn_transformP, beta, 0, 0.5, 0.5)
     check_integ(integrate_fejer2_Xn_transformN, beta, 0.5, 1, 0.5, 1e-8) # pole at !=0
 
+def test_vector_integration():
+    a = np.linspace(0.1, 1, 100)
+    def fv(x):
+        return np.cos(np.outer(a, x))
+    i, e = integrate_fejer2_vector(fv, 0, 1)
+    exact = 1/a*np.sin(a*1)
+    assert np.max(np.abs(i - exact)) < 1e-15
+    

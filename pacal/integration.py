@@ -26,7 +26,7 @@ from numpy import ceil,log10, logspace
 
 from .utils import cheb_nodes, incremental_cheb_nodes
 from .utils import combine_interpolation_nodes_fast
-from .utils import combine_interpolation_nodes_fast_array
+from .utils import combine_interpolation_nodes_fast_vector
 from .utils import convergence_monitor
 from .utils import debug_plot
 
@@ -161,8 +161,12 @@ def integrate_fejer2(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps,
     I, err, _extra = cm.get_best_result()
     return I, err
 
-def integrate_fejer2_array(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps):
-    """Integrate a function returning an array componentise."""
+def integrate_fejer2_vector(f, a, b, par = None, maxn = 2**10, tol = finfo(double).eps):
+    """Integrate a function returning a vector (or array) componentise.
+
+    the function f takes an argument vector x and returns a vector (or
+    matrix) for each element of x.  The result should be an array with
+    the last index corresponding to indexing of x."""
     if par is not None:
         maxn = par.maxn
         cm = convergence_monitor(par = par.convergence)
@@ -180,8 +184,8 @@ def integrate_fejer2_array(f, a, b, par = None, maxn = 2**10, tol = finfo(double
             new_nodes = incremental_cheb_nodes(n, a, b)
             new_fs = f(new_nodes)
             # roles of new and old nodes are reversed in the call below
-            nodes, fs = combine_interpolation_nodes_fast_array(new_nodes, new_fs,
-                                                               nodes, fs)
+            nodes, fs = combine_interpolation_nodes_fast_vector(new_nodes, new_fs,
+                                                                nodes, fs)
 
         I = np.dot(fs, coeffs) * (b - a) / 2
         if prevI is not None:
