@@ -71,8 +71,8 @@ class NDFun(object):
     def dump_symVars(self):
         for sv in self.Vars:
             print('{0}={1}'.format(sv.getSymname(), sv.getSym()))
-    def fun(self, *X):
-        pass
+    #def fun(self, *X):
+    #    pass
     def __call__(self, *X):
         if len(X) == 0:
             y = self.fun(*X)
@@ -115,14 +115,7 @@ class NDFun(object):
         #inv_transf, inv_transf_vars, jacobian = self.var_change_helper(vari, varj)
         NDinv_transf = NDDistrWithVarSubst(self, vari, inv_transf, inv_transf_vars)
         return NDProductDistr([NDinv_transf, jacobian])
-
-#        vars_change = []
-#        for i in range(len(self.Vars)):
-#            if id(vari)==self.Vars[i].id():
-#                vars_change.append(varj)
-#            else:
-#                vars_change.append(self.Vars[i])
-#        return NDDistrWithVarChange(self, vars_change)
+    
     def eliminate(self, var, a=None, b=None):
         """Integrate out var, i.e. return the marginal on all
         remaining variables.
@@ -165,11 +158,6 @@ class NDFun(object):
 #            return y
         if self.d == 1:
             X = []
-#            if hasattr(self, "f"):
-#                y = integrate_fejer2(partial(integ_f, self.fun, arg, c_var, v1, X), self.f.a[v1], self.f.b[v1])
-#            else:
-#                y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X), self.a[v1], self.b[v1])
-#            return NDConstFactor(y[0])
             if hasattr(self, "f"):
                 y = integrate_fejer2(partial(InterpRunner(self.fun, arg, c_var, v1).integ_f, X), self.f.a[v1], self.f.b[v1])
             else:
@@ -185,6 +173,7 @@ class NDFun(object):
 
 
 class InterpRunner(object):
+    """Helper class for fixes."""
     def __init__(self, f, arg, c_var, v1):
         self.ndfun = f
         self.arg = arg
@@ -201,8 +190,7 @@ class InterpRunner(object):
             y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])[0]
         return y
     def interpxx(self, *X):
-        """convolution of f and g
-        """
+        """Integrate f over v1 for many values of X."""
         ndfun = self.ndfun
         v1 = self.v1
         if isscalar(X[0]):
@@ -212,17 +200,40 @@ class InterpRunner(object):
             else:
                 y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
             return y[0]
-        xx = transpose(array(X))
-        if isscalar(xx):
-            xx=asfarray([xx])
-        #print ">>>>>>>>", xx
-        p_map = get_parmap()
-        res = p_map(self.interp_fx, xx)
-        res = array(res)
-        return res
+        if hasattr(self.ndfun, "f"):
+            y = integrate_fejer2_vector(partial(self.integ_f_vec, X), ndfun.f.a[v1], ndfun.f.b[v1])
+        else:
+            y = integrate_fejer2_vector(partial(self.integ_f_vec, X), ndfun.a[v1], ndfun.b[v1])
+        return y[0]
+        #xx = transpose(array(X))
+        #if isscalar(xx):
+        #    xx=asfarray([xx])
+        ##print ">>>>>>>>", xx
+        #p_map = get_parmap()
+        #res = p_map(self.interp_fx, xx)
+        #res = array(res)
+        #return res
 
+    def integ_f_vec(self, X, x1):
+        """Helper function for vector integration."""
+        print("QQQQ", X[0].shape, x1.shape, X[0].shape[0]*x1.shape[0]*len(X))
+        #import ipdb;ipdb.set_trace()
+        f = self.ndfun
+        arg = self.arg
+        c_var = self.c_var
+        v1 = self.v1
+        Xcol = [None] * f.d
+        for i, j in enumerate(c_var):
+            Xcol[j] = np.repeat(X[i], len(x1), axis=-1)
+            #Xcol[j] = zeros(len(x1)) + X[i]
+        Xcol[v1] = np.tile(x1, X[0].shape)
+        #Xcol[v1] = x1
+        print("X")
+        y = f(*Xcol)
+        print("Y")
+        y = y.reshape(-1, *x1.shape) # shape neeed for integrate_fejer2_vector
+        return y
     def integ_f(self, X, x1):
-        #print ":::", X, x1
         f = self.ndfun
         arg = self.arg
         c_var = self.c_var
@@ -243,12 +254,6 @@ class InterpRunner(object):
         arg = self.arg
         c_var = self.c_var
         v1 = self.v1
-#        print "======="
-#        print ndfun, arg, c_var, v1, X[0]
-#        print self.ndfun.a
-#        print self.ndfun.b
-#        print self.ndfun.a[v1]
-#        print self.ndfun.b[v1]
         if isscalar(X[0]):
             # TODO: fix integration bounds!!!!
             if hasattr(self.ndfun, "f"):
