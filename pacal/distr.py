@@ -148,7 +148,7 @@ class Distr(RV):
         else:
             return seg.integrate(x)
     def log_pdf(self,x):
-        return log(self.pdf())
+        return log(self.pdf(x))
     def mean(self):
         """Mean of the distribution."""
         return self.get_piecewise_pdf().mean()
@@ -578,7 +578,7 @@ class FuncDistr(FuncRV, OpDistr):
     def pdf(self, x):
         y = self.d.pdf(self.f_inv(x)) * abs(self.f_inv_deriv(x))
         if isscalar(x):
-            if not isfinite(self.f):
+            if not isfinite(y):
                 y = 0
         else:
             mask = isfinite(y)
