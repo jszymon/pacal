@@ -11,7 +11,7 @@ class TestLogLogistic:
         self.distrs = [LogLogisticDistr(k) for k in test_ks]
     def test_int_error(self):
         for d in self.distrs:
-            assert np.abs(d.int_error() <= 2e-15)
+            assert np.abs(d.int_error() <= 2.5e-15)
     def theor_moment(self, d, i):
         k, s = d.k, d.s
         if i >= k:
