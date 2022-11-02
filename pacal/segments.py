@@ -24,7 +24,7 @@ from numpy import argmax, argmin
 import numpy
 from pylab import plot, semilogx, xlabel, ylabel, axis, loglog, figure, subplot
 
-from scipy.optimize.optimize import fminbound
+from scipy.optimize import fminbound
 
 
 
@@ -144,7 +144,7 @@ class Segment(object):
         return y
 
     def integrate(self, a = None, b = None):
-        """definite integral over interval (c, d) \cub (a, b) """
+        """definite integral over interval (c, d) \\cub (a, b) """
         if a==None or a<self.a :
             a=self.a
         if b==None or b>self.b:
@@ -465,7 +465,7 @@ class ConstSegment(Segment):
     def __call__(self, x):
         return select([(x>=self.a) & (x<=self.b)], [self.const], 0)
     def integrate(self, a = None, b = None):
-        """definite integral over interval (c, d) \cub (a, b) """
+        """definite integral over interval (c, d) \\cub (a, b) """
         if a==None or a<self.a :
             a=self.a
         if b==None or b>self.b:
@@ -497,7 +497,7 @@ class MInfSegment(Segment):
             x = x-1.2*abs(x-self.b)
         return x
     def integrate(self, a = None, b = None):
-        """definite integral over interval (c, d) \cub (a, b) """
+        """definite integral over interval (c, d) \\cub (a, b) """
         if b==None or b>self.b:
             b=self.b
         if a==None or isneginf(a):
@@ -556,7 +556,7 @@ class PInfSegment(Segment):
             x = x+1.2*abs(x-self.a)
         return x
     def integrate(self, a = None, b = None):
-        """definite integral over interval (c, d) \cub (a, b) """
+        """definite integral over interval (c, d) \\cub (a, b) """
         if a==None or a<self.a:
             a=self.a
         if b==None or isposinf(b):
@@ -589,7 +589,7 @@ class PInfSegment(Segment):
 
 class DiracSegment(Segment):
     """Segment = single Dirac function at point a
-    f(x) = ya * delta(x-a), \int_{-inf}^{+inf} f(x) = ya
+    f(x) = ya * delta(x-a), \\int_{-inf}^{+inf} f(x) = ya
     """
     def __init__(self, a, ya):
         super(DiracSegment, self).__init__(a, a, ya)
@@ -716,7 +716,7 @@ class SegmentWithPole(Segment):
         super(SegmentWithPole, self).__init__(a, b, f, safe_a, safe_b)
         self.left_pole = left_pole
     def integrate(self, a = None, b = None):
-        """definite integral over interval (c, d) \cub (a, b) """
+        """definite integral over interval (c, d) \\cub (a, b) """
         if a == None or a < self.a :
             a = self.a
         if b == None or b > self.b:
@@ -1475,7 +1475,7 @@ class PiecewiseFunction(object):
                 segments.append(seg)
         return segments
     def printtex(self):
-        str = "\\begin{tabular}{|r|l|c|c|c|}\hline\n"
+        str = "\\begin{tabular}{|r|l|c|c|c|}\\hline\n"
         i = 0
         row = '$i$ & type & $a_i$ & $b_i$ & $n_i$ \\\\ \\hline\\hline\n'
         str+=row
@@ -1943,7 +1943,7 @@ class PiecewiseDistribution(PiecewiseFunction):
 
 class CumulativePiecewiseFunction(PiecewiseFunction):
     """
-    it represent cumulative intntegral \int_{-\infty}^x f(t) dt
+    it represent cumulative intntegral \\int_{-\\infty}^x f(t) dt
     where f is a piecewise function
     """
     def __init__(self, segments = []):

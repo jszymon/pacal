@@ -32,7 +32,7 @@ import mpl_toolkits.mplot3d.axes3d as p3
 
 
 try:
-    from scipy.optimize.optimize import fminbound
+    from scipy.optimize import fminbound
     have_Scipy_optimize = True
 except ImportError:
     have_Scipy_optimize = False
@@ -226,7 +226,7 @@ class Copula(NDDistr):
                     c[i, j] = self.corrcoef(i, j)                                          
             return c
     def tau(self, i=None, j=None):
-        """Kendall's tau: 4*\int C(x,y) dC(x,y)-1
+        """Kendall's tau: 4*\\int C(x,y) dC(x,y)-1
         """
         if i is not None and j is not None:
             var, c_var = self.prepare_var([i, j])
@@ -251,7 +251,7 @@ class Copula(NDDistr):
         """
         return 4*self.ccdf(0.5,0.5)-1
     def rho_s(self, i=None, j=None):
-        """Spearmans rho: 12*\int x*y dC(x,y)-3 = 12 \int C(d,y)dxdy - 3
+        """Spearmans rho: 12*\\int x*y dC(x,y)-3 = 12 \\int C(d,y)dxdy - 3
         """
         if i is not None and j is not None:
             var, c_var = self.prepare_var([i, j])
@@ -271,7 +271,7 @@ class Copula(NDDistr):
             return c
 
     def ctau(self, i=None, j=None):
-        """Kendall's tau: 4*\int C(x,y) dC(x,y)-1
+        """Kendall's tau: 4*\\int C(x,y) dC(x,y)-1
         """
         if i is not None and j is not None:
             var, c_var = self.prepare_var([i, j])
