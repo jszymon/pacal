@@ -12,7 +12,6 @@ from functools import partial
 import traceback
 
 from numpy import size, isnan, linspace, zeros, array, unique, isinf, zeros_like
-from numpy import asfarray
 import sympy
 from pylab import legend, figure, plot, axis
 
@@ -637,7 +636,7 @@ class TwoVarsModel(Model):
         y = self.symvars[1]
         lop = sympy.lambdify([x, y], op, "numpy")
         if size(xx) == 1:
-            xx = asfarray([xx])
+            xx = asarray([xx])
         wyn = zeros_like(xx)
         P = self.nddistr
         #fun = lambda t : P.cdf(t, self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))

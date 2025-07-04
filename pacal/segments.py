@@ -13,10 +13,10 @@ from .utils import epsunique, estimateDegreeOfPole, testPole, findinv, findinv_m
 
 from . import params
 
-from numpy import asfarray
+import numpy as np
 from numpy import linspace, multiply, add, divide, size
 from numpy import unique, union1d, isnan, isscalar, diff, size
-from numpy import inf, Inf, NaN, sign, isinf, isfinite, exp, isneginf, isposinf
+from numpy import sign, isinf, isfinite, exp, isneginf, isposinf
 from numpy import logspace, sqrt, minimum, maximum, pi, mean, log10
 from numpy import append, nan_to_num, select
 from numpy.random import uniform
@@ -67,10 +67,10 @@ def _op_one_over_x(x):
         if x != 0:
             y = 1.0 / x
         else:
-            y = Inf
+            y = np.inf
     else:
         mask = (x != 0.0)
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x, dtype=float)
         y[mask] = 1.0 / x[mask]
     return y
 def _op_one_over_xsqaure(x):
@@ -78,10 +78,10 @@ def _op_one_over_xsqaure(x):
         if x != 0:
             y = 1.0 / x**2
         else:
-            y = Inf
+            y = np.inf
     else:
         mask = (x != 0.0)
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x)
         y[mask] = 1.0 / (x[mask])**2
     return y
 
@@ -127,6 +127,23 @@ class Segment(object):
         self.safe_a = float(safe_a) # TODO: why do we need floats here?
         self.safe_b = float(safe_b)
 
+    def isSegment(self):
+        return True
+    def isDirac(self):
+        return False
+    def hasLeftPole(self):
+        return False
+    def hasRightPole(self):
+        return False
+    def hasPole(self):
+        return self.hasLeftPole() or self.hasRightPole()
+    def isPInf(self):
+        return False
+    def isMInf(self):
+        return False
+    def isMorPInf(self):
+        return self.isMInf() or self.isPInf()
+
     def __str__(self):
         return "{0}, [{1}, {2}]".format(self.__class__.__name__, self.a, self.b)
     def __repr__(self):
@@ -166,6 +183,26 @@ class Segment(object):
         return self.toInterpolatedSegment().roots()
     def trim(self):
         return self
+
+    def maximum(self):
+        if self.hasLeftPole():
+            xi = fminbound(lambda x: -self(x) + 1e-14, self.a, self.b, xtol = 1e-16)
+        elif self.hasRightPole() :
+            xi = fminbound(lambda x: -self(x), self.a + 1e-14, self.b, xtol = 1e-16)
+        else:
+            xi = fminbound(lambda x: -self(x), self.a, self.b, xtol = 1e-16)
+        mi = float(self.f(xi))
+        return xi, mi
+    def minimum(self):
+        if self.hasLeftPole():
+            xi = fminbound(self, self.a, self.b, xtol = 1e-16)
+        elif self.hasRightPole() :
+            xi = fminbound(self, self.a + 1e-14, self.b, xtol = 1e-16)
+        else:
+            xi = fminbound(self, self.a, self.b, xtol = 1e-16)
+        mi = float(self.f(xi))
+        return xi, mi
+
 
     def toInterpolatedSegment(self, left_pole = False, NoL = False, right_pole = False, NoR = False):
         if left_pole or right_pole:
@@ -258,9 +295,9 @@ class Segment(object):
         numberOfPoints = params.segments.plot.numberOfPoints
         xmin = self.a
         xmax = self.b
-        if (xmin == -Inf):
+        if (xmin == -np.inf):
             xmin = self.findLeftpoint()
-        if (xmax == Inf):
+        if (xmax == np.inf):
             xmax = self.findRightpoint()
         #xi = logspace(log10(xmin), log10(xmax), numberOfPoints)
         #xi = linspace(xmin, xmax, numberOfPoints)
@@ -432,22 +469,6 @@ class Segment(object):
             return True
         else:
             return False
-    def isSegment(self):
-        return True
-    def isDirac(self):
-        return False
-    def hasLeftPole(self):
-        return False
-    def hasRightPole(self):
-        return False
-    def hasPole(self):
-        return self.hasLeftPole() or self.hasRightPole()
-    def isPInf(self):
-        return False
-    def isMInf(self):
-        return False
-    def isMorPInf(self):
-        return self.isMInf() or self.isPInf()
 
 class ConstFun(object):
     def __init__(self, c):
@@ -476,7 +497,7 @@ class ConstSegment(Segment):
 class MInfSegment(Segment):
     """Segment on the range [-inf, b)."""
     def __init__(self, b, f):
-        super(MInfSegment, self).__init__(-Inf, b, f)
+        super(MInfSegment, self).__init__(-np.inf, b, f)
     def toInterpolatedSegment(self):
         return MInfInterpolatedSegment(self.b,
                                    #ChebyshevInterpolator_MInf(self.f, self.b))
@@ -496,6 +517,36 @@ class MInfSegment(Segment):
         while (isfinite(x) and self.f(x) > 1e-16):
             x = x-1.2*abs(x-self.b)
         return x
+    def maximum(self):
+        fa = self(self.a)
+        fb = self(self.b)
+        if fb >= fa:
+            f1 = fb
+            x1 = self.b
+        else:
+            f1 = fa
+            x1 = self.a
+        xi = fminbound(lambda x: -self(x), self.findLeftpoint(), self.b, xtol = 1e-16)
+        fi = self(xi)
+        if fi > f1:
+            f1 = fi
+            x1 = xi
+        return x1, f1
+    def minimum(self):
+        fa = self(self.a)
+        fb = self(self.b)
+        if fb <= fa:
+            f1 = fb
+            x1 = self.b
+        else:
+            f1 = fa
+            x1 = self.a
+        xi = fminbound(self, self.findLeftpoint(), self.b, xtol = 1e-16)
+        fi = self(xi)
+        if fi < f1:
+            f1 = fi
+            x1 = xi
+        return x1, f1
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \\cub (a, b) """
         if b==None or b>self.b:
@@ -532,7 +583,7 @@ class PInfSegment(Segment):
     """Segment = (a, inf]
     """
     def __init__(self, a, f):
-        super(PInfSegment, self).__init__(a, Inf, f)
+        super(PInfSegment, self).__init__(a, np.inf, f)
     def toInterpolatedSegment(self):
         return PInfInterpolatedSegment(self.a,
                                    #ChebyshevInterpolator_PInf(self.f, self.a))
@@ -555,6 +606,36 @@ class PInfSegment(Segment):
                 break
             x = x+1.2*abs(x-self.a)
         return x
+    def maximum(self):
+        fa = self(self.a)
+        fb = self(self.b)
+        if fa >= fb:
+            f1 = fa
+            x1 = self.a
+        else:
+            f1 = fb
+            x1 = self.b
+        xi = fminbound(lambda x: -self(x), self.a, self.findRightpoint(), xtol = 1e-16)
+        fi = self(xi)
+        if fi > f1:
+            f1 = fi
+            x1 = xi
+        return x1, f1
+    def minimum(self):
+        fa = self(self.a)
+        fb = self(self.b)
+        if fa <= fb:
+            f1 = fa
+            x1 = self.a
+        else:
+            f1 = fb
+            x1 = self.b
+        xi = fminbound(self, self.a, self.findRightpoint(), xtol = 1e-16)
+        fi = self(xi)
+        if fi < f1:
+            f1 = fi
+            x1 = xi
+        return x1, f1
     def integrate(self, a = None, b = None):
         """definite integral over interval (c, d) \\cub (a, b) """
         if a==None or a<self.a:
@@ -639,6 +720,10 @@ class DiracSegment(Segment):
         return self
     def roots(self):
         return array([])
+    def maximum(self):
+        return self.a, self.f
+    def minimum(self):
+        return self.a, self.f
 
 class InterpolatedSegment(Segment):
     """Interpolated Segment on interval [a, b]
@@ -678,9 +763,9 @@ class InterpolatedSegment(Segment):
         Xs, Ys = self.f.getNodes()
         xmin = self.a
         xmax = self.b
-        if (xmin == -Inf):
+        if (xmin == -np.inf):
             xmin = self.findLeftpoint()
-        if (xmax == Inf):
+        if (xmax == np.inf):
             xmax = self.findRightpoint()
         Ys=Ys[Xs>=xmin]
         Xs=Xs[Xs>=xmin]
@@ -1048,9 +1133,9 @@ class PiecewiseFunction(object):
     def integrate(self, a = None, b = None):
         I = 0.0
         if a==None:
-            a = -Inf
+            a = -np.inf
         if b==None:
-            b = +Inf
+            b = +np.inf
         for seg in self.segments:
             i = seg.integrate(a, b)
             I = I + i
@@ -1163,38 +1248,20 @@ class PiecewiseFunction(object):
             return x1, m1
     def maximum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
-        m = -inf
+        m = -np.inf
         x = None
         for seg in self.segments:
-            if not seg.isDirac() :
-                if seg.hasLeftPole():
-                    xi = fminbound(lambda x: -seg(x) + 1e-14, seg.a, seg.b, xtol = 1e-16)
-                elif seg.hasRightPole() :
-                    xi = fminbound(lambda x: -seg(x), seg.a + 1e-14, seg.b, xtol = 1e-16)
-                else:
-                    xi = fminbound(lambda x: -seg(x), seg.a, seg.b, xtol = 1e-16)
-                mi = float(seg.f(xi))
-            else:
-                xi, mi = seg.a, seg.f
+            xi, mi = seg.maximum()
             if m < mi:
                 m = mi
                 x = xi
         return x, m
     def minimum(self):
         """Mode, using scipy's function fminbound, may be inaccurate """
-        m = inf
+        m = np.inf
         x = None
         for seg in self.segments:
-            if not seg.isDirac() :
-                if seg.hasLeftPole():
-                    xi = fminbound(seg, seg.a, seg.b, xtol = 1e-16)
-                elif seg.hasRightPole() :
-                    xi = fminbound(seg, seg.a + 1e-14, seg.b, xtol = 1e-16)
-                else:
-                    xi = fminbound(seg, seg.a, seg.b, xtol = 1e-16)
-                mi = float(seg.f(xi))
-            else:
-                xi, mi = seg.a, seg.f
+            xi, mi = seg.minimum()
             if m > mi:
                 m = mi
                 x = xi
@@ -1738,13 +1805,13 @@ class PiecewiseFunction(object):
                 if segi.isMInf():
                     #x = findinv(segi.f, a = segi.findLeftEps(), b = segi.b, c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
                     if y == 0:
-                        x = -inf
+                        x = -np.inf
                     else:
                         x = findinv_minf(segi.f, b = segi.b, c = y, rtol = params.segments.cumint.reltol, xtol=params.segments.cumint.abstol, maxiter = params.segments.cumint.maxiter)
                 elif segi.isPInf():
                     #x = findinv(segi.f, a = segi.a, b = segi.findRightEps(), c = y, rtol = params.segments.cumint.reltol, maxiter = params.segments.cumint.maxiter)
                     if y == 1:
-                        x = inf
+                        x = np.inf
                     else:
                         x = findinv_pinf(segi.f, a = segi.a, c = y, rtol = params.segments.cumint.reltol, xtol=params.segments.cumint.abstol, maxiter = params.segments.cumint.maxiter)
                 else:
@@ -1757,13 +1824,13 @@ class PiecewiseFunction(object):
             m = min(min(v) for v in self.getSegVals())
             M = max(max(v) for v in self.getSegVals())
             if 0 <= y < m:
-                x = -inf
+                x = -np.inf
             if 1 >= y > M:
-                x = inf
+                x = np.inf
         if x is None: # It means
             print("ASSERT x is None y=", y, self.__str__())
             print("ASSERT x is None vals=", vals)
-            x = NaN
+            x = np.nan
         return x
     def inverse(self, y):
         if isscalar(y):
@@ -1834,7 +1901,7 @@ class PiecewiseDistribution(PiecewiseFunction):
             E += e
             I = I + i
         if E>1.0e-1:
-            return NaN
+            return np.nan
         return I
     def meanf(self, f=None):
         """it gives mean value of f(X) (i.e. E(f(X)))
@@ -1854,7 +1921,7 @@ class PiecewiseDistribution(PiecewiseFunction):
             absI += abs(i)
         if  absI > 0 and abs(E/absI)>1.0e-3 and abs(absI)>1e-10:
             #print I, absI, E
-            return NaN
+            return np.nan
         return I
 
     def median(self):
@@ -1872,7 +1939,7 @@ class PiecewiseDistribution(PiecewiseFunction):
             i = seg.f*(seg.a - m) ** 2
             I += i
         if E>1.0e-0:
-            return Inf
+            return np.inf
         else:
             return I
 
@@ -1894,16 +1961,7 @@ class PiecewiseDistribution(PiecewiseFunction):
         m = 0
         x = None
         for seg in self.segments:
-            if not seg.isDirac() :
-                if seg.hasLeftPole():
-                    xi = fminbound(lambda x: -seg(x) + 1e-14, seg.a, seg.b, xtol = 1e-16)
-                elif seg.hasRightPole() :
-                    xi = fminbound(lambda x: -seg(x), seg.a + 1e-14, seg.b, xtol = 1e-16)
-                else:
-                    xi = fminbound(lambda x: -seg(x), seg.a, seg.b, xtol = 1e-16)
-                mi = float(seg.f(xi))
-            else:
-                xi, mi = seg.a, seg.f
+            xi, mi = seg.maximum()
             if m < mi:
                 m = mi
                 x = xi
@@ -2294,7 +2352,7 @@ if __name__ == "__main__":
 #
 #    #d.plot()
 #    #fig = plt.figure()
-#    #print estimateDegreeOfZero(h, Inf)
+#    #print estimateDegreeOfZero(h, np.inf)
 #
 #    #intf =  f.integrate()
 #    #intg =  g.integrate()

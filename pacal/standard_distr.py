@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import numpy as np
-from numpy import isscalar, zeros_like, asfarray, zeros, cumsum, array, searchsorted, bincount
+from numpy import isscalar, zeros_like, zeros, cumsum, array, searchsorted, bincount
 from numpy import pi, sqrt, exp, log, log1p, cos, floor
 from numpy.random import normal, uniform, chisquare, exponential, gamma, beta, pareto, laplace, standard_t, weibull, gumbel, randint
 from numpy.random import f as f_rand
@@ -273,7 +273,7 @@ class ChiSquareDistr(Distr):
             else:
                 y = exp(self.log_pdf(x))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = (x > 0)
             y[mask] = exp(self.log_pdf(x[mask]))
             mask_zero = (x == 0)
@@ -331,7 +331,7 @@ class ExponentialDistr(Distr):
             else:
                 y = self.lmbda * exp(-self.lmbda * x)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x >= 0)
             y[mask] = self.lmbda * exp(-self.lmbda * x[mask])
         return y
@@ -378,7 +378,7 @@ class GammaDistr(Distr):
             else:
                 y = exp(self.log_pdf(x))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x > 0)
             y[mask] = exp(self.log_pdf(x[mask]))
             mask_zero = (x == 0)
@@ -421,7 +421,7 @@ class BetaDistr(Distr):
             else:
                 y = exp(self.lg_norm + log(x)*(self.alpha - 1) + log(1-x)*(self.beta - 1))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x >= 0) & (x <= 1)
             y[mask] = exp(self.lg_norm + log(x[mask])*(self.alpha - 1) + log(1-x[mask])*(self.beta - 1))
         return y
@@ -471,7 +471,7 @@ class ParetoDistr(Distr):
             else:
                 y = self.nrm / x ** (self.alpha + 1)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x >= self.xmin)
             y[mask] = self.nrm / x[mask] ** (self.alpha + 1)
         return y
@@ -503,7 +503,7 @@ class LevyDistr(Distr):
             else:
                 y = self.nrm * exp(log(x - self.xmin)*(-1.5) -0.5 * self.c / (x - self.xmin))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x > self.xmin)
             y[mask] = self.nrm * exp(log(x[mask] - self.xmin)*(-1.5) -0.5 * self.c / (x[mask] - self.xmin))
         return y
@@ -587,7 +587,7 @@ class SemicircleDistr(Distr):
                 y = self.norm * sqrt(self.R*self.R - x*x)
         else:
             mask = (-self.R <= x) & (x <= self.R)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             y[mask] = self.norm * sqrt(self.R*self.R - x*x)
         return y
     def init_piecewise_pdf(self):
@@ -628,7 +628,7 @@ class FDistr(Distr):
                 lgy = self.lg_norm + 0.5 * (self.df1 * log(self.df1*x) - (self.df1 + self.df2) * log(self.df1 * x + self.df2)) - log(x)
                 y = exp(lgy)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             y[x==0] = self.pdf_at_0
             mask = (x > 0)
             lgy = self.lg_norm + 0.5 * (self.df1 * log(self.df1*x[mask]) - (self.df1 + self.df2) * log(self.df1 * x[mask] + self.df2)) - log(x[mask])
@@ -680,7 +680,7 @@ class WeibullDistr(Distr):
             else:
                 y = self.nrm * exp(log(x / self.lmbda)*(self.k-1) - (x / self.lmbda)**self.k)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (x > 0)
             y[mask] = self.nrm * exp(log(x[mask] / self.lmbda)*(self.k-1) - (x[mask] / self.lmbda)**self.k)
             mask_zero = (x == 0)
@@ -765,7 +765,7 @@ class FrechetDistr(Distr):
             else:
                 y = self.nrm * exp(-(self.alpha+1) * log(t) - t ** (-self.alpha))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x)
             mask = (t > 0)
             y[mask] = self.nrm * exp(-(self.alpha+1) * log(t[mask]) - t[mask] ** (-self.alpha))
         return y
@@ -818,7 +818,7 @@ class LogLogisticDistr(Distr):
           - 2*np.logaddexp(self.log_s_pow_k, self.k*lx)
         
     def pdf(self, x):
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x)
         mask = (x >= 0)
         # pdf form from www.randomservices.org
         #y[mask] = self.k * self.s_pow_k * x[mask]**(self.k-1) \
@@ -877,8 +877,8 @@ class MollifierDistr(Distr):
                 t = x / self.epsilon
                 y = self.nrm * exp(-1.0 / (1 - t*t))
         else:
-            y = zeros_like(asfarray(x))
-            mask = abs(x) < self.epsilon
+            y = zeros_like(x)
+            mask = (abs(x) < self.epsilon)
             y[mask] = self.nrm * exp(-1.0 / (1 - (x[mask] / self.epsilon)**2))
         return y
     def init_piecewise_pdf(self):

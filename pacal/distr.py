@@ -8,8 +8,9 @@ import numbers
 from functools import partial
 
 import numpy
+import numpy as np
 from numpy import array, zeros_like, ones_like, unique, concatenate, isscalar, isfinite
-from numpy import sqrt, pi, arctan, tan, asfarray, asarray, zeros, Inf, NaN
+from numpy import sqrt, pi, arctan, tan, asarray, zeros
 #from numpy import sin, cos, tan,
 from numpy import arcsin, arccos
 from numpy.random import uniform

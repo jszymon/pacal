@@ -20,7 +20,7 @@ import warnings
 
 from functools import partial
 
-from numpy import array, asfarray, zeros_like, ones_like, asarray, atleast_1d
+from numpy import array, asarray, zeros_like, ones_like, asarray, atleast_1d
 from numpy import array_split, concatenate, squeeze
 from numpy import where, dot, zeros
 from numpy import maximum
@@ -106,7 +106,7 @@ class BarycentricInterpolator(Interpolator):
         """Barycentric interpolation"""
         scalar_x = isscalar(x)
         if have_Cython:
-            y = bary_interp(self.Xs, self.Ys, self.weights, asfarray(atleast_1d(x)))
+            y = bary_interp(self.Xs, self.Ys, self.weights, asarray(atleast_1d(x), dtype=float))
             if scalar_x:
                 y = y[0]
         else:
@@ -535,7 +535,7 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
                 y = exp(super(LogTransformInterpolator, self).interp_at(self.xtinv(x)))
             return y
         else:
-            x = asfarray(x)
+            x = asarray(x, dtype=float)
             y = zeros_like(x)
             mask = (x <= self.orig_b)
             y[mask] = exp(super(LogTransformInterpolator, self).interp_at(self.xtinv(x[mask])))
@@ -553,8 +553,8 @@ class LogTransformInterpolator(ChebyshevInterpolatorNoR):
 #        self.f = f
 #        self.a = 0
 #        self.b = b
-#        Xs = asfarray([0])
-#        Ys = asfarray([0])
+#        Xs = asarray([0.0])
+#        Ys = asarray([0.0])
 #        poly = [0]
 #        d = 3
 #        cm = convergence_monitor()
@@ -596,7 +596,7 @@ class PoleInterpolatorP(ChebyshevInterpolatorNoL):
             self.wrapped_f = f
         self.orig_a = a
         self.orig_b = b
-        self.sign = int(sign(self.wrapped_f(float(a + b) / 2)))
+        self.sign = int(sign(self.wrapped_f(float(a + b) / 2)).item())
         if self.sign == 0:
             self.sign = 1
         if a == 0:
@@ -645,7 +645,7 @@ class PoleInterpolatorN(ChebyshevInterpolatorNoR):
             self.wrapped_f = f
         self.orig_a = a
         self.orig_b = b
-        self.sign = int(sign(self.wrapped_f(float(a + b) / 2)))
+        self.sign = int(sign(self.wrapped_f(float(a + b) / 2)).item())
         if b == 0:
             offset = 1e-50
         else:

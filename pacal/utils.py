@@ -20,11 +20,13 @@ import types
 from functools import partial
 import multiprocessing
 
+import numpy as np
+
 from numpy import array, arange, empty, cos, sin, abs
 from numpy import pi, isnan, unique, diff
 from numpy import hstack, maximum, isfinite
-from numpy import isinf, log, exp, logspace, Inf, nan
-from numpy import finfo, double, isscalar, asfarray
+from numpy import isinf, log, exp, logspace, inf, nan
+from numpy import finfo, double, isscalar, asarray
 from pylab import plot, loglog, show, semilogx, sqrt, figure
 from pylab import real, ones_like
 from numpy import zeros, sort
@@ -38,11 +40,12 @@ from scipy.optimize import fmin_cg,fmin, fmin_tnc
 
 from . import params
 
-# safe infinity
-try:
-    from numpy import Inf
-except:
-    Inf = float('inf')
+# safe infinity: remove after replacing with np.inf
+Inf = np.inf
+#try:
+#    from numpy import inf as Inf
+#except:
+#    Inf = float('inf')
 
 # function wrappers for avoiding lambdas
 
@@ -59,14 +62,14 @@ def wrap_pdf(pdf):
 def combine_interpolation_nodes(oldXs, oldYs, newXs, newYs):
     """Combine old and new interpolation nodes in sorted order."""
     XsYs_sorted = sorted(zip(list(oldXs) + list(newXs), list(oldYs) + list(newYs)))
-    Xs = array([t[0] for t in XsYs_sorted])
-    Ys = array([t[1] for t in XsYs_sorted])
+    Xs = np.array([t[0] for t in XsYs_sorted])
+    Ys = np.array([t[1] for t in XsYs_sorted])
     return Xs, Ys
 def combine_interpolation_nodes_fast(oldXs, oldYs, newXs, newYs):
     """Combine old and new interpolation nodes in sorted order."""
     newsize = len(oldXs) + len(newXs)
-    combinedXs = empty(newsize)
-    combinedYs = empty(newsize)
+    combinedXs = np.empty(newsize)
+    combinedYs = np.empty(newsize)
     combinedXs[::2] = oldXs
     combinedXs[1::2] = newXs
     combinedYs[::2] = oldYs
@@ -78,8 +81,8 @@ def combine_interpolation_nodes_fast_vector(oldXs, oldYs, newXs, newYs):
     Allow Ys to be an array.  Combining is done on last axis."""
     newsize = len(oldXs) + len(newXs)
     new_y_shape = oldYs.shape[:-1] + (newsize,)
-    combinedXs = empty(newsize)
-    combinedYs = empty(new_y_shape)
+    combinedXs = np.empty(newsize)
+    combinedYs = np.empty(new_y_shape)
     combinedXs[::2] = oldXs
     combinedXs[1::2] = newXs
     combinedYs[...,::2] = oldYs
@@ -93,7 +96,7 @@ def cheb_nodes(n, a = -1, b = 1):
     if n == 1:
         return array([apb])
     bma = 0.5 * (b - a)
-    cs = apb - bma * cos(arange(n) * pi / (n-1))
+    cs = apb - bma * np.cos(np.arange(n) * np.pi / (n-1))
     # ensure that endpoints are exact
     cs[0] = a
     cs[-1] = b
@@ -103,8 +106,8 @@ def cheb_nodes(n, a = -1, b = 1):
 def cheb_nodes_log(n, a = 1, b = 10):
     """Chebyshev nodes in logspace for given degree n"""
     assert(0 < a  < b)
-    cs = cos(arange(n) * pi / (n-1))
-    cs = exp(cs/2.0*log(b/a))*sqrt(a*b)
+    cs = np.cos(np.arange(n) * np.pi / (n-1))
+    cs = np.exp(cs/2.0*np.log(b/a))*np.sqrt(a*b)
     # ensure that endpoints are exact
     cs[0] = a
     cs[-1] = b
@@ -114,12 +117,12 @@ def chebspace(a, b, n, returnWeights=False):
     """Chebyshev nodes for given degree n"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    cs = apb - bma * cos(arange(n) * pi / (n-1))
+    cs = apb - bma * np.cos(np.arange(n) * np.pi / (n-1))
     # ensure that endpoints are exact
     cs[0] = a
     cs[-1] = b
     if returnWeights:
-        weights = ones_like(cs)
+        weights = np.ones_like(cs)
         weights[::2] = -1
         weights[0] /= 2
         weights[-1] /= 2
@@ -131,10 +134,10 @@ def chebspace1(a, b, n, returnWeights=False):
     """Chebyshev nodes for given degree n"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    cs = apb - bma * cos(arange(1, 2*n, 2) * pi / (2*n))
+    cs = apb - bma * np.cos(np.arange(1, 2*n, 2) * np.pi / (2*n))
     if returnWeights:
-        weights = ones_like(cs)
-        weights = sin(arange(1, 2 * n, 2) * pi / (2 * n))
+        weights = np.ones_like(cs)
+        weights = np.sin(np.arange(1, 2 * n, 2) * np.pi / (2 * n))
         weights[1::2] = -1 * weights[1::2]
         return cs, weights
     else:
@@ -144,12 +147,12 @@ def incremental_cheb_nodes(n, a = -1, b = 1):
     """Extra Chebyshev nodes added by moving from degree m to n=2*m-1"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    return apb - bma * cos(arange(1,n-1,2) * pi / (n-1))
+    return apb - bma * np.cos(np.arange(1,n-1,2) * np.pi / (n-1))
 
 def incremental_cheb_nodes_log(n, a = 1, b = 10):
     """Extra Chebyshev nodes in logspace added by moving from degree m to n=2*m-1"""
-    cs = cos(arange(1,n-1,2) * pi / (n-1))
-    return exp(cs/2.0*log(b/a))*sqrt(a*b)
+    cs = np.cos(np.arange(1,n-1,2) * np.pi / (n-1))
+    return np.exp(cs/2.0*np.log(b/a))*np.sqrt(a*b)
 
 def cheb_nodes1(n, a = -1, b = 1):
     """Chebyshev nodes of the first kind for given degree n.
@@ -157,21 +160,21 @@ def cheb_nodes1(n, a = -1, b = 1):
     These are roots of Cheb. polys of the 1st kind."""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    return apb - bma * cos(arange(1, 2*n, 2) * pi / (2*n))
+    return apb - bma * np.cos(np.arange(1, 2*n, 2) * np.pi / (2*n))
 
 def incremental_cheb_nodes1(n, a = -1, b = 1):
     """Extra Chebyshev nodes added by moving from degree m to n=2*m-1"""
     apb = 0.5 * (a + b)
     bma = 0.5 * (b - a)
-    ind = arange(0, n)
-    return apb - bma * cos((2*ind[((ind % 3) != 1)] + 1)* pi / (2*n))
+    ind = np.arange(0, n)
+    return apb - bma * np.cos((2*ind[((ind % 3) != 1)] + 1)* np.pi / (2*n))
 
 def chebt2(f):
     """chebyshev transformation, coefficients in expansion using
     Chebyshev polynomials T_n(x), see chebfun for details"""
     n = len(f)
-    oncircle = concatenate((f[-1::-1], f[1:-1]))
-    fftcoef = real(fft(oncircle))/(2*n-2)
+    oncircle = np.concatenate((f[-1::-1], f[1:-1]))
+    fftcoef = np.real(fft(oncircle))/(2*n-2)
     #print n, len(fftcoef)
     #print fftcoef[n-1:]
     #print fftcoef[n-1:0:-1]
@@ -182,50 +185,50 @@ def ichebt2(c):
     """inverse chebyshev transformation, values of function in Chebyshev
     nodes of the second kind, see chebfun for details"""
     n = len(c)
-    oncircle = concatenate(([c[-1]],c[-2:0:-1]/2, c[0:-1]/2));
-    v = real(ifft(oncircle));
-    f = (n-1)*concatenate(([2*v[0]], v[1:n-1]+v[-1:n-1:-1], [2*v[n-1]] ))
+    oncircle = np.concatenate(([c[-1]],c[-2:0:-1]/2, c[0:-1]/2));
+    v = np.real(ifft(oncircle));
+    f = (n-1)*np.concatenate(([2*v[0]], v[1:n-1]+v[-1:n-1:-1], [2*v[n-1]] ))
     return f
 
 def chebt1(f):
     #TODO
     """chebyshev transformation, see chebfun"""
     n = len(f)
-    oncircle = concatenate((f[-1::-1], f[1:-1]))
-    fftcoef = real(fft(oncircle))/(2*n-2)
+    oncircle = np.concatenate((f[-1::-1], f[1:-1]))
+    fftcoef = np.real(fft(oncircle))/(2*n-2)
     return fftcoef[n-1::-1]
 def ichebt1(c):
     #TODO
     """inverse chebyshev transformation, see chebfun"""
     n = len(c)
     print("tam===", n)
-    oncircle = concatenate((c[-1::-1], c[1:-1]));
+    oncircle = np.concatenate((c[-1::-1], c[1:-1]));
     print("v=", oncircle, n)
-    v = real(ifft(oncircle));
+    v = np.real(ifft(oncircle));
     print(v)
     print(v[-2:n:-1])
     print("|", v[1:-1])
-    f = (n-1)*concatenate(([2*v(1)], v[-2:n:-1]+v[1:-1], 2*v[-1]));
+    f = (n-1)*np.concatenate(([2*v(1)], v[-2:n:-1]+v[1:-1], 2*v[-1]));
     print("|", f)
     return f
 
 def cheb1companion(c):
     """s_n[f] = sum_{i=0}^n c_i T_i(x)"""
     n = len(c)
-    CT = zeros((n-1, n-1))
+    CT = np.zeros((n-1, n-1))
     CT[0,1] = 1
-    i=arange(1,n-2)
+    i=np.arange(1,n-2)
     CT[i, i-1] = 0.5
     CT[i, i+1] = 0.5
-    i=arange(0,n-1)
+    i=np.arange(0,n-1)
     CT[-1, i] = -.5*c[0:-1]/c[-1]
     CT[-1, -2] = CT[-1, -2] + .5
     return CT
 def chebroots(c):
-    return sort(eigvals(cheb1companion(c)))
+    return np.sort(eigvals(cheb1companion(c)))
 def epsunique(tab, eps = params.segments.unique_eps):
-    ub = unique(tab[isnan(tab)==False])
-    return ub[~isfinite(ub) | hstack((True, (diff(ub)/maximum(1,abs(ub[1:])))>eps))]
+    ub = np.unique(tab[isnan(tab)==False])
+    return ub[~np.isfinite(ub) | np.hstack((True, (np.diff(ub)/np.maximum(1,np.abs(ub[1:])))>eps))]
 
 def estimateDegreeOfPole(f, x, pos = True, fromTo = None, N = 10, deriv = False, debug_plot = False):
     if fromTo is None:
@@ -234,7 +237,7 @@ def estimateDegreeOfPole(f, x, pos = True, fromTo = None, N = 10, deriv = False,
         else:
             # testing around nonzero singularities is less accurate
             fromTo = (-1,-7)
-    ex = logspace(fromTo[0], fromTo[1], N)
+    ex = np.logspace(fromTo[0], fromTo[1], N)
     if pos:
         lx = x + ex
     else:
@@ -242,13 +245,13 @@ def estimateDegreeOfPole(f, x, pos = True, fromTo = None, N = 10, deriv = False,
     y = abs(f(lx))
     #if deriv:
     #    y -= min(y[isfinite(y)])
-    yi = log(y)
-    xi = log(abs(ex))
-    ind = isfinite(yi)
+    yi = np.log(y)
+    xi = np.log(np.abs(ex))
+    ind = np.isfinite(yi)
     xi = xi[ind]
     yi = yi[ind]
     ri = yi[0:-1] - yi[1:]
-    di = abs(xi[1:]-xi[0:-1])
+    di = np.abs(xi[1:]-xi[0:-1])
     if debug_plot:
         print(xi,yi, f(xi))
         loglog(xi,yi)
@@ -389,7 +392,7 @@ def stepfun(x, shift = 0.0):
 # Root finding
 
 try:
-    from scipy.optimize import ridder, brentq
+    from scipy.optimize import brentq
     have_scipy_opt = True
 except:
     have_scipy_opt = False
@@ -484,7 +487,7 @@ def estimateTailExponent(f, fromTo = None, N =300, deriv = False, debug_plot = F
     if len(yi) > 1:
         ex = ri[-1]/di[-1]
         if ex>50:
-            return Inf
+            return np.inf
         else:
             return ex
     else:
@@ -725,8 +728,8 @@ if __name__ == "__main__":
     #estimateDegreeOfZero(lambda x:(n+1)/(n) * x ** (1/n), 0)
     #estimateDegreeOfZero(lambda x:pi/2 * sqrt(1 - (x-1) ** 2), 0)
     #print estimateDegreeOfZero(lambda x: exp(-1/x), 0)
-    # estimateDegreeOfZero(lambda x: 1/(x+x**4), Inf)
-    # estimateDegreeOfZero(lambda x: exp(-x), Inf)
+    # estimateDegreeOfZero(lambda x: 1/(x+x**4), np.inf)
+    # estimateDegreeOfZero(lambda x: exp(-x), np.inf)
     #print findinv(lambda x: 1/(1+exp(-x)), a=-1e300, b=1e300, c=0.5, rtol =1e-16, maxiter = 10000)
 
     from numpy import ones_like, zeros_like

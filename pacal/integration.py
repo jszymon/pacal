@@ -19,7 +19,7 @@ from __future__ import print_function
 import numpy as np
 
 from numpy.fft import ifft
-from numpy import array, zeros, ones, hstack, arange, zeros_like, asfarray
+from numpy import array, zeros, ones, hstack, arange, zeros_like
 from numpy import dot, isscalar
 from numpy import finfo, double, isinf, isposinf, isneginf
 from numpy import ceil,log10, logspace

@@ -2,6 +2,7 @@ from __future__ import print_function
 
 from scipy.integrate import quad
 
+import numpy as np
 from numpy import cos, arange, pi
 import unittest
 from scipy.stats import *
@@ -34,7 +35,7 @@ class TestArith(unittest.TestCase):
         s = S.std()
         #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)
         te = time.time()
-        self.assertTrue(abs(s-sqrt(n))<1e-15 and (te-self.ts)<10, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
+        assert np.abs(s-sqrt(n))<1e-15 and (te-self.ts)<10, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts))
 
     def testCentralLimitUniform(self):
         #fig = plt.figure()
@@ -51,13 +52,14 @@ class TestArith(unittest.TestCase):
         #S.hist()
         m = S.mean()
         s = S.std()
+
         #Y = InterpolatedDistr(S)
-        #print "error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks)
+        #print("error =", S.err, "interp. nodes used =", S.n_nodes, "#breakpoints =", len(S.breaks))
         te = time.time()
         print(te-self.ts)
         print(s - sqrt(n/12.0))
         #self.assert_(abs(s-sqrt(n))<1e-14 and (te-self.ts)<1, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2})={3}, OR it should be faster time={4} s'.format(m,s,n,sqrt(n), (te - self.ts)))
-        self.assertTrue(abs(s-sqrt(n/12.0))<1e-14, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2}/12.0)={3}'.format(m,s,n,sqrt(n/12.0)))
+        assert np.abs(s-sqrt(n/12.0))<1e-14, 'difference in comparison with theoretical std: mean(X)={0}, std={1}, sqrt({2}/12.0)={3}'.format(m,s,n,sqrt(n/12.0))
 
     def testSumOfSquares(self):
         #fig = plt.figure()

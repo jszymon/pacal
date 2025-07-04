@@ -7,7 +7,8 @@ from functools import partial
 import bisect
 import operator
 
-from numpy import asfarray
+import numpy as np
+from numpy import asarray
 from numpy import multiply, add, divide
 from numpy import unique, isnan, isscalar, size, flatnonzero
 from numpy import sign, isinf, isfinite
@@ -106,9 +107,9 @@ def conv(f, g):
                             newbreak[4] = True
                     breaks.append(newbreak)
     if has_minf:
-        breaks = [[-Inf, False, False]] + breaks
+        breaks = [[-np.inf, False, False]] + breaks
     if has_pinf:
-        breaks.append([Inf, False, False])
+        breaks.append([np.inf, False, False])
     breaks = _unique_breakpoints(breaks)
 
     fg = PiecewiseDistribution([])
@@ -201,7 +202,7 @@ class Convxrunner(object):
         """convolution of f and g
         """
         if isscalar(xx):
-            xx=asfarray([xx])
+            xx=asarray([xx])
         #import traceback
         #print traceback.print_stack()
 
@@ -231,7 +232,7 @@ class Convxrunner(object):
         """convolution of f and g
         """
         if isscalar(xx):
-            xx=asfarray([xx])
+            xx=asarray([xx])
         p_map = get_parmap()
         res = p_map(self.convprod_at_point, xx)
         res = array(res)
@@ -240,7 +241,7 @@ class Convxrunner(object):
         """convolution of f and g
         """
         if isscalar(xx):
-            xx=asfarray([xx])
+            xx=asarray([xx])
         p_map = get_parmap()
         res = p_map(self.convdiv_at_point, xx)
         res = array(res)
@@ -249,7 +250,7 @@ class Convxrunner(object):
         """convolution of f and g
         """
         if isscalar(xx):
-            xx=asfarray([xx])
+            xx=asarray([xx])
         p_map = get_parmap()
         res = p_map(self.convmax_at_point, xx)
         res = array(res)
@@ -258,7 +259,7 @@ class Convxrunner(object):
         """Probabilistic minimum of f and g, integral at points xx.
         """
         if size(xx)==1:
-            xx=asfarray([xx])
+            xx=asarray([xx])
         p_map = get_parmap()
         res = p_map(self.convminx_at_point, xx)
         res = array(res)
@@ -671,7 +672,7 @@ def epseq(a,b):
 #    """Probabilistic weighted mean of f and g, integral at points xx
 #    """
 #    if size(xx)==1:
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    wyn = zeros_like(xx)
 #    for j in range(len(xx)):
 #        x = xx[j]
@@ -709,7 +710,7 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
     ub = unique(b)
     fg = PiecewiseDistribution([]);
     op = minimum
-    if ub[0] == -Inf:
+    if ub[0] == -np.inf:
         segList = _findSegList(f, g, ub[1] -1, op)
         #fun = partial(convminx, segList)
         fun = Convxrunner(segList, params.integration_infinite).convminx
@@ -717,7 +718,7 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
         segint = seg.toInterpolatedSegment()
         fg.addSegment(segint)
         ub=ub[1:]
-    if ub[-1] == Inf :
+    if ub[-1] == np.inf :
         segList = _findSegList(f, g, ub[-2] + 1, op)
         #fun = partial(convminx, segList)
         fun = Convxrunner(segList, params.integration_infinite).convminx
@@ -746,7 +747,7 @@ def convmin(f, g): #TODO : NOW  segments of f and g should have the same breakpo
 #    """Probabilistic minimum of f and g, integral at points xx.
 #    """
 #    if size(xx)==1:
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    p_map = get_parmap()
 #    res = p_map(partial(convminx_at_point, segList), xx)
 #    res = array(res)
@@ -833,7 +834,7 @@ def convmax(f, g):
 #    """Probabilistic maximum of f and g, integral at points xx
 #    """
 #    if size(xx)==1:
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    wyn = zeros_like(xx)
 #    funi = lambda t : segi.f(t)*segj.f(x)
 #    funj = lambda t : segi.f(x)*segj.f(t)
@@ -1001,7 +1002,7 @@ def convprod(f, g):
 #    """Probabilistic product (Melin's convolution), integral at points xx
 #    """
 #    if size(xx)==1:
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    wyn = zeros_like(xx)
 #    for j in range(len(xx)) :
 #        x = xx[j]
@@ -1108,9 +1109,9 @@ def convdiv(f, g):
     g_zero, g_zero_pos, g_zero_neg = _distr_zero_signs(g)
     if g_zero:
         if (f_pos and g_zero_neg) or (f_neg and g_zero_pos):
-            b = hstack([b, [-Inf]])
+            b = hstack([b, [-np.inf]])
         if (f_pos and g_zero_pos) or (f_neg and g_zero_neg):
-            b = hstack([b, [Inf]])
+            b = hstack([b, [np.inf]])
     if min(b)*max(b)<0:
         b = hstack([b, [0]])
     ub = epsunique(b)
@@ -1198,7 +1199,7 @@ def convdiv(f, g):
 #    integral at points xx, along X axis
 #    """
 #    if isscalar(xx):
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    res = zeros_like(xx)
 #    for j in xrange(len(xx)) :
 #        x = xx[j]
@@ -1248,7 +1249,7 @@ def convdiv(f, g):
 #    integral at points xx, along Y axis
 #    """
 #    if size(xx)==1:
-#        xx=asfarray([xx])
+#        xx=asarray([xx])
 #    res = zeros_like(xx)
 #    for j in xrange(len(xx)) :
 #        x = xx[j]

@@ -2,9 +2,8 @@
 
 from __future__ import print_function
 
-from numpy import Inf
 from numpy import hypot, sqrt, sign
-from numpy import array, asfarray, empty_like, isscalar, all, equal
+from numpy import array, asarray, empty_like, isscalar, all, equal
 
 
 class VarTransform(object):
@@ -16,7 +15,7 @@ class VarTransform(object):
             if isscalar(t):
                 x = 0 # must masked; can pick any value, use 0
             else:
-                t = asfarray(t)
+                t = asarray(t, dtype=float)
                 x = empty_like(t)
                 x[mask] = self.inv_var_change(t[mask])
         else:

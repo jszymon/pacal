@@ -7,7 +7,7 @@ from functools import partial
 from copy import copy
 
 import numpy
-from numpy import asfarray, asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
+from numpy import asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
 from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
 from numpy import linspace, meshgrid, transpose
 from numpy.linalg import det
@@ -214,7 +214,7 @@ class InterpRunner(object):
             return y[0]
         xx = transpose(array(X))
         if isscalar(xx):
-            xx=asfarray([xx])
+            xx=asarray([xx])
         #print ">>>>>>>>", xx
         p_map = get_parmap()
         res = p_map(self.interp_fx, xx)
@@ -256,7 +256,7 @@ class InterpRunner(object):
             else:
                 y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
             return y[0]
-        y = asfarray(zeros_like(X[0]))
+        y = asarray(zeros_like(X[0]))
         for i in range(len(X[0])):
             # TODO: fix integration bounds!!!!
             if hasattr(self.ndfun, "f"):
@@ -508,8 +508,8 @@ class NDOneFactor(NDConstFactor):
 
 class NDNormalDistr(NDDistr):
     def __init__(self, mu, Sigma, Vars=None):
-        mu = asfarray(mu)
-        Sigma = asmatrix(asfarray(Sigma))
+        mu = asarray(mu)
+        Sigma = asmatrix(asarray(Sigma))
         d = mu.shape[0]
         assert len(mu.shape) == 1
         assert len(Sigma.shape) == 2
@@ -526,10 +526,10 @@ class NDNormalDistr(NDDistr):
         self.nrm = 1.0 / sqrt(det(self.Sigma) * (2 * pi) ** self.d)
     def pdf(self, *X):
         if isscalar(X) or isscalar(X[0]):
-            X = asfarray(X) - self.mu
+            X = asarray(X) - self.mu
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
-            Xa = asfarray(X)
+            Xa = asarray(X)
             Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
@@ -558,8 +558,8 @@ class NDNormalDistr(NDDistr):
 
 class GausianCopula(NDDistr): # TODO
     def __init__(self, mu, Sigma, marginals=None):
-        mu = asfarray(mu)
-        Sigma = asmatrix(asfarray(Sigma))
+        mu = asarray(mu)
+        Sigma = asmatrix(asarray(Sigma))
         d = mu.shape[0]
         assert len(mu.shape) == 1
         assert len(Sigma.shape) == 2
@@ -578,12 +578,12 @@ class GausianCopula(NDDistr): # TODO
         self.nrm = 1.0 / sqrt(det(self.Sigma) * (2 * pi) ** self.d)
     def pdf(self, *X):
         if isscalar(X) or isscalar(X[0]):
-            X = asfarray(X) - self.mu
+            X = asarray(X) - self.mu
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
             print(X)
             X = [self.marginals[i].get_piecewise_cdfinv_interp()(X[i]) for i in range(len(X))]
-            Xa = asfarray(X)
+            Xa = asarray(X)
             print(Xa)
 
             Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
@@ -893,7 +893,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=10):
     Y = np.linspace(a[1], b[1], 100)
     X, Y = np.meshgrid(X, Y)
     #XY = np.column_stack([X.ravel(), Y.ravel()])
-    #Z = asfarray([f(xy) for xy in XY])
+    #Z = asarray([f(xy) for xy in XY])
     #Z.shape = (X.shape[0], Y.shape[0])
     Z = f(X, Y)
     #print "==", f,Z, (X<Y)
