@@ -7,13 +7,14 @@ from functools import partial
 from copy import copy
 
 import numpy
+import numpy as np
 from numpy import asmatrix, dot, delete, array, zeros, empty_like, isscalar, repeat, zeros_like, nan_to_num
 from numpy import pi, sqrt, exp, argmin, isfinite, concatenate, inf
 from numpy import linspace, meshgrid, transpose
 from numpy.linalg import det
 from pacal.utils import get_parmap
 
-from pylab import plot, contour, xlabel, ylabel, gca, mean
+from pylab import plot, contour, xlabel, ylabel, gca, gcf
 
 import sympy as sympy
 
@@ -214,7 +215,7 @@ class InterpRunner(object):
             return y[0]
         xx = transpose(array(X))
         if isscalar(xx):
-            xx=asarray([xx])
+            xx=np.asarray([xx])
         #print ">>>>>>>>", xx
         p_map = get_parmap()
         res = p_map(self.interp_fx, xx)
@@ -256,7 +257,7 @@ class InterpRunner(object):
             else:
                 y = integrate_fejer2(partial(self.integ_f, X), ndfun.a[v1], ndfun.b[v1])
             return y[0]
-        y = asarray(zeros_like(X[0]))
+        y = np.asarray(zeros_like(X[0]))
         for i in range(len(X[0])):
             # TODO: fix integration bounds!!!!
             if hasattr(self.ndfun, "f"):
@@ -366,7 +367,7 @@ class NDDistr(NDFun):
                     c[i, j] = self.cov(i,j)
             return c
     def mode(self):
-        mo = mean(array(getRanges(self.Vars)), axis=0)
+        mo = np.mean(array(getRanges(self.Vars)), axis=0)
         fo = self(*[mo[i] for i in range(len(mo))])
         r = getRanges(self.Vars)
         for i in range(100):
@@ -400,7 +401,8 @@ class NDDistr(NDFun):
         if tp == "contour":
             contour(X, Y, Z, 20, **kwargs)
         elif tp == "plot":
-            ax = gca(projection='3d')
+            ax = gcf().add_subplot(projection='3d')
+            #ax = gca(projection='3d')
             ax.plot_wireframe(X, Y, Z, **kwargs)
         else:
             raise RuntimeError("Wrong plot type")
@@ -508,8 +510,8 @@ class NDOneFactor(NDConstFactor):
 
 class NDNormalDistr(NDDistr):
     def __init__(self, mu, Sigma, Vars=None):
-        mu = asarray(mu)
-        Sigma = asmatrix(asarray(Sigma))
+        mu = np.asarray(mu)
+        Sigma = asmatrix(np.asarray(Sigma))
         d = mu.shape[0]
         assert len(mu.shape) == 1
         assert len(Sigma.shape) == 2
@@ -526,10 +528,10 @@ class NDNormalDistr(NDDistr):
         self.nrm = 1.0 / sqrt(det(self.Sigma) * (2 * pi) ** self.d)
     def pdf(self, *X):
         if isscalar(X) or isscalar(X[0]):
-            X = asarray(X) - self.mu
+            X = np.asarray(X) - self.mu
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
-            Xa = asarray(X)
+            Xa = np.asarray(X)
             Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
             Xa -= self.mu
             Z = (dot(Xa, self.invSigma) * Xa).sum(axis= -1)
@@ -558,8 +560,8 @@ class NDNormalDistr(NDDistr):
 
 class GausianCopula(NDDistr): # TODO
     def __init__(self, mu, Sigma, marginals=None):
-        mu = asarray(mu)
-        Sigma = asmatrix(asarray(Sigma))
+        mu = np.asarray(mu)
+        Sigma = asmatrix(np.asarray(Sigma))
         d = mu.shape[0]
         assert len(mu.shape) == 1
         assert len(Sigma.shape) == 2
@@ -578,12 +580,12 @@ class GausianCopula(NDDistr): # TODO
         self.nrm = 1.0 / sqrt(det(self.Sigma) * (2 * pi) ** self.d)
     def pdf(self, *X):
         if isscalar(X) or isscalar(X[0]):
-            X = asarray(X) - self.mu
+            X = np.asarray(X) - self.mu
             return self.nrm * exp(-0.5 * dot(X, dot(self.invSigma, X).T))
         else:
             print(X)
             X = [self.marginals[i].get_piecewise_cdfinv_interp()(X[i]) for i in range(len(X))]
-            Xa = asarray(X)
+            Xa = np.asarray(X)
             print(Xa)
 
             Xa = Xa.transpose(list(range(1, len(X[0].shape) + 1)) + [0])
@@ -893,7 +895,7 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=10):
     Y = np.linspace(a[1], b[1], 100)
     X, Y = np.meshgrid(X, Y)
     #XY = np.column_stack([X.ravel(), Y.ravel()])
-    #Z = asarray([f(xy) for xy in XY])
+    #Z = np.asarray([f(xy) for xy in XY])
     #Z.shape = (X.shape[0], Y.shape[0])
     Z = f(X, Y)
     #print "==", f,Z, (X<Y)
@@ -904,15 +906,15 @@ def plot_2d_distr(f, theoretical=None, have_3d = False, cont_levels=10):
     fig = plt.gcf()
 
     if have_3d:
-        #ax = fig.add_subplot(111, projection='3d')
-        ax = plt.gca(projection='3d')
+        ax = fig.add_subplot(projection='3d')
+        #ax = plt.gca(projection='3d')
         ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1, color='k', antialiased=True)
         #ax.plot_surface(X, Y, Z, rstride=1, cstride=1)
         ax.set_xlabel(f.Vars[0].getSymname())
         ax.set_ylabel(f.Vars[1].getSymname())
         if theoretical is not None:
-            plt.figure()
-            ax = plt.gca(projection='3d')
+            fig = plt.figure()
+            ax = fig.add_subplot(projection='3d')
             ax.plot_surface(X, Y, Z - Zt, rstride=1, cstride=1)
     else:
         #ax = fig.add_subplot(111)
@@ -945,8 +947,8 @@ def plot_1d1d_distr(free_distr, a, b, fun):
     Y = fun(X)
     Z = free_distr(X)
     #fig = plt.figure()
-    #ax = fig.add_subplot(111, projection='3d')
-    ax = plt.gca(projection='3d')
+    ax = gcf().add_subplot(projection='3d')
+    #ax = plt.gca(projection='3d')
     #ax = plt.gca()
     ax.plot_surface(np.vstack([X,X]), np.vstack([Y,Y]), np.vstack([np.zeros_like(Z),Z]),
                     cstride = 1, rstride = 1,# cmap=cm.jet,

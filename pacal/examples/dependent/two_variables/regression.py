@@ -5,7 +5,8 @@ from __future__ import print_function
 
 from functools import partial
 
-from numpy import linspace, isscalar, zeros_like, NaN, concatenate
+import numpy as np
+from numpy import linspace, isscalar, zeros_like, concatenate
 from pylab import plot, figure, legend, title
 
 from pacal import *
@@ -28,7 +29,7 @@ def plot_regression(F, Ybreaks = None):
         if isscalar(x):
             Xpdf = float(X.pdf(x))
             if Xpdf == 0:
-                y = NaN
+                y = np.nan
             else:
                 distr = FunDistr(fun = partial(cond_pdf, F, Xpdf, x),
                                  breakPoints = Ybreaks)
@@ -36,7 +37,7 @@ def plot_regression(F, Ybreaks = None):
                 if type==2: y = distr.median()
                 if type==3: y = distr.mode()  
                 if y is None:
-                    y = NaN
+                    y = np.nan
         else:
             y = zeros_like(x)
             for i in range(len(x)):
@@ -49,6 +50,9 @@ def plot_regression(F, Ybreaks = None):
     Xbreaks = concatenate([Xbreaks, [F.a[0], F.b[0]]])
     Xbreaks.sort()
     Xbreaks = epsunique(Xbreaks)
+    # avoid pdf(X) == 0 on edges
+    Xbreaks[0] += 1e-8
+    Xbreaks[-1] -= 1e-8
     mreg = PiecewiseFunction(fun=partial(regfun, 1), breakPoints=Xbreaks).toInterpolated()
     mreg.plot(label = "mean")
     mreg = PiecewiseFunction(fun=partial(regfun, 2), breakPoints=Xbreaks).toInterpolated()

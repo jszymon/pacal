@@ -92,7 +92,7 @@ class AdaptiveSparseGridInterpolator(object):
             par = params.interpolation_nd
         maxq = par.maxq
         q = self.q
-        max_q = q-self.d+1
+        #max_q = q-self.d+1
         ni = self.ni
         old_err = None
         cm = convergence_monitor(par = par.convergence)

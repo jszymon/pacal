@@ -11,6 +11,7 @@ from copy import copy
 from functools import partial
 import traceback
 
+import numpy as np
 from numpy import size, isnan, linspace, zeros, array, unique, isinf, zeros_like
 import sympy
 from pylab import legend, figure, plot, axis
@@ -495,21 +496,21 @@ class TwoVarsModel(Model):
         axcz, bxcz = self.solveCutsX(self.fun_alongx, ay, by)
         axc = axcz.subs(self.z, z)
         bxc = bxcz.subs(self.z, z)
-        if not axc.is_real:
+        if not axc.is_extended_real:  # allow inf
             axc = None
-        if not axc.is_real:
+        if not bxc.is_extended_real:
             bxc = None
         aycz, bycz = self.solveCutsY(self.fun_alongx, ax, bx)
         ayc = aycz.subs(self.z, z)
         byc = bycz.subs(self.z, z)
-        if not axc.is_real:
+        if not ayc.is_extended_real:
+            ayc = None
+        if not byc.is_extended_real:
             byc = None
-        if not axc.is_real:
-            byc = None
-        #print "========"
-        #print ay, ayc, by
-        #print ay, byc, by
-        #print ax,bx,axc, bxc
+        #print("========")
+        #print(ay, ayc, by)
+        #print(ay, byc, by)
+        #print(ax,bx,axc, bxc)
         if (ay < ayc and ayc < by):
             L = ax
         else:
@@ -636,7 +637,7 @@ class TwoVarsModel(Model):
         y = self.symvars[1]
         lop = sympy.lambdify([x, y], op, "numpy")
         if size(xx) == 1:
-            xx = asarray([xx])
+            xx = np.asarray([xx], dtype=float)
         wyn = zeros_like(xx)
         P = self.nddistr
         #fun = lambda t : P.cdf(t, self.lfun_alongx(t, array([zj]))) * abs(self.lJx(t, array([zj])))
