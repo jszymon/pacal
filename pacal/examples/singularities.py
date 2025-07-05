@@ -6,8 +6,6 @@ from __future__ import print_function
 
 from functools import partial
 from pylab import *
-from mpl_toolkits.axes_grid.inset_locator import zoomed_inset_axes
-from mpl_toolkits.axes_grid.inset_locator import mark_inset
 
 from pacal import *
 from pacal.distr import demo_distr
@@ -37,12 +35,15 @@ if __name__ == "__main__":
     d.plot()
     d.hist()
     ax=gca()
-    axins = zoomed_inset_axes(ax, 6, loc=1)
     d.plot(xmin=-1.5, xmax=1.5)
-    axins.set_xlim(-1.5, 1.5)
     xticks(rotation="vertical")
+    axins = ax.inset_axes([0.6, 0.55, 0.4, 0.4])
+    axins.set_xlim(-1.5, 1.5)
     axins.set_ylim(0, 0.01)
-    mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+    gcf().add_axes(axins)
+    sca(axins)
+    d.plot()
+    ax.indicate_inset_zoom(axins, fc="none", ec="0.5")
     #show()
 
     figure()
@@ -50,12 +51,15 @@ if __name__ == "__main__":
     d.plot()
     d.hist()
     ax=gca()
-    axins = zoomed_inset_axes(ax, 12000, loc=1)
+    axins = ax.inset_axes([0.6, 0.55, 0.4, 0.4])
     d.plot(xmin=-.001, xmax=.001)
     axins.set_xlim(-.001, .001)
     xticks(rotation="vertical")
     axins.set_ylim(0.000072, 0.000075)
-    mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
+    gcf().add_axes(axins)
+    sca(axins)
+    d.plot()
+    ax.indicate_inset_zoom(axins, fc="none", ec="0.5")
     #show()
 
 

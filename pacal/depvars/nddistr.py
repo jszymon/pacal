@@ -155,7 +155,7 @@ class NDFun(object):
 #                else:
 #                    y = integrate_fejer2(partial(integ_f, self, arg, c_var, v1, X, self.d), self.a[v1], self.b[v1])
 #                return y[0]
-#            y = asfarray(zeros_like(X[0]))
+#            y = zeros_like(X[0])
 #            for i in xrange(len(X[0])):
 #                # TODO: fix integration bounds!!!!
 #                if hasattr(self, "f"):

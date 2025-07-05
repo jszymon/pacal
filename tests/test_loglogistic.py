@@ -4,9 +4,10 @@ from pacal import LogLogisticDistr
 
 
 class TestLogLogistic:
-    def setup_class(self):
+    @classmethod
+    def setup_class(cls):
         test_ks = [0.2, 0.5, 0.99, 1, 1.5, 2, 2.5, 5, 10, 100]
-        self.distrs = [LogLogisticDistr(k) for k in test_ks]
+        cls.distrs = [LogLogisticDistr(k) for k in test_ks]
     def test_int_error(self):
         for d in self.distrs:
             assert np.abs(d.int_error() <= 2.5e-15)

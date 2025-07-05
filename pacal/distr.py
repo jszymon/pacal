@@ -674,7 +674,7 @@ class AtanDistr(FuncDistr):
                 y = numpy.tan(x)
         else:
             mask = (x > -pi/2) & (x < pi/2)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = numpy.tan(x[mask])
         return y
     def f_inv_deriv(self, x):
@@ -685,7 +685,7 @@ class AtanDistr(FuncDistr):
                 y = 1 + numpy.tan(x)**2
         else:
             mask = (x > -pi/2) & (x < pi/2)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 1 + numpy.tan(x[mask])**2
         return y
 
@@ -712,7 +712,7 @@ class TanhDistr(FuncDistr):
                 y = 0.5 * numpy.log((1.0+x) / (1.0-x))
         else:
             mask = (x > -1) & (x < 1)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 0.5 * numpy.log((1.0+x[mask]) / (1.0-x[mask]))
         return y
     def f_inv_deriv(self, x):
@@ -723,7 +723,7 @@ class TanhDistr(FuncDistr):
                 y = 1.0 / (1 - x**2)
         else:
             mask = (x > -1) & (x < 1)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 1.0 / (1 - x[mask]**2)
         return y
 
@@ -749,7 +749,7 @@ class SigmoidDistr(FuncDistr):
                 ex = numpy.exp(x)
                 y =  ex / (ex + 1.0)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = (x > 0)
             y[mask] = 1.0 / (1.0 + numpy.exp(-x[mask]))
             ex = numpy.exp(x[~mask])
@@ -763,7 +763,7 @@ class SigmoidDistr(FuncDistr):
                 y = numpy.log(x / (1.0-x))
         else:
             mask = (x > -1) & (x < 1)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = numpy.log(x[mask] / (1.0-x[mask]))
         return y
     def f_inv_deriv(self, x):
@@ -774,7 +774,7 @@ class SigmoidDistr(FuncDistr):
                 y = 1.0 / (x*(1 - x))
         else:
             mask = (x > -1) & (x < 1)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 1.0 / (x[mask] * (1 - x[mask]))
         return y
 
@@ -789,7 +789,7 @@ def sigmoid(d):
             ex = numpy.exp(x)
             y =  ex / (ex + 1.0)
     else:
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x, dtype=float)
         mask = (x > 0)
         y[mask] = 1.0 / (1.0 + numpy.exp(-x[mask]))
         ex = numpy.exp(x[~mask])
@@ -806,7 +806,7 @@ class InvDistr(InvRV, OpDistr):
         if isscalar(x):
             y = self.d.pdf(1.0/x)/x**2
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = x != 0
             y[mask] = y = self.d.pdf(1.0/x[mask])/x[mask]**2
         return y
@@ -821,7 +821,7 @@ class InvDistr(InvRV, OpDistr):
                 y = Inf # TODO: put nan here
         else:
             mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 1.0 / x[mask]  # to powoduje bledy w odwrotnosci
             #y = 1.0 / x
         return y
@@ -831,7 +831,7 @@ class InvDistr(InvRV, OpDistr):
             y = 1/x**2
         else:
             mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = 1/(x[mask])**2
         return y
     def init_piecewise_pdf(self):
@@ -851,7 +851,7 @@ class PowDistr(PowRV, OpDistr):
         if isscalar(x):
             y = self.d.pdf(1.0/x)/x**2
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = x != 0
             y[mask] = y = self.d.pdf(1.0/x[mask])/x[mask]**2
         return y
@@ -869,7 +869,7 @@ class PowDistr(PowRV, OpDistr):
                 y = 0 # TODO: put nan here
         else:
             mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = x[mask] ** (self.alpha)
         return y
     def f_inv(self, x):
@@ -880,7 +880,7 @@ class PowDistr(PowRV, OpDistr):
                 y = 0 # TODO: put nan here
         else:
             mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = x[mask] ** self.alpha_inv
         return y
     def f_inv_deriv(self, x):
@@ -888,7 +888,7 @@ class PowDistr(PowRV, OpDistr):
             y = self.alpha_inv * x ** self.exp_deriv
         else:
             mask = (x != 0.0)
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             y[mask] = self.alpha_inv * x ** self.exp_deriv
         return y
 
@@ -906,7 +906,7 @@ class AbsDistr(OpDistr):
             else:
                 y = self.d.pdf(-x) + self.d.pdf(x)
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = x >= 0
             y[mask] = self.d.pdf(-x[mask]) + self.d.pdf(x[mask])
         return y

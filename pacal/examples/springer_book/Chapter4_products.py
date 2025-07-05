@@ -101,10 +101,10 @@ if __name__ == "__main__":
     
     #! Exercise 4.2
     figure()
-    from numpy import zeros_like, asfarray
+    from numpy import zeros_like, asarray
     def prod_uni_uni(mu1, mu2, x):
         assert mu1 > 0.5 and mu2 > 0.5 and mu1 > mu2
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x, dtype=float)
         mask = (x > (mu1-0.5)*(mu2+0.5)) & (x <= (mu1+0.5)*(mu2+0.5))
         y[mask] = -log(x[mask] / (mu1+0.5) / (mu2+0.5))
         mask = (x > (mu1+0.5)*(mu2-0.5)) & (x <= (mu1-0.5)*(mu2+0.5))

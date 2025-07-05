@@ -20,6 +20,8 @@ import warnings
 
 from functools import partial
 
+import numpy as np
+
 from numpy import array, asarray, zeros_like, ones_like, asarray, atleast_1d
 from numpy import array_split, concatenate, squeeze
 from numpy import where, dot, zeros
@@ -817,7 +819,7 @@ class PInfInterpolator(object):
             # don't need an asymptotic interpolator
             self.x_vb_max = None
             self.vl = None
-            self.U = Inf
+            self.U = np.inf
         else:
             x_vb_min = 0 # TODO:  to add somthing like this
             for i, y in enumerate(ys):

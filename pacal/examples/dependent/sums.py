@@ -18,7 +18,7 @@ rc('legend', fontsize=17.0)
 
 linestyles = ["-", "--", "-.", ":"]
 pfargs = {"linewidth":3, "color":"k", "dash_joinstyle":"round"}
-from numpy import ceil, isscalar, zeros_like, asfarray
+from numpy import ceil, isscalar, zeros_like
 
 n = 5
 X = [0]*n

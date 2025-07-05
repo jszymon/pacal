@@ -168,7 +168,7 @@ class NormalDistr(Distr):
     def getName(self):
         return "N({0},{1})".format(self.mu, self.sigma)
     def range(self):
-        return -Inf, Inf
+        return -np.inf, np.inf
 
 class UniformDistr(Distr):
     def __init__(self, a = 0.0, b = 1.0, **kwargs):
@@ -243,7 +243,7 @@ class CauchyDistr(Distr):
     def getName(self):
         return "Cauchy({0},{1})".format(self.center, self.gamma)
     def range(self):
-        return -Inf, Inf
+        return -np.inf, np.inf
 
 class ChiSquareDistr(Distr):
     def __init__(self, df = 1, **kwargs):
@@ -253,14 +253,14 @@ class ChiSquareDistr(Distr):
         self.df2 = df / 2.0
         self.lg_norm = lgamma(self.df2) + self.df2 * log(2)
         if self.df == 1:
-            self.pdf_at_0 = Inf
-            self.lpdf_at_0 = Inf
+            self.pdf_at_0 = np.inf
+            self.lpdf_at_0 = np.inf
         elif self.df == 2:
             self.pdf_at_0 = 0.5
             self.lpdf_at_0 = log(0.5)
         else:
             self.pdf_at_0 = 0
-            self.lpdf_at_0 = -Inf
+            self.lpdf_at_0 = -np.inf
     def log_pdf(self, x):
         lpdf = (self.df2 - 1) * log(x) - x/2.0 - self.lg_norm
         return lpdf
@@ -283,13 +283,13 @@ class ChiSquareDistr(Distr):
         wrapped_pdf = wrap_pdf(self.pdf)
         if 1 <= self.df <= 20:
             self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
-                                                   breakPoints = [0.0, self.df/2.0, self.df*2.0, Inf],
+                                                   breakPoints = [0.0, self.df/2.0, self.df*2.0, np.inf],
                                                    lpoles=[True, False, False, False])
         elif 20 < self.df:
             mean = self.df
             std = sqrt(2 * self.df)
             self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
-                                                        breakPoints =[0.0, self.df*0.75, self.df*4.0/3.0,  Inf],
+                                                        breakPoints =[0.0, self.df*0.75, self.df*4.0/3.0,  np.inf],
                                                         lpoles=[True, False, False, False])
 
         else:
@@ -318,7 +318,7 @@ class ChiSquareDistr(Distr):
     def getName(self):
         return "Chi2({0})".format(self.df)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
 class ExponentialDistr(Distr):
     def __init__(self, lmbda = 1, **kwargs):
@@ -347,7 +347,7 @@ class ExponentialDistr(Distr):
     def getName(self):
         return "ExpD({0})".format(self.lmbda)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
 class GammaDistr(Distr):
     def __init__(self, k = 2, theta = 2, **kwargs):
@@ -358,14 +358,14 @@ class GammaDistr(Distr):
         self.theta = theta
         self.lg_norm = lgamma(self.k) + self.k * log(self.theta)
         if self.k < 1:
-            self.pdf_at_0 = Inf
-            self.lpdf_at_0 = Inf
+            self.pdf_at_0 = np.inf
+            self.lpdf_at_0 = np.inf
         elif self.k == 1:
             self.pdf_at_0 = 1.0 / self.theta
             self.lpdf_at_0 = -log(self.theta)
         else:
             self.pdf_at_0 = 0
-            self.lpdf_at_0 = -Inf
+            self.lpdf_at_0 = -np.inf
     def log_pdf(self, x):
         lpdf = (self.k - 1) * log(x) - x / self.theta - self.lg_norm
         return lpdf
@@ -406,7 +406,7 @@ class GammaDistr(Distr):
     def getName(self):
         return "Gamma({0},{1})".format(self.k, self.theta)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
 class BetaDistr(Distr):
     def __init__(self, alpha = 1, beta = 1, **kwargs):
@@ -487,7 +487,7 @@ class ParetoDistr(Distr):
     def getName(self):
         return "Pareto({0},{1})".format(self.alpha, self.xmin)
     def range(self):
-        return self.xmin, Inf
+        return self.xmin, np.inf
 
 class LevyDistr(Distr):
     def __init__(self, c = 1.0, xmin = 0.0, **kwargs):
@@ -520,7 +520,7 @@ class LevyDistr(Distr):
     def getName(self):
         return "Levy({0},{1})".format(self.c, self.xmin)
     def range(self):
-        return self.xmin, Inf
+        return self.xmin, np.inf
 
 class LaplaceDistr(Distr):
     def __init__(self, lmbda = 1.0, mu = 0.0, **kwargs):
@@ -547,7 +547,7 @@ class LaplaceDistr(Distr):
     def getName(self):
         return "Laplace({0},{1})".format(self.lmbda, self.mu)
     def range(self):
-        return -Inf, Inf
+        return -np.inf, np.inf
 
 class StudentTDistr(Distr):
     def __init__(self, df = 2, **kwargs):
@@ -573,7 +573,7 @@ class StudentTDistr(Distr):
     def getName(self):
         return "StudentT({0})".format(self.df)
     def range(self):
-        return -Inf, Inf
+        return -np.inf, np.inf
 
 class SemicircleDistr(Distr):
     def __init__(self, R = 1.0, **kwargs):
@@ -613,7 +613,7 @@ class FDistr(Distr):
         self.df2 = float(df2)
         self.lg_norm = self.df2 / 2 * log(self.df2) + lgamma((self.df1 + self.df2) / 2) - lgamma(self.df1 / 2) - lgamma(self.df2 / 2)
         if self.df1 < 2:
-            self.pdf_at_0 = Inf
+            self.pdf_at_0 = np.inf
         elif self.df1 == 2:
             self.pdf_at_0 = 1
         else:
@@ -655,7 +655,7 @@ class FDistr(Distr):
     def getName(self):
         return "F({0},{1})".format(self.df1, self.df2)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
 class WeibullDistr(Distr):
     def __init__(self, k = 3, lmbda = 1, **kwargs):
@@ -666,7 +666,7 @@ class WeibullDistr(Distr):
         self.lmbda = lmbda
         self.nrm = float(self.k) / self.lmbda
         if self.k < 1:
-            self.pdf_at_0 = Inf
+            self.pdf_at_0 = np.inf
         elif self.k == 1:
             self.pdf_at_0 = 1
         else:
@@ -690,17 +690,17 @@ class WeibullDistr(Distr):
         wrapped_pdf = wrap_pdf(self.pdf)
         if self.k <= 1:
             self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
-                                                       breakPoints = [0.0, self.k, Inf],
+                                                       breakPoints = [0.0, self.k, np.inf],
                                                        lpoles=[True, False, False])
         else:
             mode = self.lmbda * (float(self.k - 1) / self.k)**(1.0/self.k)
             if self.k == floor(self.k):
                 self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
-                                                           breakPoints = [0.0, mode, Inf],
+                                                           breakPoints = [0.0, mode, np.inf],
                                                            lpoles=[False, False, False])
             else:
                 self.piecewise_pdf = PiecewiseDistribution(fun = wrapped_pdf,
-                                                           breakPoints = [0.0, mode, Inf],
+                                                           breakPoints = [0.0, mode, np.inf],
                                                            lpoles=[True, False, False])
     def rand_raw(self, n = None):
         return self.lmbda * weibull(self.k, n)
@@ -709,7 +709,7 @@ class WeibullDistr(Distr):
     def getName(self):
         return "Weibull({0},{1})".format(self.k, self.lmbda)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
 class GumbelDistr(Distr):
     def __init__(self, mu = 0, sigma = 1, **kwargs):
@@ -726,7 +726,7 @@ class GumbelDistr(Distr):
             else:
                 y = self.one_over_sigma * exp(t - exp(t))
         else:
-            y = zeros_like(asfarray(x))
+            y = zeros_like(x, dtype=float)
             mask = (t <= _MAX_EXP_ARG)
             y[mask] = self.one_over_sigma * exp(t[mask] - exp(t[mask]))
         return y
@@ -746,7 +746,7 @@ class GumbelDistr(Distr):
     def getName(self):
         return "Gumbel({0},{1})".format(self.mu, self.sigma)
     def range(self):
-        return 0.0, Inf # TODO check it
+        return 0.0, np.inf # TODO check it
 
 class FrechetDistr(Distr):
     def __init__(self, alpha = 2, s = 1, m = 0, **kwargs):
@@ -789,7 +789,7 @@ class FrechetDistr(Distr):
     def getName(self):
         return "Frechet({0},{1},{2})".format(self.alpha, self.s, self.m)
     def range(self):
-        return 0.0, Inf # TODO check it
+        return 0.0, np.inf # TODO check it
 
 
 #f(x;\alpha ,\beta )= (k/s) * (x/s)**(k-1) / ((1 + (x/s)**k)**2)  # Wikipedia form
@@ -858,7 +858,7 @@ class LogLogisticDistr(Distr):
     def getName(self):
         return "LogLogistic({},{})".format(self.k, self.s)
     def range(self):
-        return 0.0, Inf
+        return 0.0, np.inf
 
     
 class MollifierDistr(Distr):

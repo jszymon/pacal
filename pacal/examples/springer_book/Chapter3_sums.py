@@ -95,11 +95,11 @@ if __name__ == "__main__":
     #!
     #! 'warning': this formula is very inaccurate for large n!
     #! much worse than our results!
-    from numpy import ceil, isscalar, zeros_like, asfarray
+    from numpy import ceil, isscalar, zeros_like
     def uniform_sum_pdf(n, xx):
         if isscalar(xx):
-            xx = asfarray(xx)
-        y = zeros_like(asfarray(xx))
+            xx = asarray(xx, dtype=float)
+        y = zeros_like(xx, dtype=float)
         for j, x in enumerate(xx):
             r = int(ceil(x))
             if r <= 0 or r > n:

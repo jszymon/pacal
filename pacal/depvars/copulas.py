@@ -798,7 +798,7 @@ def convmeanx(F, G, segList, xx, p=0.5, q=0.5, theta=2):
     """Probabilistic weighted mean of f and g, integral at points xx
     """
     if size(xx) == 1:
-        xx = asfarray([xx])
+        xx = asarray([xx], dtype=float)
     wyn = zeros_like(xx)
     #P = PiCopula()
     #P = GumbelCopula(theta)

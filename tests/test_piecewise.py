@@ -281,7 +281,7 @@ def sqrrrootdistr(x, _n = 1):
             y = 1.0 / sqrt(x)
     else:
         mask = (x > 0) & (x <= 1)
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x, dtype=float)
         y[mask] = 1.0 / sqrt(x[mask])
     return y / 2
 def sqrrrootdistr2(x, _n = 1):

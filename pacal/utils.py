@@ -385,7 +385,7 @@ def stepfun(x, shift = 0.0):
             return 1.0
     else:
         mask = (x >= 0.0)
-        y = zeros_like(asfarray(x))
+        y = zeros_like(x, dtype=float)
         y[mask] = 1.0
         return y
 
